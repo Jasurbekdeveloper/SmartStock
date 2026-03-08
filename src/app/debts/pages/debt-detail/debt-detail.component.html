@@ -1,0 +1,49 @@
+<div class="max-w-2xl mx-auto">
+  @if (debt) {
+  <h1 class="text-3xl font-bold mb-8">Debt Details</h1>
+
+  <div class="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <p class="text-gray-600 text-sm">Customer ID</p>
+        <p class="text-lg font-semibold">{{ debt.customerId }}</p>
+      </div>
+      <div>
+        <p class="text-gray-600 text-sm">Created Date</p>
+        <p class="text-lg font-semibold">{{ debt.createdAt | date: 'short' }}</p>
+      </div>
+      <div>
+        <p class="text-gray-600 text-sm"> {{ 'debts.totalAmount' | translate }}</p>
+        <p class="text-lg font-semibold">${{ debt.totalAmount.toFixed(2) }}</p>
+      </div>
+      <div>
+        <p class="text-gray-600 text-sm"> {{ 'debts.paidAmount' | translate }}</p>
+        <p class="text-lg font-semibold">${{ debt.paidAmount.toFixed(2) }}</p>
+      </div>
+      <div class="col-span-2">
+        <p class="text-gray-600 text-sm"> {{ 'debts.remainingAmount' | translate }}</p>
+        <p class="text-2xl font-bold text-red-600">${{ debt.remainingAmount.toFixed(2) }}</p>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-gray-700 font-medium mb-2"> {{ 'debts.paymentAmount' | translate }}</label>
+      <input
+        type="number"
+        [(ngModel)]="paymentAmount"
+        step="0.01"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+        placeholder="Enter payment amount"
+      />
+    </div>
+
+    <button
+      (click)="payDebt()"
+      [disabled]="paymentAmount <= 0"
+      class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition font-bold"
+    >
+      {{ 'debts.processPayment' | translate }}
+    </button>
+  </div>
+  }
+</div>

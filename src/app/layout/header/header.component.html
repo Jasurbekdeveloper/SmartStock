@@ -1,0 +1,59 @@
+<header class="bg-blue-600 dark:bg-blue-800 text-white p-4 shadow-lg transition-colors">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-2xl font-bold">SmartStock</h1>
+    <div class="flex items-center gap-2">
+      <!-- Language Selector -->
+      <div class="relative">
+        <button
+          (click)="toggleLanguageMenu()"
+          class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded text-sm font-medium transition-colors"
+          title="Change Language"
+        >
+          🌐 {{ translationService.getLanguage() }}
+        </button>
+        @if (isLanguageMenuOpen) {
+        <div class="absolute top-12 right-0 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow-lg z-50 min-w-max">
+          @for (lang of languages; track $index) {
+          <button
+            (click)="setLanguage(lang.code)"
+            [class.bg-blue-100]="translationService.getLanguage() === lang.code"
+            [class.dark:bg-blue-900]="translationService.getLanguage() === lang.code"
+            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            {{ lang.name }}
+          </button>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Theme Switcher -->
+      <button
+        (click)="toggleTheme()"
+        class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded text-sm font-medium transition-colors"
+        [title]="themeService.getTheme() === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'"
+      >
+        {{ themeService.getTheme() === 'light' ? '🌙' : '☀️' }}
+      </button>
+
+      <!-- User Menu -->
+      <span class="text-sm">{{ userName }}</span>
+      <button
+        (click)="toggleDropdown()"
+        class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded transition-colors"
+      >
+        ⋮
+      </button>
+      @if (isDropdownOpen) {
+      <div class="absolute top-12 right-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow-lg z-50">
+        <button
+          (click)="logout()"
+          class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          {{ translationService.t('common.logout') }}
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+</header>

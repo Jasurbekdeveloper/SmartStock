@@ -1,0 +1,48 @@
+<div class="space-y-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for (stat of stats(); track $index) {
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition"
+      [ngClass]="'border-l-4 border-' + stat.color + '-500'"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">{{ stat.label | translate }} </p>
+          <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ stat.value }}</p>
+        </div>
+        <span class="text-4xl">{{ stat.icon }}</span>
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">{{ 'dashboard.recentSales' | translate }}</h2>
+    @if (sales().length > 0) {
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.saleId' | translate }}</th>
+            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.items' | translate }}</th>
+            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.total' | translate }}</th>
+            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sale of sales().slice(0, 10); track $index) {
+          <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.id }}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.items.length }}</td>
+            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">${{ sale.total.toFixed(2) }}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    } @else {
+    <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.noSalesYet' | translate }}</p>
+    }
+  </div>
+</div>

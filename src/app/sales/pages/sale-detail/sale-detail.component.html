@@ -1,0 +1,73 @@
+<div class="max-w-2xl mx-auto">
+  @if (sale) {
+  <div class="bg-white rounded-lg shadow-md p-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Sale Receipt</h1>
+
+    <div class="space-y-4 mb-8">
+      <div class="flex justify-between">
+        <span class="text-gray-600">Sale ID:</span>
+        <span class="font-semibold">{{ sale.id }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-600">Date:</span>
+        <span class="font-semibold">{{ sale.createdAt | date: 'medium' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-600">Payment Method:</span>
+        <span class="font-semibold capitalize">{{ sale.paymentMethod }}</span>
+      </div>
+    </div>
+
+    <table class="w-full mb-8">
+      <thead class="border-b-2 border-gray-400">
+        <tr>
+          <th class="text-left py-2">Item</th>
+          <th class="text-right py-2">Qty</th>
+          <th class="text-right py-2">Price</th>
+          <th class="text-right py-2">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of sale.items; track $index) {
+        <tr class="border-b">
+          <td class="py-2">{{ item.product?.name || 'Unknown' }}</td>
+          <td class="text-right">{{ item.quantity }}</td>
+          <td class="text-right">${{ item.price.toFixed(2) }}</td>
+          <td class="text-right font-semibold">${{ item.total.toFixed(2) }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="space-y-2 text-lg mb-8 border-t-2 border-gray-400 pt-4">
+      <div class="flex justify-between">
+        <span>Subtotal:</span>
+        <span>${{ sale.subtotal.toFixed(2) }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Tax:</span>
+        <span>${{ sale.tax.toFixed(2) }}</span>
+      </div>
+      <div class="flex justify-between font-bold text-lg">
+        <span>Total:</span>
+        <span class="text-blue-600">${{ sale.total.toFixed(2) }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Paid:</span>
+        <span>${{ sale.paidAmount.toFixed(2) }}</span>
+      </div>
+      <div class="flex justify-between text-green-600 font-bold">
+        <span>Change:</span>
+        <span>${{ sale.change.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <button
+      (click)="printReceipt()"
+      class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-bold"
+    >
+      🖨️ Print Receipt
+    </button>
+  </div>
+  }
+</div>

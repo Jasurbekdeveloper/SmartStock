@@ -1,0 +1,49 @@
+<nav class="bg-gray-900 dark:bg-gray-950 text-white h-screen transition-all" [class.w-64]="isOpen()" [class.w-20]="!isOpen()">
+  <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+    @if (isOpen()) {
+    <h2 class="text-xl font-bold">{{ 'navigation.menu' | translate }}</h2>
+    }
+    <button (click)="toggleSidebar()" class="hover:bg-gray-800 dark:hover:bg-gray-800 p-2 rounded">
+      ☰
+    </button>
+  </div>
+
+  <ul class="mt-4">
+    @for (item of menuItems; track $index) {
+    <li class="mb-2">
+      <div
+        (click)="toggleMenu(item)"
+        [routerLink]="item.children ? null : item.path"
+        class="px-4 py-3 hover:bg-gray-800 cursor-pointer flex justify-between items-center transition"
+      >
+        <div class="flex items-center gap-3">
+          <span class="text-xl">{{ item.icon }}</span>
+          @if (isOpen()) {
+          <span class="text-sm">{{ item.label | translate }}</span>
+          }
+        </div>
+        <!-- @if (item.children && isOpen()) {
+        <span class="text-xs">
+          {{ expandedMenu() === item.label ? '▼' : '▶' }}
+        </span>
+        } -->
+      </div>
+
+      @if (item.children && expandedMenu() === item.label && isOpen()) {
+      <ul class="ml-12 mt-2">
+        @for (child of item.children; track $index) {
+        <li class="mb-1">
+          <a
+            [routerLink]="child.path"
+            class="block px-4 py-2 text-sm hover:bg-gray-800 rounded transition"
+          >
+            {{ child.label | translate }}
+          </a>
+        </li>
+        }
+      </ul>
+      }
+    </li>
+    }
+  </ul>
+</nav>

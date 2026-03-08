@@ -1,0 +1,25 @@
+<div class="space-y-8">
+  <h1 class="text-3xl font-bold dark:text-white">{{ 'statistics.title' | translate }}</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+      <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.totalSales' | translate }}</p>
+      <p class="text-3xl font-bold dark:text-white">{{ totalSales() }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-green-500">
+      <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.totalRevenue' | translate }}</p>
+      <p class="text-3xl font-bold text-green-600 dark:text-green-400">${{ totalRevenue().toFixed(2) }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+      <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.averageOrderValue' | translate }}</p>
+      <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">${{ averageOrderValue().toFixed(2) }}</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+      <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.topPaymentMethod' | translate }}</p>
+      <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ topPaymentMethod() }}</p>
+    </div>
+  </div>
+</div>

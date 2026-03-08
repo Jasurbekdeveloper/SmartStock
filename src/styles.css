@@ -1,3 +1,44 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Light mode */
+body {
+  @apply bg-gray-50 text-gray-900 transition-colors duration-200;
+}
+
+/* Dark mode */
+html.dark body {
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* Dark mode for common elements */
+html.dark {
+  --tw-bg-opacity: 1;
+}
+
+html.dark button {
+  @apply transition-colors duration-200;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  @apply bg-gray-800 text-white border-gray-700;
+}
+
+html.dark table {
+  @apply border-gray-700;
+}
+
+html.dark tr:hover {
+  @apply bg-gray-800;
+}

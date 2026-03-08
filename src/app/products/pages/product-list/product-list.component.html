@@ -1,0 +1,51 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
+    <a href="/products/create" class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900">
+      + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
+    </a>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.name' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.barcode' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.price' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.cost' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.quantity' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of products(); track $index) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ product.name }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">${{ product.price.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ product.cost.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.quantity }}</td>
+          <td class="px-4 py-3">
+            <button
+              (click)="editProduct(product.id)"
+              class="text-blue-600 hover:text-blue-800 mr-3"
+            >
+              {{ 'buttons.edit' | translate }}
+            </button>
+            <button
+              (click)="deleteProduct(product.id)"
+              class="text-red-600 hover:text-red-800"
+            >
+              {{ 'buttons.delete' | translate }}
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (products().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.noProducts' | translate }}</p>
+    }
+  </div>
+</div>

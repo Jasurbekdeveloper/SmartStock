@@ -1,0 +1,19 @@
+.stat-card {
+  border-left: 4px solid;
+}
+
+.stat-card.blue {
+  border-color: #3b82f6;
+}
+
+.stat-card.green {
+  border-color: #10b981;
+}
+
+.stat-card.purple {
+  border-color: #8b5cf6;
+}
+
+.stat-card.orange {
+  border-color: #f97316;
+}

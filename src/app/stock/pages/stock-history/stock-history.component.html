@@ -1,0 +1,33 @@
+<div class="space-y-6">
+  <h1 class="text-3xl font-bold dark:text-white">{{ 'stock.stockHistory' | translate }}</h1>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.productId' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.quantity' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.supplier' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.costPrice' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.totalCost' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of stockEntries(); track $index) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.productId }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.quantity }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.supplier }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ entry.costPrice.toFixed(2) }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">${{ entry.totalCost.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (stockEntries().length === 0) {
+      <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'messages.noStockEntriesFound' | translate }}</p>
+    }
+  </div>
+</div>

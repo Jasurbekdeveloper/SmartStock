@@ -1,0 +1,31 @@
+<div class="space-y-6">
+  <h1 class="text-3xl font-bold dark:text-white">{{ 'debts.title' | translate }}</h1>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.customerId' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.totalAmount' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.paidAmount' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.remainingAmount' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (debt of debts(); track $index) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.customerId }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ debt.totalAmount.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ debt.paidAmount.toFixed(2) }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">${{ debt.remainingAmount.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.createdAt | date: 'short' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (debts().length === 0) {
+      <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'debts.noDebtsFound' | translate }}</p>
+    }
+  </div>
+</div>

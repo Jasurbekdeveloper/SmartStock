@@ -1,0 +1,41 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold dark:text-white">{{ 'sales.salesHistory' | translate }}</h1>
+    <button
+      (click)="exportToCSV()"
+      class="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition"
+    >
+      📥 {{ 'sales.exportCSV' | translate }}
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.saleId' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.items' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.total' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'sales.paymentMethod' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sale of sales(); track $index) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.id }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.items.length }}</td>
+          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">${{ sale.total.toFixed(2) }}</td>
+          <td class="px-4 py-3 capitalize text-gray-900 dark:text-white">{{ sale.paymentMethod }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (sales().length === 0) {
+    <p class="p-8 text-center text-gray-500 dark:text-gray-400">
+      {{ 'messages.noSalesYet' | translate }}
+    </p>
+    }
+  </div>
+</div>

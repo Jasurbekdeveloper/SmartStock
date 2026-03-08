@@ -1,0 +1,59 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8">Stock In</h1>
+
+  <form (ngSubmit)="addStock()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Product ID</label>
+        <input
+          type="text"
+          [(ngModel)]="newEntry.productId"
+          name="productId"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          placeholder="Enter product ID"
+        />
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Quantity</label>
+        <input
+          type="number"
+          [(ngModel)]="newEntry.quantity"
+          name="quantity"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          placeholder="0"
+        />
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Supplier</label>
+        <input
+          type="text"
+          [(ngModel)]="newEntry.supplier"
+          name="supplier"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          placeholder="Supplier name"
+        />
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Cost Price</label>
+        <input
+          type="number"
+          [(ngModel)]="newEntry.costPrice"
+          name="costPrice"
+          step="0.01"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          placeholder="0.00"
+        />
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold"
+    >
+      Add Stock
+    </button>
+  </form>
+</div>

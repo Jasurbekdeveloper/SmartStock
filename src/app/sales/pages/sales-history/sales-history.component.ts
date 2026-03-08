@@ -1,12 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SalesService, Sale } from '../../../core/services/sales.service';
+import { CommonModule } from '@angular/common';import { TranslateModule } from '@ngx-translate/core';import { SalesService, Sale } from '../../../core/services/sales.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-sales-history',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, TranslateModule],
   templateUrl: './sales-history.component.html',
   styleUrl: './sales-history.component.css'
 })

@@ -1,13 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { Product, ProductService } from '../../../core/services/product.service';
+import { RouterModule, Router } from '@angular/router';import { TranslateModule } from '@ngx-translate/core';import { Product, ProductService } from '../../../core/services/product.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, TranslatePipe, TranslateModule],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })

@@ -18,7 +18,7 @@ export class PosComponent implements OnInit {
   filteredProducts = signal<Product[]>([]);
   selectedPaymentMethod = signal<'cash' | 'card' | 'check'>('cash');
   showPaymentModal = signal(false);
-  paidAmount = signal(0);
+  paidAmount = signal(100000);
 
   constructor(private productService: ProductService) {}
 

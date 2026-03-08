@@ -2,8 +2,8 @@ import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { TranslationService, type Language } from '../../core/services/translation.service';
 import { ThemeService, type Theme } from '../../core/services/theme.service';
+import { Language, TranslationService } from '../../core/services/translation.service';
 
 @Component({
   selector: 'app-header',
@@ -25,7 +25,7 @@ export class HeaderComponent {
   readonly languages: { code: Language; name: string }[] = [
     { code: 'en', name: 'English' },
     { code: 'ru', name: 'Русский' },
-    { code: 'uz-latin', name: "O'zbek (Latin)" },
+    { code: 'uz', name: "O'zbek (Latin)" },
     { code: 'uz-cyrillic', name: 'Ўзбек (Cyrillic)' }
   ];
 

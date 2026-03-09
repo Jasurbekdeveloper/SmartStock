@@ -54,7 +54,11 @@ export class SidebarComponent {
     { label: 'navigation.statistics', path: '/statistics', icon: '📈' }
   ];
 
-  toggleMenu(item: MenuItem) {
+    toggleMenu(item: MenuItem) {
+    if (!this.isOpen()) {
+      this.isOpen.set(true);
+    }
+
     if (item.children) {
       this.expandedMenu.set(
         this.expandedMenu() === item.label ? null : item.label

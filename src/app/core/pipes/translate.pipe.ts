@@ -31,10 +31,10 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
     
     // If translation key contains a dot character and result is the key itself,
     // it means the translation wasn't found
-    if (translation === key && key.includes('.')) {
-      console.warn(`Translation key not found: ${key}`);
-      return defaultValue || key;
-    }
+    // if (translation === key && key.includes('.')) {
+    //   console.warn(`Translation key not found: ${key}`);
+    //   return defaultValue || key;
+    // }
     
     return translation || defaultValue || key;
   }

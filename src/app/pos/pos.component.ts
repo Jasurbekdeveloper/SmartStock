@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { Product, ProductService } from '../core/services/product.service';
+import { Sign } from 'node:crypto';
 
 @Component({
   selector: 'app-pos',
@@ -16,11 +17,11 @@ export class PosComponent implements OnInit {
   cart = signal<CartItem[]>([]);
   searchQuery = signal('');
   filteredProducts = signal<Product[]>([]);
-  selectedPaymentMethod = signal<'cash' | 'card' | 'check'>('cash');
+  selectedPaymentMethod = signal<'cash' | 'card' | 'debit'>('cash');
   showPaymentModal = signal(false);
   paidAmount = signal(100000);
 
-  constructor(private productService: ProductService) {}
+  private productService: ProductService = inject(ProductService);
 
   ngOnInit() {
     this.productService.getProducts().subscribe(products => {
@@ -79,21 +80,17 @@ export class PosComponent implements OnInit {
     }
   }
 
-  getSubtotal() {
-    return this.cart().reduce((sum, item) => sum + item.total, 0);
-  }
+  subtotal = computed(() => 
+  this.cart().reduce((sum, item) => sum + item.total, 0)
+);
 
-  getTax() {
-    return this.getSubtotal() * 0.1;
-  }
+  tax = computed(() => this.subtotal() * 0.1);
 
-  getTotal() {
-    return this.getSubtotal() + this.getTax();
-  }
+  total = computed(() => this.subtotal() + this.tax());
 
-  getChange() {
-    return Math.max(0, this.paidAmount() - this.getTotal());
-  }
+  change = computed(() => 
+    Math.max(0, this.paidAmount() - this.total())
+  );
 
   completeSale() {
     if (this.cart().length === 0) {
@@ -101,12 +98,12 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    if (this.paidAmount() < this.getTotal()) {
+    if (this.paidAmount() < this.total()) {
       alert('Insufficient payment');
       return;
     }
 
-    alert('Sale completed! Change: $' + this.getChange().toFixed(2));
+    alert('Sale completed! Change: $' + this.change().toFixed(2));
     this.clearCart();
   }
 

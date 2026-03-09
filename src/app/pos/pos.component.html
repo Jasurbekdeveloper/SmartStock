@@ -23,7 +23,7 @@
         >
           <p class="font-bold text-lg text-gray-900 dark:text-white">{{ product.name }}</p>
           <p class="text-gray-600 dark:text-gray-400 text-sm">{{ product.barcode }}</p>
-          <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">${{ product.price.toFixed(2) }}</p>
+          <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">{{ product.price.toFixed(2) }} so'm</p>
           <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'stock.title' | translate }}: {{ product.quantity }}</p>
         </div>
         }
@@ -81,7 +81,7 @@
           </div>
         </div>
 
-        <p class="font-bold text-gray-900 dark:text-white">{{ 'pos.total' | translate }}: ${{ item.total.toFixed(2) }}</p>
+        <p class="font-bold text-gray-900 dark:text-white">{{ 'pos.total' | translate }}: {{ item.total.toFixed(2) }} so'm</p>
         }
       }
     </div>
@@ -90,15 +90,15 @@
     <div class="space-y-2 mb-4 font-semibold text-gray-900 dark:text-white">
       <div class="flex justify-between">
         <span>{{ 'pos.subtotal' | translate }}:</span>
-        <span>${{ getSubtotal().toFixed(2) }}</span>
+        <span>{{ subtotal().toFixed(2) }} so'm</span>
       </div>
       <div class="flex justify-between">
         <span>{{ 'pos.tax' | translate }} (10%):</span>
-        <span>${{ getTax().toFixed(2) }}</span>
+        <span>{{ tax().toFixed(2) }} so'm</span>
       </div>
       <div class="flex justify-between text-lg border-t border-gray-300 dark:border-gray-700 pt-2">
         <span>{{ 'pos.total' | translate }}:</span>
-        <span class="text-blue-600 dark:text-blue-400">${{ getTotal().toFixed(2) }}</span>
+        <span class="text-blue-600 dark:text-blue-400">{{ total().toFixed(2) }} so'm</span>
       </div>
     </div>
 
@@ -129,7 +129,7 @@
         <div class="space-y-4 mb-6">
           <div>
             <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'pos.paidAmount' | translate }}:</label>
-            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">${{ getTotal().toFixed(2) }}</p>
+            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ total().toFixed(2) }} so'm</p>
           </div>
 
           <div>
@@ -139,9 +139,9 @@
               (ngModelChange)="selectedPaymentMethod.set($event)"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="cash">{{ 'buttons.save' | translate }}</option>
-              <option value="card">{{ 'pos.checkout' | translate }}</option>
-              <option value="check">{{ 'buttons.cancel' | translate }}</option>
+              <option value="cash">{{ 'pos.cash' | translate }}</option>
+              <option value="card">{{ 'pos.card' | translate }}</option>
+              <option value="debit">{{ 'pos.debit' | translate }}</option>
             </select>
           </div>
 
@@ -153,14 +153,14 @@
               (ngModelChange)="paidAmount.set($event)"
               step="0.01"
               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Enter amount"
+              placeholder="Miqdorni kiriting"
             />
           </div>
 
           @if (paidAmount() > 0) {
           <div>
             <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'pos.change' | translate }}:</label>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400">${{ getChange().toFixed(2) }}</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ change().toFixed(2) }} so'm</p>
           </div>
           }
         </div>

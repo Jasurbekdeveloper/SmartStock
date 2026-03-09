@@ -19,8 +19,8 @@
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.productId }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.quantity }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.supplier }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ entry.costPrice.toFixed(2) }}</td>
-          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">${{ entry.totalCost.toFixed(2) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.costPrice.toFixed(2) }} so'm</td>
+          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ entry.totalCost.toFixed(2) }} so'm</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>
         </tr>
         }

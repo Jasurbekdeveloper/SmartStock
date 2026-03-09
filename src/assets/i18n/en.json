@@ -47,7 +47,10 @@
     "tax": "Tax",
     "total": "Total",
     "clearCart": "Clear Cart",
-    "proceedToPay": "PROCEED TO PAY"
+    "proceedToPay": "PROCEED TO PAY",
+    "cash": "Cash",
+    "card": "Card",
+    "debit": "Debt"
   },
   "stock": {
     "title": "Stock Management",

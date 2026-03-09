@@ -22,7 +22,6 @@ export class TranslationService {
   private initializeLanguage() {
     // Initialize supported languages
     this.translateService.addLangs(['en', 'ru', 'uz', 'uz-cyrillic']);
-    this.translateService.setDefaultLang('en');
     
     // Get saved language or default to 'en'
     const savedLanguage = this.getSavedLanguage();

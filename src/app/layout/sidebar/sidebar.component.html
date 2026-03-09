@@ -22,11 +22,6 @@
           <span class="text-sm">{{ item.label | translate }}</span>
           }
         </div>
-        <!-- @if (item.children && isOpen()) {
-        <span class="text-xs">
-          {{ expandedMenu() === item.label ? '▼' : '▶' }}
-        </span>
-        } -->
       </div>
 
       @if (item.children && expandedMenu() === item.label && isOpen()) {

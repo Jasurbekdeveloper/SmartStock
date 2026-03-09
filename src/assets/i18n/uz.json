@@ -47,7 +47,10 @@
     "tax": "Soliq",
     "total": "Umumiy jami",
     "clearCart": "Savdoni tozalash",
-    "proceedToPay": "TO'LASHGA O'TISH"
+    "proceedToPay": "TO'LASHGA O'TISH",
+    "cash": "Naqd",
+    "card": "Karta",
+    "debit": "Qarz"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",

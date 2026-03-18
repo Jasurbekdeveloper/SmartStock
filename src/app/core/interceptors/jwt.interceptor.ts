@@ -1,11 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest
+} from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   intercept(
     request: HttpRequest<any>,
@@ -21,6 +31,20 @@ export class JwtInterceptor implements HttpInterceptor {
       });
     }
 
-    return next.handle(request);
+    return next.handle(request).pipe(
+      catchError((err: unknown) => {
+        if (err instanceof HttpErrorResponse && err.status === 401) {
+          // Token expired/invalid or not authorized: clear session and go to login.
+          this.authService.logout();
+          if (this.router.url !== '/auth/login') {
+            this.router.navigate(['/auth/login'], {
+              queryParams: { returnUrl: this.router.url }
+            });
+          }
+        }
+
+        return throwError(() => err);
+      })
+    );
   }
 }

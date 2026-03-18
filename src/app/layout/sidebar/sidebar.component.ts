@@ -2,18 +2,19 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LucideAngularModule, BarChart3, CreditCard, Inbox, LayoutDashboard, Package, ShoppingCart, Menu } from 'lucide-angular';
 
 interface MenuItem {
   label: string;
   path: string;
-  icon?: string;
+  icon?: any;
   children?: MenuItem[];
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, TranslatePipe, LucideAngularModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
@@ -21,12 +22,14 @@ export class SidebarComponent {
   isOpen = signal(true);
   expandedMenu = signal<string | null>(null);
 
+  readonly MenuIcon = Menu;
+
   menuItems: MenuItem[] = [
-    { label: 'navigation.dashboard', path: '/dashboard', icon: '📊' },
+    { label: 'navigation.dashboard', path: '/dashboard', icon: LayoutDashboard },
     {
       label: 'navigation.pos',
       path: '/pos',
-      icon: '🛒',
+      icon: ShoppingCart,
       children: [
         { label: 'navigation.pos', path: '/pos' },
         { label: 'sales.salesHistory', path: '/sales/history' }
@@ -35,7 +38,7 @@ export class SidebarComponent {
     {
       label: 'navigation.products',
       path: '/products',
-      icon: '📦',
+      icon: Package,
       children: [
         { label: 'buttons.list', path: '/products/list' },
         { label: 'form.createProduct', path: '/products/create' }
@@ -44,14 +47,14 @@ export class SidebarComponent {
     {
       label: 'navigation.stock',
       path: '/stock',
-      icon: '📥',
+      icon: Inbox,
       children: [
         { label: 'stock.stockIn', path: '/stock/in' },
         { label: 'buttons.history', path: '/stock/history' }
       ]
     },
-    { label: 'navigation.debts', path: '/debts', icon: '💳' },
-    { label: 'navigation.statistics', path: '/statistics', icon: '📈' }
+    { label: 'navigation.debts', path: '/debts', icon: CreditCard },
+    { label: 'navigation.statistics', path: '/statistics', icon: BarChart3 }
   ];
 
     toggleMenu(item: MenuItem) {

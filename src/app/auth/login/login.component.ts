@@ -36,6 +36,7 @@ export class LoginComponent {
       next: () => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
         this.router.navigateByUrl(returnUrl);
+        console.log('Login successful');
       },
       error: (err) => {
         this.error.set('Login failed. Please try again.');

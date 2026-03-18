@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LucideAngularModule, BarChart3, CreditCard, Inbox, LayoutDashboard, Package, ShoppingCart, Menu } from 'lucide-angular';
+import { LucideAngularModule, ChartColumn, CreditCard, Inbox, LayoutDashboard, Package, ShoppingCart, Menu } from 'lucide-angular';
 
 interface MenuItem {
   label: string;
@@ -54,7 +54,7 @@ export class SidebarComponent {
       ]
     },
     { label: 'navigation.debts', path: '/debts', icon: CreditCard },
-    { label: 'navigation.statistics', path: '/statistics', icon: BarChart3 }
+    { label: 'navigation.statistics', path: '/statistics', icon: ChartColumn }
   ];
 
     toggleMenu(item: MenuItem) {

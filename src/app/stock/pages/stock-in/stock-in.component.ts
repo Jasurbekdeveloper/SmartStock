@@ -1,44 +1,66 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { StockService, StockEntry } from '../../../core/services/stock.service';
+import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Product, ProductService } from '../../../core/services/product.service';
+import { StockService } from '../../../core/services/stock.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-stock-in',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe, TranslateModule],
   templateUrl: './stock-in.component.html',
   styleUrl: './stock-in.component.css'
 })
 export class StockInComponent {
-  newEntry: Partial<StockEntry> = {
-    productId: '',
-    quantity: 0,
-    supplier: '',
-    costPrice: 0
-  };
+  private stockService = inject(StockService);
+  private productService = inject(ProductService);
+  private router = inject(Router);
 
-  private stockService: StockService = inject(StockService);
+  products = toSignal(this.productService.getProducts(), { initialValue: [] });
+
+  productId = '';
+  quantity: number | null = null;
+  supplier = '';
+  costPrice: number | null = null;
+
+  submitting = signal(false);
+  errorKey = signal<string | null>(null);
+
+  selectedProduct(): Product | undefined {
+    return this.products().find((p) => p.id === this.productId);
+  }
 
   addStock() {
-    if (!this.newEntry.productId || !this.newEntry.quantity) {
-      alert('Please fill all fields');
+    const product = this.selectedProduct();
+    if (!product || !this.quantity || this.quantity <= 0) {
+      this.errorKey.set('stock.selectProductAndQuantity');
       return;
     }
 
-    const entry: StockEntry = {
-      id: '',
-      productId: this.newEntry.productId!,
-      quantity: this.newEntry.quantity!,
-      supplier: this.newEntry.supplier || '',
-      costPrice: this.newEntry.costPrice || 0,
-      totalCost: (this.newEntry.quantity || 0) * (this.newEntry.costPrice || 0),
-      createdAt: new Date()
-    };
+    this.submitting.set(true);
+    this.errorKey.set(null);
 
-    this.stockService.addStockEntry(entry).subscribe(() => {
-      this.newEntry = { productId: '', quantity: 0, supplier: '', costPrice: 0 };
-      alert('Stock added successfully');
-    });
+    this.stockService
+      .stockIn({
+        productId: product.id,
+        quantity: this.quantity,
+        currentQuantity: product.quantity,
+        supplier: this.supplier,
+        costPrice: this.costPrice || 0
+      })
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/stock/history']);
+        },
+        error: (err) => {
+          console.error('Stock in error:', err);
+          this.errorKey.set('messages.error');
+          this.submitting.set(false);
+        }
+      });
   }
 }

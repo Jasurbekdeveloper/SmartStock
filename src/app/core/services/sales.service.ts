@@ -1,5 +1,9 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, from } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { addDoc, collection, doc, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import { FIRESTORE } from '../firebase/firebase.providers';
+import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { Product } from './product.service';
 
 export interface SaleItem {
@@ -16,7 +20,7 @@ export interface Sale {
   subtotal: number;
   tax: number;
   total: number;
-  paymentMethod: 'cash' | 'card' | 'check';
+  paymentMethod: 'cash' | 'card' | 'debit';
   paidAmount: number;
   change: number;
   notes?: string;
@@ -27,27 +31,23 @@ export interface Sale {
   providedIn: 'root'
 })
 export class SalesService {
-  private sales$ = new BehaviorSubject<Sale[]>([]);
-
-  constructor() {}
+  private firestore = inject(FIRESTORE);
 
   getSales(): Observable<Sale[]> {
-    return this.sales$.asObservable();
+    const salesQuery = query(collection(this.firestore, 'sales'), orderBy('createdAt', 'desc'));
+    return fromCollectionQuery<Sale>(salesQuery);
   }
 
   getSaleById(id: string): Observable<Sale | undefined> {
-    return new Observable(observer => {
-      observer.next(this.sales$.value.find(s => s.id === id));
-      observer.complete();
-    });
+    return fromDocRef<Sale>(doc(this.firestore, 'sales', id));
   }
 
-  createSale(sale: Sale): Observable<Sale> {
-    const newSale = { ...sale, id: Date.now().toString() };
-    this.sales$.next([...this.sales$.value, newSale]);
-    return new Observable(observer => {
-      observer.next(newSale);
-      observer.complete();
-    });
+  createSale(sale: Omit<Sale, 'id' | 'createdAt'>): Observable<void> {
+    return from(
+      addDoc(collection(this.firestore, 'sales'), {
+        ...sale,
+        createdAt: serverTimestamp()
+      })
+    ).pipe(map(() => undefined));
   }
 }

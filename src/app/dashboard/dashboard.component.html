@@ -16,6 +16,22 @@
     }
   </div>
 
+  @if (lowStockProducts().length > 0) {
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-red-500">
+    <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+      {{ 'dashboard.lowStock' | translate }}
+      <span class="text-sm font-normal text-red-600 dark:text-red-400">({{ lowStockProducts().length }})</span>
+    </h2>
+    <div class="flex flex-wrap gap-2">
+      @for (product of lowStockProducts(); track product.id) {
+      <span class="px-3 py-1 text-sm rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
+        {{ product.name }}: {{ product.quantity }} {{ 'units.' + product.unit | translate }}
+      </span>
+      }
+    </div>
+  </div>
+  }
+
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
     <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">{{ 'dashboard.recentSales' | translate }}</h2>
     @if (sales().length > 0) {

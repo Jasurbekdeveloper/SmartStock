@@ -1,59 +1,69 @@
 <div class="max-w-2xl mx-auto">
-  <h1 class="text-3xl font-bold mb-8">Stock In</h1>
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'stock.stockIn' | translate }}</h1>
 
-  <form (ngSubmit)="addStock()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+  <form (ngSubmit)="addStock()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-gray-700 font-medium mb-2">Product ID</label>
-        <input
-          type="text"
-          [(ngModel)]="newEntry.productId"
+      <div class="md:col-span-2">
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.product' | translate }}</label>
+        <select
+          [(ngModel)]="productId"
           name="productId"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-          placeholder="Enter product ID"
-        />
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="" disabled>{{ 'stock.selectProduct' | translate }}</option>
+          @for (product of products(); track product.id) {
+          <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity }})</option>
+          }
+        </select>
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Quantity</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.quantity' | translate }}</label>
         <input
           type="number"
-          [(ngModel)]="newEntry.quantity"
+          [(ngModel)]="quantity"
           name="quantity"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          min="1"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
           placeholder="0"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Supplier</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.supplier' | translate }}</label>
         <input
           type="text"
-          [(ngModel)]="newEntry.supplier"
+          [(ngModel)]="supplier"
           name="supplier"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-          placeholder="Supplier name"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Cost Price</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.costPrice' | translate }}</label>
         <input
           type="number"
-          [(ngModel)]="newEntry.costPrice"
+          [(ngModel)]="costPrice"
           name="costPrice"
           step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
           placeholder="0.00"
         />
       </div>
     </div>
 
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
     <button
       type="submit"
-      class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-bold"
+      [disabled]="submitting()"
+      class="w-full bg-blue-600 dark:bg-blue-800 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition font-bold disabled:bg-gray-400 dark:disabled:bg-gray-600"
     >
-      Add Stock
+      {{ 'stock.addStock' | translate }}
     </button>
   </form>
 </div>

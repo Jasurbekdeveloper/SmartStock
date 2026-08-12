@@ -1,0 +1,71 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'stock.stockOut' | translate }}</h1>
+
+  <form (ngSubmit)="removeStock()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="md:col-span-2">
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.product' | translate }}</label>
+        <select
+          [(ngModel)]="productId"
+          name="productId"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="" disabled>{{ 'stock.selectProduct' | translate }}</option>
+          @for (product of products(); track product.id) {
+          <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity }})</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.quantity' | translate }}</label>
+        <input
+          type="number"
+          [(ngModel)]="quantity"
+          name="quantity"
+          min="1"
+          [max]="selectedProduct()?.quantity ?? null"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+          placeholder="0"
+        />
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.reason' | translate }}</label>
+        <select
+          [(ngModel)]="reason"
+          name="reason"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          @for (r of reasons; track r) {
+          <option [value]="r">{{ reasonLabelKey(r) | translate }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.notes' | translate }}</label>
+      <textarea
+        [(ngModel)]="notes"
+        name="notes"
+        rows="3"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+      ></textarea>
+    </div>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
+    <button
+      type="submit"
+      [disabled]="submitting()"
+      class="w-full bg-red-600 dark:bg-red-800 text-white px-6 py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-900 transition font-bold disabled:bg-gray-400 dark:disabled:bg-gray-600"
+    >
+      {{ 'stock.stockOut' | translate }}
+    </button>
+  </form>
+</div>

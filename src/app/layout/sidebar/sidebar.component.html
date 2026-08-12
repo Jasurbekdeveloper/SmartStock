@@ -9,7 +9,7 @@
   </div>
 
   <ul class="mt-4">
-    @for (item of menuItems; track $index) {
+    @for (item of visibleMenuItems(); track $index) {
     <li class="mb-2">
       <div
         (click)="toggleMenu(item)"

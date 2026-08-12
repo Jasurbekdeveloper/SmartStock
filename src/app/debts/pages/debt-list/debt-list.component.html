@@ -1,11 +1,16 @@
 <div class="space-y-6">
-  <h1 class="text-3xl font-bold dark:text-white">{{ 'debts.title' | translate }}</h1>
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold dark:text-white">{{ 'debts.title' | translate }}</h1>
+    <a routerLink="/debts/create" class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900">
+      + {{ 'debts.addDebt' | translate }}
+    </a>
+  </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.customerId' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.customer' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.totalAmount' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.paidAmount' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.remainingAmount' | translate }}</th>
@@ -13,12 +18,15 @@
         </tr>
       </thead>
       <tbody>
-        @for (debt of debts(); track $index) {
-        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.customerId }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ debt.totalAmount.toFixed(2) }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">${{ debt.paidAmount.toFixed(2) }}</td>
-          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">${{ debt.remainingAmount.toFixed(2) }}</td>
+        @for (debt of debts(); track debt.id) {
+        <tr
+          [routerLink]="['/debts', debt.id]"
+          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+        >
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customerName(debt.customerId) }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.totalAmount.toFixed(2) }} so'm</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.paidAmount.toFixed(2) }} so'm</td>
+          <td class="px-4 py-3 font-semibold" [class.text-red-600]="debt.remainingAmount > 0" [class.dark:text-red-400]="debt.remainingAmount > 0" [class.text-green-600]="debt.remainingAmount === 0" [class.dark:text-green-400]="debt.remainingAmount === 0">{{ debt.remainingAmount.toFixed(2) }} so'm</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.createdAt | date: 'short' }}</td>
         </tr>
         }

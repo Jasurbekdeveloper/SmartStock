@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, computed, inject } from '@angular/core';
+import { Component, ChangeDetectorRef, ElementRef, HostListener, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -26,9 +26,20 @@ export class HeaderComponent {
   authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private elementRef = inject(ElementRef);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isDropdownOpen = false;
+      this.isLanguageMenuOpen = false;
+      this.isThemeMenuOpen = false;
+      this.cdr.markForCheck();
+    }
+  }
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
-  userName = computed(() => this.currentUser()?.username ?? '—');
+  userName = computed(() => this.currentUser()?.displayName ?? this.currentUser()?.email ?? '—');
 
   readonly GlobeIcon = Globe;
   readonly MoonIcon = Moon;

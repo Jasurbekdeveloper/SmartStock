@@ -1,0 +1,138 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'users.title' | translate }}</h1>
+    <button
+      (click)="openCreateForm()"
+      class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900"
+    >
+      + {{ 'users.addEmployee' | translate }}
+    </button>
+  </div>
+
+  @if (showCreateForm()) {
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ 'users.displayName' | translate }}
+        </label>
+        <input
+          type="text"
+          formControlName="displayName"
+          [placeholder]="'users.enterDisplayName' | translate"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ 'users.email' | translate }}
+        </label>
+        <input
+          type="email"
+          formControlName="email"
+          [placeholder]="'users.enterEmail' | translate"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ 'users.tempPassword' | translate }}
+        </label>
+        <input
+          type="text"
+          formControlName="tempPassword"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ 'users.role' | translate }}
+        </label>
+        <select
+          formControlName="role"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          @for (role of roles; track role) {
+          <option [value]="role">{{ roleLabelKey(role) | translate }}</option>
+          }
+        </select>
+      </div>
+
+      @if (errorKey(); as errorMessage) {
+      <div class="md:col-span-2 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+        {{ errorMessage | translate }}
+      </div>
+      }
+
+      <div class="md:col-span-2 flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="cancelCreate()"
+          class="px-4 py-2 bg-gray-400 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition"
+        >
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          type="submit"
+          [disabled]="submitting()"
+          class="px-4 py-2 bg-blue-600 dark:bg-blue-800 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
+        >
+          {{ 'common.save' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'users.displayName' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'users.email' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'users.role' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'users.status' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.uid) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ user.displayName }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ user.email }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ roleLabelKey(user.role) | translate }}</td>
+          <td class="px-4 py-3">
+            @if (user.active) {
+            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+              {{ 'users.active' | translate }}
+            </span>
+            } @else {
+            <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+              {{ 'users.inactive' | translate }}
+            </span>
+            }
+          </td>
+          <td class="px-4 py-3">
+            <button (click)="requestToggleActive(user)" class="text-blue-600 hover:text-blue-800">
+              {{ (user.active ? 'users.deactivate' : 'users.activate') | translate }}
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (users().length === 0) {
+    <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'users.noUsersFound' | translate }}</p>
+    }
+  </div>
+</div>
+
+<app-confirm-dialog
+  [(isOpen)]="confirmOpen"
+  [title]="'users.deactivate' | translate"
+  [message]="'users.confirmDeactivate' | translate"
+  (confirmed)="confirmToggleActive()"
+></app-confirm-dialog>

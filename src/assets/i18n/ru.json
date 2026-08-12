@@ -20,6 +20,7 @@
     "stock": "Запасы",
     "debts": "Долги",
     "statistics": "Статистика",
+    "users": "Пользователи",
     "menu": "Меню"
   },
   "products": {
@@ -33,7 +34,31 @@
     "description": "Описание",
     "addProduct": "Добавить товар",
     "editProduct": "Изменить товар",
+    "unit": "Единица измерения",
+    "minQuantity": "Минимальный остаток (для оповещения)",
+    "lowStock": "Мало на складе",
     "deleteConfirm": "Вы уверены, что хотите удалить этот товар?"
+  },
+  "units": {
+    "dona": "шт",
+    "kg": "кг",
+    "g": "г",
+    "m": "м",
+    "m2": "м²",
+    "m3": "м³",
+    "litr": "л",
+    "qop": "мешок",
+    "quti": "коробка",
+    "rulon": "рулон",
+    "t": "тонна"
+  },
+  "categories": {
+    "title": "Категории",
+    "addCategory": "Добавить категорию",
+    "name": "Название",
+    "enterName": "Введите название категории",
+    "noCategoriesFound": "Категории не найдены",
+    "confirmDelete": "Вы уверены, что хотите удалить эту категорию?"
   },
   "pos": {
     "title": "Система POS",
@@ -50,19 +75,47 @@
     "proceedToPay": "ПЕРЕЙТИ К ОПЛАТЕ",
     "cash": "Наличные",
     "card": "Карта",
-    "debit": "долг"
+    "debit": "долг",
+    "amountDue": "К оплате",
+    "insufficientAmount": "Недостаточная сумма оплаты",
+    "saleCompleted": "Продажа завершена! Сдача",
+    "saleError": "Ошибка при сохранении продажи",
+    "enterAmount": "Введите сумму"
   },
   "stock": {
     "title": "Управление запасами",
-    "stockIn": "Приход товара",
+    "stockIn": "Приход",
+    "stockOut": "Расход",
+    "adjustment": "Инвентаризация",
     "stockHistory": "История запасов",
     "productId": "Код товара",
+    "product": "Товар",
+    "selectProduct": "Выберите товар",
     "quantity": "Количество",
+    "currentQuantity": "Текущий остаток",
+    "countedQuantity": "Подсчитанное количество",
+    "difference": "Разница",
     "supplier": "Поставщик",
     "costPrice": "Себестоимость",
     "totalCost": "Общая стоимость",
     "date": "Дата",
-    "addStock": "Добавить запас"
+    "addStock": "Добавить запас",
+    "saveAdjustment": "Сохранить инвентаризацию",
+    "reason": "Причина",
+    "reasonDamaged": "Повреждён",
+    "reasonLost": "Утерян",
+    "reasonReturned": "Возврат",
+    "reasonOther": "Другое",
+    "notes": "Примечание",
+    "type": "Тип",
+    "typeIn": "Приход",
+    "typeOut": "Расход",
+    "typeAdjustment": "Инвентаризация",
+    "change": "Изменение",
+    "previousNew": "Было → Стало",
+    "detail": "Детали",
+    "selectProductAndQuantity": "Выберите товар и укажите корректное количество",
+    "insufficientQuantity": "Недостаточно товара на складе"
   },
   "sales": {
     "title": "Продажи",
@@ -71,7 +124,12 @@
     "date": "Дата",
     "amount": "Сумма",
     "paymentMethod": "Способ оплаты",
-    "exportCSV": "Экспорт CSV"
+    "exportCSV": "Экспорт CSV",
+    "receipt": "Чек продажи",
+    "item": "Товар",
+    "qty": "Кол-во",
+    "unknownProduct": "Неизвестный товар",
+    "printReceipt": "Печать чека"
   },
   "debts": {
     "title": "Управление долгами",
@@ -87,7 +145,16 @@
     "payDebt": "Оплатить долг",
     "processPayment": "Обработать платеж",
     "paymentAmount": "Сумма платежа",
-    "noDebtsFound": "Долги не найдены"
+    "noDebtsFound": "Долги не найдены",
+    "newCustomer": "Новый клиент",
+    "existingCustomer": "Существующий клиент",
+    "customerName": "Имя клиента",
+    "customerPhone": "Номер телефона",
+    "customerAddress": "Адрес",
+    "selectCustomer": "Выберите клиента",
+    "notes": "Примечание",
+    "paymentSuccess": "Платёж успешно принят",
+    "fullyPaid": "Долг полностью погашен"
   },
   "statistics": {
     "title": "Статистика",
@@ -109,7 +176,8 @@
     "totalDebts": "Всего долгов",
     "todaySales": "Продажи сегодня",
     "todayRevenue": "Выручка сегодня",
-    "totalOrders": "Всего заказов"
+    "totalOrders": "Всего заказов",
+    "lowStock": "Товары с низким остатком"
   },
   "table": {
     "saleId": "ID продажи",
@@ -143,12 +211,33 @@
   },
   "auth": {
     "login": "Вход",
-    "username": "Имя пользователя",
+    "email": "Email",
     "password": "Пароль",
-    "enterUsername": "Введите имя пользователя",
+    "enterEmail": "Введите email",
     "enterPassword": "Введите пароль",
     "loginButton": "Вход",
-    "invalidCredentials": "Неверное имя пользователя или пароль"
+    "invalidCredentials": "Неверный email или пароль"
+  },
+  "users": {
+    "title": "Управление пользователями",
+    "addEmployee": "Добавить сотрудника",
+    "displayName": "Полное имя",
+    "enterDisplayName": "Введите полное имя",
+    "email": "Email",
+    "enterEmail": "Введите email",
+    "tempPassword": "Временный пароль",
+    "role": "Роль",
+    "roleAdmin": "Администратор",
+    "roleCashier": "Кассир",
+    "roleManager": "Заведующий складом",
+    "status": "Статус",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "activate": "Активировать",
+    "deactivate": "Деактивировать",
+    "confirmDeactivate": "Деактивировать этого сотрудника? Он больше не сможет войти в систему.",
+    "employeeCreated": "Сотрудник успешно создан",
+    "noUsersFound": "Сотрудники не найдены"
   },
   "buttons": {
     "add": "Добавить",

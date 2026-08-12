@@ -1,24 +1,24 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DebtService, Debt, Customer } from '../../../core/services/debt.service';
+import { RouterModule } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-debt-list',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './debt-list.component.html',
   styleUrl: './debt-list.component.css'
 })
-export class DebtListComponent implements OnInit {
-  debts = signal<Debt[]>([]);
+export class DebtListComponent {
   private debtService = inject(DebtService);
 
-  ngOnInit() {
-    console.log('DebtListComponent initialized');
-    this.debtService.getDebts().subscribe(debts => {
-      this.debts.set(debts);
-    });
-    console.log(this.debts());
+  debts = toSignal(this.debtService.getDebts(), { initialValue: [] });
+  customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+
+  customerName(customerId: string): string {
+    return this.customers().find((c) => c.id === customerId)?.name ?? customerId;
   }
 }

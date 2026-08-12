@@ -5,22 +5,56 @@
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.productId' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.quantity' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.supplier' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.costPrice' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.totalCost' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.type' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.product' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.change' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.previousNew' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.detail' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
         </tr>
       </thead>
       <tbody>
-        @for (entry of stockEntries(); track $index) {
+        @for (entry of stockEntries(); track entry.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.productId }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.quantity }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.supplier }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.costPrice.toFixed(2) }} so'm</td>
-          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ entry.totalCost.toFixed(2) }} so'm</td>
+          <td class="px-4 py-3">
+            <span
+              class="px-2 py-1 text-xs rounded-full"
+              [class.bg-green-100]="entry.type === 'in'"
+              [class.text-green-800]="entry.type === 'in'"
+              [class.dark:bg-green-900]="entry.type === 'in'"
+              [class.dark:text-green-300]="entry.type === 'in'"
+              [class.bg-red-100]="entry.type === 'out'"
+              [class.text-red-800]="entry.type === 'out'"
+              [class.dark:bg-red-900]="entry.type === 'out'"
+              [class.dark:text-red-300]="entry.type === 'out'"
+              [class.bg-blue-100]="entry.type === 'adjustment'"
+              [class.text-blue-800]="entry.type === 'adjustment'"
+              [class.dark:bg-blue-900]="entry.type === 'adjustment'"
+              [class.dark:text-blue-300]="entry.type === 'adjustment'"
+            >
+              {{ typeLabelKey(entry.type) | translate }}
+            </span>
+          </td>
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ productName(entry.productId) }}</td>
+          <td
+            class="px-4 py-3 font-semibold"
+            [class.text-green-600]="quantityChange(entry) > 0"
+            [class.text-red-600]="quantityChange(entry) < 0"
+            [class.dark:text-green-400]="quantityChange(entry) > 0"
+            [class.dark:text-red-400]="quantityChange(entry) < 0"
+          >
+            {{ quantityChange(entry) > 0 ? '+' : '' }}{{ quantityChange(entry) }}
+          </td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.previousQuantity }} → {{ entry.newQuantity }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">
+            @if (entry.type === 'in') {
+              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice.toFixed(2) }} so'm) }
+            } @else if (reasonLabelKey(entry.reason); as key) {
+              {{ key | translate }}@if (entry.notes) { — {{ entry.notes }} }
+            } @else if (entry.notes) {
+              {{ entry.notes }}
+            }
+          </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>
         </tr>
         }

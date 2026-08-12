@@ -1,0 +1,109 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'categories.title' | translate }}</h1>
+    <button
+      (click)="openCreateForm()"
+      class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900"
+    >
+      + {{ 'categories.addCategory' | translate }}
+    </button>
+  </div>
+
+  @if (errorKey(); as key) {
+  <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+    {{ key | translate }}
+  </div>
+  }
+
+  @if (showCreateForm()) {
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="flex gap-4 items-end">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ 'categories.name' | translate }}
+        </label>
+        <input
+          type="text"
+          formControlName="name"
+          [placeholder]="'categories.enterName' | translate"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
+      <button
+        type="button"
+        (click)="cancelCreate()"
+        class="px-4 py-2 bg-gray-400 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition"
+      >
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button
+        type="submit"
+        [disabled]="submitting()"
+        class="px-4 py-2 bg-blue-600 dark:bg-blue-800 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
+      >
+        {{ 'common.save' | translate }}
+      </button>
+    </form>
+  </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.name' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (category of categories(); track category.id) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          @if (editingId() === category.id) {
+          <td class="px-4 py-3">
+            <input
+              type="text"
+              [ngModel]="editName()"
+              (ngModelChange)="editName.set($event)"
+              class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+            />
+          </td>
+          <td class="px-4 py-3">
+            <button
+              (click)="saveEdit(category.id)"
+              [disabled]="savingEdit()"
+              class="text-blue-600 hover:text-blue-800 mr-3 disabled:text-gray-400"
+            >
+              {{ 'common.save' | translate }}
+            </button>
+            <button (click)="cancelEdit()" class="text-gray-600 hover:text-gray-800 dark:text-gray-300">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </td>
+          } @else {
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ category.name }}</td>
+          <td class="px-4 py-3">
+            <button (click)="startEdit(category)" class="text-blue-600 hover:text-blue-800 mr-3">
+              {{ 'buttons.edit' | translate }}
+            </button>
+            <button (click)="requestDelete(category)" class="text-red-600 hover:text-red-800">
+              {{ 'buttons.delete' | translate }}
+            </button>
+          </td>
+          }
+        </tr>
+        }
+      </tbody>
+    </table>
+    @if (categories().length === 0) {
+    <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'categories.noCategoriesFound' | translate }}</p>
+    }
+  </div>
+</div>
+
+<app-confirm-dialog
+  [(isOpen)]="confirmOpen"
+  [title]="'buttons.delete' | translate"
+  [message]="'categories.confirmDelete' | translate"
+  (confirmed)="confirmDelete()"
+></app-confirm-dialog>

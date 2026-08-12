@@ -1,5 +1,19 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, from } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  increment,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc
+} from 'firebase/firestore';
+import { FIRESTORE } from '../firebase/firebase.providers';
+import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 
 export interface Product {
   id: string;
@@ -9,7 +23,8 @@ export interface Product {
   cost: number;
   quantity: number;
   unit: string;
-  category: string;
+  minQuantity?: number;
+  categoryId: string;
   description?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -19,64 +34,44 @@ export interface Product {
   providedIn: 'root'
 })
 export class ProductService {
-  private products$ = new BehaviorSubject<Product[]>([]);
-
-  constructor() {}
+  private firestore = inject(FIRESTORE);
 
   getProducts(): Observable<Product[]> {
-    return this.products$.asObservable();
+    const productsQuery = query(collection(this.firestore, 'products'), orderBy('name'));
+    return fromCollectionQuery<Product>(productsQuery);
   }
 
   getProductById(id: string): Observable<Product | undefined> {
-    return new Observable(observer => {
-      observer.next(this.products$.value.find(p => p.id === id));
-      observer.complete();
-    });
+    return fromDocRef<Product>(doc(this.firestore, 'products', id));
   }
 
-  searchProducts(query: string): Observable<Product[]> {
-    return new Observable(observer => {
-      const filtered = this.products$.value.filter(p =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.barcode.includes(query)
-      );
-      observer.next(filtered);
-      observer.complete();
-    });
+  addProduct(product: Omit<Product, 'id'>): Observable<void> {
+    return from(
+      addDoc(collection(this.firestore, 'products'), {
+        ...product,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+    ).pipe(map(() => undefined));
   }
 
-  getProductByBarcode(barcode: string): Observable<Product | undefined> {
-    return new Observable(observer => {
-      observer.next(this.products$.value.find(p => p.barcode === barcode));
-      observer.complete();
-    });
-  }
-
-  addProduct(product: Product): Observable<Product> {
-    const newProduct = { ...product, id: Date.now().toString() };
-    this.products$.next([...this.products$.value, newProduct]);
-    return new Observable(observer => {
-      observer.next(newProduct);
-      observer.complete();
-    });
-  }
-
-  updateProduct(id: string, product: Partial<Product>): Observable<Product> {
-    const updatedProducts = this.products$.value.map(p =>
-      p.id === id ? { ...p, ...product } : p
+  updateProduct(id: string, product: Partial<Product>): Observable<void> {
+    return from(
+      updateDoc(doc(this.firestore, 'products', id), { ...product, updatedAt: serverTimestamp() })
     );
-    this.products$.next(updatedProducts);
-    return new Observable(observer => {
-      observer.next(updatedProducts.find(p => p.id === id)!);
-      observer.complete();
-    });
   }
 
   deleteProduct(id: string): Observable<void> {
-    this.products$.next(this.products$.value.filter(p => p.id !== id));
-    return new Observable(observer => {
-      observer.next();
-      observer.complete();
-    });
+    return from(deleteDoc(doc(this.firestore, 'products', id)));
+  }
+
+  /** Applies a relative quantity change (e.g. -2) without a read-then-write race. */
+  adjustQuantity(id: string, delta: number): Observable<void> {
+    return from(
+      updateDoc(doc(this.firestore, 'products', id), {
+        quantity: increment(delta),
+        updatedAt: serverTimestamp()
+      })
+    );
   }
 }

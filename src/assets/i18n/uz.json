@@ -20,6 +20,7 @@
     "stock": "Qoldiq",
     "debts": "Qarzlar",
     "statistics": "Statistika",
+    "users": "Foydalanuvchilar",
     "menu": "Menu"
   },
   "products": {
@@ -33,7 +34,31 @@
     "description": "Tavsifi",
     "addProduct": "Mahsulot qo'shish",
     "editProduct": "Mahsulotni tahrirlash",
-    "deleteConfirm": "Ushbu mahsulotni o'chirishga ishonchisiz?"
+    "deleteConfirm": "Ushbu mahsulotni o'chirishga ishonchisiz?",
+    "unit": "O'lchov birligi",
+    "minQuantity": "Minimal qoldiq (ogohlantirish uchun)",
+    "lowStock": "Kam qoldiq"
+  },
+  "units": {
+    "dona": "dona",
+    "kg": "kg",
+    "g": "g",
+    "m": "metr",
+    "m2": "m²",
+    "m3": "m³",
+    "litr": "litr",
+    "qop": "qop",
+    "quti": "quti",
+    "rulon": "rulon",
+    "t": "tonna"
+  },
+  "categories": {
+    "title": "Kategoriyalar",
+    "addCategory": "Kategoriya qo'shish",
+    "name": "Nomi",
+    "enterName": "Kategoriya nomini kiriting",
+    "noCategoriesFound": "Kategoriyalar topilmadi",
+    "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?"
   },
   "pos": {
     "title": "POS Tizimi",
@@ -50,19 +75,47 @@
     "proceedToPay": "TO'LASHGA O'TISH",
     "cash": "Naqd",
     "card": "Karta",
-    "debit": "Qarz"
+    "debit": "Qarz",
+    "amountDue": "To'lanishi kerak",
+    "insufficientAmount": "To'lov miqdori yetarli emas",
+    "saleCompleted": "Sotuv muvaffaqiyatli yakunlandi! Qaytim",
+    "saleError": "Sotuvni saqlashda xatolik yuz berdi",
+    "enterAmount": "Miqdorni kiriting"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
-    "stockIn": "Qoldiqga kirim",
+    "stockIn": "Kirim",
+    "stockOut": "Chiqim",
+    "adjustment": "Inventarizatsiya",
     "stockHistory": "Qoldiq tarixi",
     "productId": "Mahsulot kodi",
+    "product": "Mahsulot",
+    "selectProduct": "Mahsulotni tanlang",
     "quantity": "Miqdori",
+    "currentQuantity": "Joriy qoldiq",
+    "countedQuantity": "Sanalgan miqdor",
+    "difference": "Farq",
     "supplier": "Ta'minotchi",
     "costPrice": "Xarajat narxi",
     "totalCost": "Jami xarajat",
     "date": "Sana",
-    "addStock": "Qoldiq qo'shish"
+    "addStock": "Qoldiq qo'shish",
+    "saveAdjustment": "Inventarizatsiyani saqlash",
+    "reason": "Sababi",
+    "reasonDamaged": "Buzilgan/yaroqsiz",
+    "reasonLost": "Yo'qolgan",
+    "reasonReturned": "Qaytarilgan",
+    "reasonOther": "Boshqa",
+    "notes": "Izoh",
+    "type": "Turi",
+    "typeIn": "Kirim",
+    "typeOut": "Chiqim",
+    "typeAdjustment": "Inventarizatsiya",
+    "change": "O'zgarish",
+    "previousNew": "Oldin → Keyin",
+    "detail": "Tafsilot",
+    "selectProductAndQuantity": "Mahsulot va miqdorni to'g'ri kiriting",
+    "insufficientQuantity": "Qoldiqda yetarli miqdor yo'q"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -71,7 +124,12 @@
     "date": "Sana",
     "amount": "Summa",
     "paymentMethod": "To'lov usuli",
-    "exportCSV": "CSV'ga eksport qilish"
+    "exportCSV": "CSV'ga eksport qilish",
+    "receipt": "Sotuv cheki",
+    "item": "Mahsulot",
+    "qty": "Soni",
+    "unknownProduct": "Noma'lum mahsulot",
+    "printReceipt": "Chekni chop etish"
   },
   "debts": {
     "title": "Qarzlarni boshqarish",
@@ -87,7 +145,16 @@
     "payDebt": "Qarzni to'lash",
     "processPayment": "To'lovni bajarish",
     "paymentAmount": "To'lov miqdori",
-    "noDebtsFound": "Qarzlar topilmadi"
+    "noDebtsFound": "Qarzlar topilmadi",
+    "newCustomer": "Yangi xaridor",
+    "existingCustomer": "Mavjud xaridor",
+    "customerName": "Xaridor ismi",
+    "customerPhone": "Telefon raqami",
+    "customerAddress": "Manzil",
+    "selectCustomer": "Xaridorni tanlang",
+    "notes": "Izoh",
+    "paymentSuccess": "To'lov muvaffaqiyatli qabul qilindi",
+    "fullyPaid": "Qarz to'liq to'langan"
   },
   "statistics": {
     "title": "Statistika",
@@ -109,7 +176,8 @@
     "totalDebts": "Jami qarzlar",
     "todaySales": "Bugun sotuvlar",
     "todayRevenue": "Bugun daromad",
-    "totalOrders": "Jami buyurtmalar"
+    "totalOrders": "Jami buyurtmalar",
+    "lowStock": "Kam qolgan mahsulotlar"
   },
   "table": {
     "saleId": "Sotuv ID",
@@ -143,12 +211,33 @@
   },
   "auth": {
     "login": "Tizimga kirish",
-    "username": "Foydalanuvchi nomi",
+    "email": "Elektron pochta",
     "password": "Parol",
-    "enterUsername": "Foydalanuvchi nomini kiriting",
+    "enterEmail": "Elektron pochtani kiriting",
     "enterPassword": "Parolni kiriting",
     "loginButton": "Kirish",
-    "invalidCredentials": "Noto'g'ri foydalanuvchi nomi yoki parol"
+    "invalidCredentials": "Noto'g'ri elektron pochta yoki parol"
+  },
+  "users": {
+    "title": "Foydalanuvchilarni boshqarish",
+    "addEmployee": "Xodim qo'shish",
+    "displayName": "To'liq ismi",
+    "enterDisplayName": "To'liq ismini kiriting",
+    "email": "Elektron pochta",
+    "enterEmail": "Elektron pochtani kiriting",
+    "tempPassword": "Vaqtinchalik parol",
+    "role": "Roli",
+    "roleAdmin": "Administrator",
+    "roleCashier": "Kassir",
+    "roleManager": "Ombor mudiri",
+    "status": "Holati",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "activate": "Faollashtirish",
+    "deactivate": "Faolsizlantirish",
+    "confirmDeactivate": "Ushbu xodimni faolsizlantirasizmi? U endi tizimga kira olmaydi.",
+    "employeeCreated": "Xodim muvaffaqiyatli qo'shildi",
+    "noUsersFound": "Xodimlar topilmadi"
   },
   "buttons": {
     "add": "Qo'shish",

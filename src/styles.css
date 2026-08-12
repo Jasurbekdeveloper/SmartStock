@@ -2,6 +2,19 @@
 
 @import "tailwindcss";
 
+/* Tailwind v4 ignores tailwind.config.js's `darkMode: 'class'` unless the
+   config is wired in via @config — it wasn't, so every dark: utility in the
+   app was silently following the OS's prefers-color-scheme instead of the
+   .dark class ThemeService toggles on <html>. This is what caused text/
+   backgrounds to go out of sync (e.g. white text with no dark background)
+   whenever the OS theme and the in-app toggle disagreed. This directive is
+   Tailwind v4's replacement for `darkMode: 'class'`. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-gray-950: #0a0a0a;
+}
+
 :root {
   color-scheme: light;
 }
@@ -33,6 +46,18 @@ html.dark input,
 html.dark select,
 html.dark textarea {
   @apply bg-gray-800 text-white border-gray-700;
+}
+
+/* Native <option> popups are OS/browser-rendered and don't reliably inherit
+   Tailwind's dark: background utilities, which can leave light text on a
+   light popup. color-scheme forces the browser to theme them correctly. */
+html.dark select,
+html.dark option {
+  color-scheme: dark;
+}
+
+html.dark option {
+  @apply bg-gray-800 text-white;
 }
 
 html.dark table {

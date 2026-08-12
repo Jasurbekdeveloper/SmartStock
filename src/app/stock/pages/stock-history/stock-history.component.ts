@@ -1,7 +1,9 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { StockService, StockEntry } from '../../../core/services/stock.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { StockEntry, StockMovementType, StockService } from '../../../core/services/stock.service';
+import { ProductService } from '../../../core/services/product.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
@@ -11,14 +13,26 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
   templateUrl: './stock-history.component.html',
   styleUrl: './stock-history.component.css'
 })
-export class StockHistoryComponent implements OnInit {
-  stockEntries = signal<StockEntry[]>([]);
+export class StockHistoryComponent {
+  private stockService = inject(StockService);
+  private productService = inject(ProductService);
 
-  private stockService: StockService = inject(StockService);
+  stockEntries = toSignal(this.stockService.getStockEntries(), { initialValue: [] });
+  products = toSignal(this.productService.getProducts(), { initialValue: [] });
 
-  ngOnInit() {
-    this.stockService.getStockEntries().subscribe(entries => {
-      this.stockEntries.set(entries);
-    });
+  productName(productId: string): string {
+    return this.products().find((p) => p.id === productId)?.name ?? productId;
+  }
+
+  typeLabelKey(type: StockMovementType): string {
+    return `stock.type${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+  }
+
+  reasonLabelKey(reason: string | undefined): string | null {
+    return reason ? `stock.reason${reason.charAt(0).toUpperCase()}${reason.slice(1)}` : null;
+  }
+
+  quantityChange(entry: StockEntry): number {
+    return entry.newQuantity - entry.previousQuantity;
   }
 }

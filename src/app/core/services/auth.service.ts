@@ -1,91 +1,139 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, from, of, switchMap } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Auth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { Firestore, doc, getDoc } from 'firebase/firestore';
+import { FIREBASE_AUTH, FIRESTORE } from '../firebase/firebase.providers';
+import { fromDocRef } from '../firebase/firestore.utils';
 
-export interface AuthUser {
-  id: string;
-  username: string;
+export type UserRole = 'admin' | 'cashier' | 'manager';
+
+export interface AppUser {
+  uid: string;
   email: string;
-  role: 'admin' | 'cashier' | 'manager';
+  displayName: string;
+  role: UserRole;
+  active: boolean;
+  createdAt?: Date;
 }
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: AuthUser;
-}
+const SESSION_DURATION_MS = 10 * 60 * 60 * 1000; // 10 soat
+const LOGIN_AT_KEY = 'auth_login_at';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
+  private auth: Auth = inject(FIREBASE_AUTH);
+  private firestore: Firestore = inject(FIRESTORE);
+
+  private currentUserSubject = new BehaviorSubject<AppUser | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  private tokenSubject = new BehaviorSubject<string | null>(null);
-  public token$ = this.tokenSubject.asObservable();
+  private authReadySubject = new BehaviorSubject(false);
+  public authReady$ = this.authReadySubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    if (isPlatformBrowser(this.platformId)) {
-      const token = localStorage.getItem('auth_token');
-      this.tokenSubject.next(token);
-
-      const userRaw = localStorage.getItem('auth_user');
-      if (userRaw) {
-        try {
-          this.currentUserSubject.next(JSON.parse(userRaw) as AuthUser);
-        } catch {
-          localStorage.removeItem('auth_user');
-        }
-      }
+  constructor() {
+    if (this.isSessionExpired()) {
+      signOut(this.auth);
+      this.clearLoginTimestamp();
     }
+
+    onAuthStateChanged(this.auth, (firebaseUser) => {
+      if (!firebaseUser || this.isSessionExpired()) {
+        if (firebaseUser) {
+          signOut(this.auth);
+        }
+        this.clearLoginTimestamp();
+        this.currentUserSubject.next(null);
+        this.authReadySubject.next(true);
+        return;
+      }
+
+      fromDocRef<Omit<AppUser, 'uid'>>(doc(this.firestore, 'users', firebaseUser.uid)).subscribe({
+        next: (profile) => {
+          this.currentUserSubject.next(
+            profile && profile.active ? { uid: firebaseUser.uid, ...profile } : null
+          );
+          this.authReadySubject.next(true);
+        },
+        error: () => {
+          this.currentUserSubject.next(null);
+          this.authReadySubject.next(true);
+        }
+      });
+    });
+
+    // 10 soatlik sessiya muddati tugaganda, sahifa ochiq turgan taqdirda ham
+    // avtomatik chiqib ketish uchun davriy tekshiruv (foydalanuvchi navigatsiya
+    // qilmasa ham, masalan bitta POS sahifasida uzoq ishlab tursa).
+    if (typeof window !== 'undefined') {
+      setInterval(() => {
+        if (this.isAuthenticated() && this.isSessionExpired()) {
+          this.logout();
+        }
+      }, 60 * 1000);
+    }
+  }
+
+  private isSessionExpired(): boolean {
+    if (typeof localStorage === 'undefined') return false;
+    const loginAt = localStorage.getItem(LOGIN_AT_KEY);
+    if (!loginAt) return false;
+    return Date.now() - Number(loginAt) > SESSION_DURATION_MS;
+  }
+
+  private setLoginTimestamp(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(LOGIN_AT_KEY, Date.now().toString());
+  }
+
+  private clearLoginTimestamp(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(LOGIN_AT_KEY);
   }
 
   isAuthenticated(): boolean {
-    return !!this.tokenSubject.value;
+    return !!this.currentUserSubject.value;
   }
 
-  login(username: string, password: string): Observable<LoginResponse> {
-    const url = `${environment.apiBaseUrl}/auth/login`;
-
-    return this.http
-      .post<LoginResponse>(url, { username, password } satisfies LoginRequest)
-      .pipe(tap((res) => this.setSession(res.token, res.user)));
+  hasRole(...roles: UserRole[]): boolean {
+    const user = this.currentUserSubject.value;
+    return !!user && roles.includes(user.role);
   }
 
-  logout(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-    }
-    this.tokenSubject.next(null);
-    this.currentUserSubject.next(null);
-  }
-
-  getToken(): string | null {
-    return this.tokenSubject.value;
-  }
-
-  getCurrentUser(): AuthUser | null {
+  getCurrentUser(): AppUser | null {
     return this.currentUserSubject.value;
   }
 
-  private setSession(token: string, user: AuthUser) {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_user', JSON.stringify(user));
-    }
+  login(email: string, password: string): Observable<AppUser> {
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+      switchMap((credential) =>
+        from(getDoc(doc(this.firestore, 'users', credential.user.uid))).pipe(
+          map((snap) => {
+            if (!snap.exists()) {
+              signOut(this.auth);
+              throw new Error('NO_PROFILE');
+            }
 
-    this.tokenSubject.next(token);
-    this.currentUserSubject.next(user);
+            const profile = snap.data() as Omit<AppUser, 'uid'>;
+            if (!profile.active) {
+              signOut(this.auth);
+              throw new Error('INACTIVE');
+            }
+
+            const user: AppUser = { uid: credential.user.uid, ...profile };
+            this.currentUserSubject.next(user);
+            this.setLoginTimestamp();
+            return user;
+          })
+        )
+      )
+    );
+  }
+
+  logout(): void {
+    signOut(this.auth);
+    this.clearLoginTimestamp();
   }
 }

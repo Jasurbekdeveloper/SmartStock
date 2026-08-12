@@ -1,83 +1,134 @@
 <div class="max-w-2xl mx-auto">
-  @if (product) {
-  <h1 class="text-3xl font-bold mb-8">Edit Product</h1>
+  @if (product(); as p) {
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'form.editProduct' | translate }}</h1>
 
-  <form (ngSubmit)="updateProduct()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+  <form (ngSubmit)="updateProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Product Name</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.productName' | translate }}</label>
         <input
           type="text"
-          [(ngModel)]="product.name"
+          [(ngModel)]="p.name"
           name="name"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Barcode</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.barcode' | translate }}</label>
         <input
           type="text"
-          [(ngModel)]="product.barcode"
+          [(ngModel)]="p.barcode"
           name="barcode"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Price</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.price' | translate }}</label>
         <input
           type="number"
-          [(ngModel)]="product.price"
+          [(ngModel)]="p.price"
           name="price"
           step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Cost</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.cost' | translate }}</label>
         <input
           type="number"
-          [(ngModel)]="product.cost"
+          [(ngModel)]="p.cost"
           name="cost"
           step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Quantity</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.quantity' | translate }}</label>
         <input
           type="number"
-          [(ngModel)]="product.quantity"
+          [(ngModel)]="p.quantity"
           name="quantity"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Category</label>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.unit' | translate }}</label>
+        <select
+          [(ngModel)]="p.unit"
+          name="unit"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          @for (u of units; track u) {
+          <option [value]="u">{{ 'units.' + u | translate }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.minQuantity' | translate }}</label>
         <input
-          type="text"
-          [(ngModel)]="product.category"
-          name="category"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          type="number"
+          [(ngModel)]="p.minQuantity"
+          name="minQuantity"
+          min="0"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         />
       </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.category' | translate }}</label>
+        <select
+          [(ngModel)]="p.categoryId"
+          name="categoryId"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="" disabled>{{ 'form.enterCategory' | translate }}</option>
+          @for (category of categories(); track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </div>
     </div>
+
+    <div>
+      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.description' | translate }}</label>
+      <textarea
+        [(ngModel)]="p.description"
+        name="description"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        rows="4"
+      ></textarea>
+    </div>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
 
     <div class="flex gap-4">
       <button
         type="submit"
-        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        [disabled]="submitting()"
+        class="bg-blue-600 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
       >
-        Update Product
+        {{ 'common.save' | translate }}
       </button>
-      <a href="/products/list" class="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition">
-        Cancel
+      <a href="/products/list" class="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition inline-block">
+        {{ 'common.cancel' | translate }}
       </a>
     </div>
   </form>
+  } @else if (errorKey(); as key) {
+  <div class="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+    {{ key | translate }}
+  </div>
+  } @else {
+  <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.loading' | translate }}</p>
   }
 </div>

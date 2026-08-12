@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { Product, ProductService } from '../core/services/product.service';
-import { Sign } from 'node:crypto';
+import { Sale, SaleItem, SalesService } from '../core/services/sales.service';
+import { TranslationService } from '../core/services/translation.service';
 
 @Component({
   selector: 'app-pos',
@@ -19,9 +20,12 @@ export class PosComponent implements OnInit {
   filteredProducts = signal<Product[]>([]);
   selectedPaymentMethod = signal<'cash' | 'card' | 'debit'>('cash');
   showPaymentModal = signal(false);
-  paidAmount = signal(100000);
+  paidAmount = signal(0);
+  submitting = signal(false);
 
   private productService: ProductService = inject(ProductService);
+  private salesService: SalesService = inject(SalesService);
+  private translation: TranslationService = inject(TranslationService);
 
   ngOnInit() {
     this.productService.getProducts().subscribe(products => {
@@ -84,27 +88,81 @@ export class PosComponent implements OnInit {
   this.cart().reduce((sum, item) => sum + item.total, 0)
 );
 
-  tax = computed(() => this.subtotal() * 0.1);
+  /** O'zbekiston QQS (VAT) stavkasi. */
+  private readonly taxRate = 0.12;
+
+  tax = computed(() => this.subtotal() * this.taxRate);
 
   total = computed(() => this.subtotal() + this.tax());
 
-  change = computed(() => 
+  change = computed(() =>
     Math.max(0, this.paidAmount() - this.total())
   );
 
+  insufficient = computed(() => this.paidAmount() < this.total());
+
+  quickAmounts = computed(() => {
+    const total = this.total();
+    if (total <= 0) return [];
+    const roundUp = (value: number, step: number) => Math.ceil(value / step) * step;
+    const amounts = [total, roundUp(total, 10000), roundUp(total, 50000), roundUp(total, 100000)];
+    return Array.from(new Set(amounts.map(a => Math.round(a)))).sort((a, b) => a - b);
+  });
+
+  openPaymentModal() {
+    this.paidAmount.set(Math.ceil(this.total()));
+    this.showPaymentModal.set(true);
+  }
+
+  setPaidAmount(amount: number) {
+    this.paidAmount.set(amount);
+  }
+
   completeSale() {
-    if (this.cart().length === 0) {
-      alert('Cart is empty');
+    if (this.cart().length === 0 || this.insufficient()) {
       return;
     }
 
-    if (this.paidAmount() < this.total()) {
-      alert('Insufficient payment');
-      return;
-    }
+    this.submitting.set(true);
 
-    alert('Sale completed! Change: $' + this.change().toFixed(2));
-    this.clearCart();
+    const items: SaleItem[] = this.cart().map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      price: item.price,
+      total: item.total
+    }));
+
+    const sale: Omit<Sale, 'id' | 'createdAt'> = {
+      items,
+      subtotal: this.subtotal(),
+      tax: this.tax(),
+      total: this.total(),
+      paymentMethod: this.selectedPaymentMethod(),
+      paidAmount: this.paidAmount(),
+      change: this.change()
+    };
+
+    this.salesService.createSale(sale).subscribe({
+      next: () => {
+        this.reduceStock(items);
+        this.submitting.set(false);
+        alert(this.translation.translate('pos.saleCompleted') + ': ' + this.change().toFixed(2) + " so'm");
+        this.clearCart();
+      },
+      error: (err) => {
+        console.error('Create sale error:', err);
+        this.submitting.set(false);
+        alert(this.translation.translate('pos.saleError'));
+      }
+    });
+  }
+
+  private reduceStock(items: SaleItem[]) {
+    for (const item of items) {
+      this.productService.adjustQuantity(item.productId, -item.quantity).subscribe({
+        error: (err) => console.error('Reduce stock error:', err)
+      });
+    }
   }
 
   clearCart() {

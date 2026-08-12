@@ -61,14 +61,42 @@
       </div>
 
       <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.category' | translate }}</label>
-        <input
-          type="text"
-          [(ngModel)]="product.category"
-          name="category"
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.unit' | translate }}</label>
+        <select
+          [(ngModel)]="product.unit"
+          name="unit"
           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          [placeholder]="'form.enterCategory' | translate"
+        >
+          @for (u of units; track u) {
+          <option [value]="u">{{ 'units.' + u | translate }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.minQuantity' | translate }}</label>
+        <input
+          type="number"
+          [(ngModel)]="product.minQuantity"
+          name="minQuantity"
+          min="0"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+          placeholder="0"
         />
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.category' | translate }}</label>
+        <select
+          [(ngModel)]="product.categoryId"
+          name="categoryId"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        >
+          <option value="" disabled>{{ 'form.enterCategory' | translate }}</option>
+          @for (category of categories(); track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
       </div>
     </div>
 
@@ -83,10 +111,17 @@
       ></textarea>
     </div>
 
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
     <div class="flex gap-4">
       <button
         type="submit"
-        class="bg-blue-600 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition"
+        [disabled]="submitting()"
+        class="bg-blue-600 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
       >
         {{ 'form.createProduct' | translate }}
       </button>

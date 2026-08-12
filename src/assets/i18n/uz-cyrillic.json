@@ -20,6 +20,7 @@
     "stock": "Қолдиқ",
     "debts": "Қарзлар",
     "statistics": "Статистика",
+    "users": "Фойдаланувчилар",
     "menu": "Меню"
   },
   "products": {
@@ -33,7 +34,31 @@
     "description": "Тавсифи",
     "addProduct": "Маҳсулот қўшиш",
     "editProduct": "Маҳсулотни таҳрирлаш",
+    "unit": "Ўлчов бирлиги",
+    "minQuantity": "Минимал қолдиқ (огоҳлантириш учун)",
+    "lowStock": "Кам қолдиқ",
     "deleteConfirm": "Ушбу маҳсулотни ўчиришга ишончисиз?"
+  },
+  "units": {
+    "dona": "дона",
+    "kg": "кг",
+    "g": "г",
+    "m": "метр",
+    "m2": "м²",
+    "m3": "м³",
+    "litr": "литр",
+    "qop": "қоп",
+    "quti": "қути",
+    "rulon": "рулон",
+    "t": "тонна"
+  },
+  "categories": {
+    "title": "Категориялар",
+    "addCategory": "Категория қўшиш",
+    "name": "Номи",
+    "enterName": "Категория номини киритинг",
+    "noCategoriesFound": "Категориялар топилмади",
+    "confirmDelete": "Ушбу категорияни ўчиришга ишончингиз комилми?"
   },
   "pos": {
     "title": "POS Тизими",
@@ -50,19 +75,47 @@
     "proceedToPay": "ТЎЛАШГА Ў'ТИШ",
     "cash": "Нақд",
     "card": "Карта",
-    "debit": "Қарз"
+    "debit": "Қарз",
+    "amountDue": "Тўланиши керак",
+    "insufficientAmount": "Тўлов миқдори етарли эмас",
+    "saleCompleted": "Сотув муваффақиятли якунланди! Қайтим",
+    "saleError": "Сотувни сақлашда хатолик юз берди",
+    "enterAmount": "Миқдорни киритинг"
   },
   "stock": {
     "title": "Қолдиқ бошқаруви",
-    "stockIn": "Қолдиқга кирим",
+    "stockIn": "Кирим",
+    "stockOut": "Чиқим",
+    "adjustment": "Инвентаризация",
     "stockHistory": "Қолдиқ тарихи",
     "productId": "Маҳсулот коди",
+    "product": "Маҳсулот",
+    "selectProduct": "Маҳсулотни танланг",
     "quantity": "Миқдори",
+    "currentQuantity": "Жорий қолдиқ",
+    "countedQuantity": "Саналган миқдор",
+    "difference": "Фарқ",
     "supplier": "Таъминотчи",
     "costPrice": "햀раҷат нархи",
     "totalCost": "Жами햀раҷат",
     "date": "Сана",
-    "addStock": "Қолдиқ қўшиш"
+    "addStock": "Қолдиқ қўшиш",
+    "saveAdjustment": "Инвентаризацияни сақлаш",
+    "reason": "Сабаби",
+    "reasonDamaged": "Бузилган/яроқсиз",
+    "reasonLost": "Йўқолган",
+    "reasonReturned": "Қайтарилган",
+    "reasonOther": "Бошқа",
+    "notes": "Изоҳ",
+    "type": "Тури",
+    "typeIn": "Кирим",
+    "typeOut": "Чиқим",
+    "typeAdjustment": "Инвентаризация",
+    "change": "Ўзгариш",
+    "previousNew": "Олдин → Кейин",
+    "detail": "Тафсилот",
+    "selectProductAndQuantity": "Маҳсулот ва миқдорни тўғри киритинг",
+    "insufficientQuantity": "Қолдиқда етарли миқдор йўқ"
   },
   "sales": {
     "title": "Сотувлар",
@@ -71,7 +124,12 @@
     "date": "Сана",
     "amount": "Сумма",
     "paymentMethod": "Тўлов усули",
-    "exportCSV": "CSV'га экспорт қилиш"
+    "exportCSV": "CSV'га экспорт қилиш",
+    "receipt": "Сотув чеки",
+    "item": "Маҳсулот",
+    "qty": "Сони",
+    "unknownProduct": "Номаълум маҳсулот",
+    "printReceipt": "Чекни чоп этиш"
   },
   "debts": {
     "title": "Қарзларни бошқариш",
@@ -87,7 +145,16 @@
     "payDebt": "Қарзни тўлаш",
     "processPayment": "Тўловни бажариш",
     "paymentAmount": "Тўлов миқдори",
-    "noDebtsFound": "Қарзлар топилмади"
+    "noDebtsFound": "Қарзлар топилмади",
+    "newCustomer": "Янги харидор",
+    "existingCustomer": "Мавжуд харидор",
+    "customerName": "Харидор исми",
+    "customerPhone": "Телефон рақами",
+    "customerAddress": "Манзил",
+    "selectCustomer": "Харидорни танланг",
+    "notes": "Изоҳ",
+    "paymentSuccess": "Тўлов муваффақиятли қабул қилинди",
+    "fullyPaid": "Қарз тўлиқ тўланган"
   },
   "statistics": {
     "title": "Статистика",
@@ -109,7 +176,8 @@
     "totalDebts": "Жами қарзлар",
     "todaySales": "Бугун сотувлар",
     "todayRevenue": "Бугун даромад",
-    "totalOrders": "Жами буюртмалар"
+    "totalOrders": "Жами буюртмалар",
+    "lowStock": "Кам қолган маҳсулотлар"
   },
   "table": {
     "saleId": "Сотувning ID",
@@ -143,12 +211,33 @@
   },
   "auth": {
     "login": "Тизимга кириш",
-    "username": "Фойдаланувчи номи",
+    "email": "Электрон почта",
     "password": "Парол",
-    "enterUsername": "Фойдаланувчи номини кирiting",
-    "enterPassword": "Паролни кирiting",
+    "enterEmail": "Электрон почтани киритинг",
+    "enterPassword": "Паролни киритинг",
     "loginButton": "Кириш",
-    "invalidCredentials": "Нотўғри фойдаланувчи номи ёк парол"
+    "invalidCredentials": "Нотўғри электрон почта ёки парол"
+  },
+  "users": {
+    "title": "Фойдаланувчиларни бошқариш",
+    "addEmployee": "Ходим қўшиш",
+    "displayName": "Тўлиқ исми",
+    "enterDisplayName": "Тўлиқ исмини киритинг",
+    "email": "Электрон почта",
+    "enterEmail": "Электрон почтани киритинг",
+    "tempPassword": "Вақтинчалик парол",
+    "role": "Роли",
+    "roleAdmin": "Администратор",
+    "roleCashier": "Кассир",
+    "roleManager": "Омбор мудири",
+    "status": "Ҳолати",
+    "active": "Фаол",
+    "inactive": "Нофаол",
+    "activate": "Фаоллаштириш",
+    "deactivate": "Фаолсизлантириш",
+    "confirmDeactivate": "Ушбу ходимни фаолсизлантирасизми? У энди тизимга кира олмайди.",
+    "employeeCreated": "Ходим муваффақиятли қўшилди",
+    "noUsersFound": "Ходимлар топилмади"
   },
   "buttons": {
     "add": "Қўшиш",

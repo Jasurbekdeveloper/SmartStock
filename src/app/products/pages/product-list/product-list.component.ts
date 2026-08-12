@@ -1,6 +1,10 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';import { TranslateModule } from '@ngx-translate/core';import { Product, ProductService } from '../../../core/services/product.service';
+import { RouterModule, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Product, ProductService } from '../../../core/services/product.service';
+import { CategoryService } from '../../../core/services/category.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
@@ -10,18 +14,20 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
-export class ProductListComponent implements OnInit {
-  products = signal<Product[]>([]);
+export class ProductListComponent {
+  private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
+  private router = inject(Router);
 
-  constructor(
-    private productService: ProductService,
-    private router: Router
-  ) {}
+  products = toSignal(this.productService.getProducts(), { initialValue: [] });
+  categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
 
-  ngOnInit() {
-    this.productService.getProducts().subscribe(products => {
-      this.products.set(products);
-    });
+  categoryName(categoryId: string): string {
+    return this.categories().find((c) => c.id === categoryId)?.name ?? '';
+  }
+
+  isLowStock(product: Product): boolean {
+    return !!product.minQuantity && product.quantity <= product.minQuantity;
   }
 
   deleteProduct(id: string) {

@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { Sale, SalesService } from '../core/services/sales.service';
+import { Product, ProductService } from '../core/services/product.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
 
 interface StatCard {
@@ -21,13 +22,23 @@ interface StatCard {
 export class DashboardComponent implements OnInit {
   sales = signal<Sale[]>([]);
   stats = signal<StatCard[]>([]);
+  lowStockProducts = signal<Product[]>([]);
 
-  constructor(private salesService: SalesService) {}
+  constructor(
+    private salesService: SalesService,
+    private productService: ProductService
+  ) {}
 
   ngOnInit() {
     this.salesService.getSales().subscribe(sales => {
       this.sales.set(sales);
       this.calculateStats(sales);
+    });
+
+    this.productService.getProducts().subscribe(products => {
+      this.lowStockProducts.set(
+        products.filter(p => !!p.minQuantity && p.quantity <= p.minQuantity)
+      );
     });
   }
 

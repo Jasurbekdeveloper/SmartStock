@@ -1,0 +1,99 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && currentUserDoc().data.role == 'admin'
+        && currentUserDoc().data.active == true;
+    }
+
+    function isStaff() {
+      return isSignedIn()
+        && currentUserDoc().data.role in ['admin', 'manager']
+        && currentUserDoc().data.active == true;
+    }
+
+    function isActiveUser() {
+      return isSignedIn() && currentUserDoc().data.active == true;
+    }
+
+    // users/{uid}: every employee's profile + role, keyed by their Firebase Auth uid.
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAdmin()
+        || (isSignedIn() && request.auth.uid == uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.active == resource.data.active);
+      allow delete: if isAdmin();
+    }
+
+    // categories/{id}: product categories, managed by admin/manager.
+    match /categories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    // products/{id}: catalog items. Full edits (name/price/etc.) are admin/manager only;
+    // any active staff (incl. cashier) may adjust only quantity/updatedAt, since checkout
+    // in the POS decrements stock for every role.
+    match /products/{id} {
+      allow read: if isSignedIn();
+      allow create, delete: if isStaff();
+      allow update: if isStaff()
+        || (isActiveUser()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity', 'updatedAt']));
+    }
+
+    // stockEntries/{id}: stock in/out/adjustment audit log, managed by admin/manager
+    // (the app's UI already restricts these routes to admin/manager).
+    match /stockEntries/{id} {
+      allow read: if isSignedIn();
+      allow create: if isStaff();
+      allow update, delete: if false;
+    }
+
+    // sales/{id}: POS checkout receipts. Any active staff can create a sale (cashiers
+    // run the register); sales are an immutable record, so no update/delete.
+    match /sales/{id} {
+      allow read: if isSignedIn();
+      allow create: if isActiveUser();
+      allow update, delete: if false;
+    }
+
+    // customers/{id}: debtor contact info, any active staff can register one.
+    match /customers/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isActiveUser();
+      allow delete: if isStaff();
+    }
+
+    // debts/{id}: any active staff can open a debt or record a payment against
+    // one; only paidAmount/remainingAmount/lastPaymentDate move on update (the
+    // original amount and customer stay fixed once created).
+    match /debts/{id} {
+      allow read: if isSignedIn();
+      allow create: if isActiveUser();
+      allow update: if isActiveUser()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate']);
+      allow delete: if isStaff();
+    }
+
+    // Everything else is default-denied until its module is built and
+    // gets its own explicit rules (Suppliers, Orders, Settings...).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

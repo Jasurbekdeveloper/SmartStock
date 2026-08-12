@@ -20,6 +20,7 @@
     "stock": "Stock",
     "debts": "Debts",
     "statistics": "Statistics",
+    "users": "Users",
     "menu": "Menu"
   },
   "products": {
@@ -33,7 +34,31 @@
     "description": "Description",
     "addProduct": "Add Product",
     "editProduct": "Edit Product",
+    "unit": "Unit",
+    "minQuantity": "Minimum Quantity (for low-stock alert)",
+    "lowStock": "Low Stock",
     "deleteConfirm": "Are you sure you want to delete this product?"
+  },
+  "units": {
+    "dona": "pcs",
+    "kg": "kg",
+    "g": "g",
+    "m": "m",
+    "m2": "m²",
+    "m3": "m³",
+    "litr": "L",
+    "qop": "sack",
+    "quti": "box",
+    "rulon": "roll",
+    "t": "ton"
+  },
+  "categories": {
+    "title": "Categories",
+    "addCategory": "Add Category",
+    "name": "Name",
+    "enterName": "Enter category name",
+    "noCategoriesFound": "No categories found",
+    "confirmDelete": "Are you sure you want to delete this category?"
   },
   "pos": {
     "title": "POS System",
@@ -50,19 +75,47 @@
     "proceedToPay": "PROCEED TO PAY",
     "cash": "Cash",
     "card": "Card",
-    "debit": "Debt"
+    "debit": "Debt",
+    "amountDue": "Amount Due",
+    "insufficientAmount": "Paid amount is not enough",
+    "saleCompleted": "Sale completed! Change",
+    "saleError": "Failed to save the sale",
+    "enterAmount": "Enter amount"
   },
   "stock": {
     "title": "Stock Management",
     "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "adjustment": "Inventory Count",
     "stockHistory": "Stock History",
     "productId": "Product ID",
+    "product": "Product",
+    "selectProduct": "Select a product",
     "quantity": "Quantity",
+    "currentQuantity": "Current Quantity",
+    "countedQuantity": "Counted Quantity",
+    "difference": "Difference",
     "supplier": "Supplier",
     "costPrice": "Cost Price",
     "totalCost": "Total Cost",
     "date": "Date",
-    "addStock": "Add Stock"
+    "addStock": "Add Stock",
+    "saveAdjustment": "Save Adjustment",
+    "reason": "Reason",
+    "reasonDamaged": "Damaged",
+    "reasonLost": "Lost",
+    "reasonReturned": "Returned",
+    "reasonOther": "Other",
+    "notes": "Notes",
+    "type": "Type",
+    "typeIn": "In",
+    "typeOut": "Out",
+    "typeAdjustment": "Adjustment",
+    "change": "Change",
+    "previousNew": "Previous → New",
+    "detail": "Detail",
+    "selectProductAndQuantity": "Select a product and enter a valid quantity",
+    "insufficientQuantity": "Not enough stock available"
   },
   "sales": {
     "title": "Sales",
@@ -71,7 +124,12 @@
     "date": "Date",
     "amount": "Amount",
     "paymentMethod": "Payment Method",
-    "exportCSV": "Export CSV"
+    "exportCSV": "Export CSV",
+    "receipt": "Sale Receipt",
+    "item": "Item",
+    "qty": "Qty",
+    "unknownProduct": "Unknown product",
+    "printReceipt": "Print Receipt"
   },
   "debts": {
     "title": "Debts Management",
@@ -87,7 +145,16 @@
     "payDebt": "Pay Debt",
     "processPayment": "Process Payment",
     "paymentAmount": "Payment Amount",
-    "noDebtsFound": "No debts found"
+    "noDebtsFound": "No debts found",
+    "newCustomer": "New Customer",
+    "existingCustomer": "Existing Customer",
+    "customerName": "Customer Name",
+    "customerPhone": "Phone Number",
+    "customerAddress": "Address",
+    "selectCustomer": "Select customer",
+    "notes": "Notes",
+    "paymentSuccess": "Payment received successfully",
+    "fullyPaid": "Debt fully paid"
   },
   "statistics": {
     "title": "Statistics",
@@ -109,7 +176,8 @@
     "totalDebts": "Total Debts",
     "todaySales": "Today Sales",
     "todayRevenue": "Today Revenue",
-    "totalOrders": "Total Orders"
+    "totalOrders": "Total Orders",
+    "lowStock": "Low Stock Products"
   },
   "table": {
     "saleId": "Sale ID",
@@ -143,12 +211,33 @@
   },
   "auth": {
     "login": "Login",
-    "username": "Username",
+    "email": "Email",
     "password": "Password",
-    "enterUsername": "Enter your username",
+    "enterEmail": "Enter your email",
     "enterPassword": "Enter your password",
     "loginButton": "Login",
-    "invalidCredentials": "Invalid username or password"
+    "invalidCredentials": "Invalid email or password"
+  },
+  "users": {
+    "title": "User Management",
+    "addEmployee": "Add Employee",
+    "displayName": "Full Name",
+    "enterDisplayName": "Enter full name",
+    "email": "Email",
+    "enterEmail": "Enter email",
+    "tempPassword": "Temporary Password",
+    "role": "Role",
+    "roleAdmin": "Admin",
+    "roleCashier": "Cashier",
+    "roleManager": "Warehouse Manager",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "confirmDeactivate": "Deactivate this employee? They will no longer be able to log in.",
+    "employeeCreated": "Employee created successfully",
+    "noUsersFound": "No employees found"
   },
   "buttons": {
     "add": "Add",

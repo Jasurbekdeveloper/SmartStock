@@ -14,7 +14,7 @@ import { HeaderComponent } from '../../layout/header/header.component';
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
-  username = '';
+  email = '';
   password = '';
   error = signal<string | null>(null);
   loading = signal(false);
@@ -26,20 +26,22 @@ export class LoginComponent {
   ) {}
 
   login() {
-    if (!this.username || !this.password) {
-      this.error.set('Please enter username and password');
+    if (!this.email || !this.password) {
+      this.error.set('auth.invalidCredentials');
       return;
     }
 
     this.loading.set(true);
-    this.authService.login(this.username, this.password).subscribe({
+    this.error.set(null);
+
+    this.authService.login(this.email, this.password).subscribe({
       next: () => {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
         this.router.navigateByUrl(returnUrl);
-        console.log('Login successful');
       },
       error: (err) => {
-        this.error.set('Login failed. Please try again.');
+        console.error('Login error:', err);
+        this.error.set('auth.invalidCredentials');
         this.loading.set(false);
       }
     });

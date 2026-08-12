@@ -44,25 +44,27 @@
 
       <!-- User Menu -->
       <span class="text-sm">{{ userName() }}</span>
-      <button
-        (click)="toggleDropdown()"
-        class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded transition-colors"
-      >
-        <lucide-icon [img]="MoreIcon" class="w-4 h-4"></lucide-icon>
-      </button>
-      @if (isDropdownOpen) {
-      <div class="absolute top-12 right-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow-lg z-50">
+      <div class="relative">
         <button
-          (click)="logout()"
-          class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          (click)="toggleDropdown()"
+          class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded transition-colors"
         >
-          <span class="inline-flex items-center gap-2">
-            <lucide-icon [img]="LogoutIcon" class="w-4 h-4"></lucide-icon>
-            {{ translationService.t('common.logout') }}
-          </span>
+          <lucide-icon [img]="MoreIcon" class="w-4 h-4"></lucide-icon>
         </button>
+        @if (isDropdownOpen) {
+        <div class="absolute top-12 right-0 bg-white dark:bg-gray-800 text-black dark:text-white rounded shadow-lg z-50 min-w-max">
+          <button
+            (click)="logout()"
+            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <span class="inline-flex items-center gap-2">
+              <lucide-icon [img]="LogoutIcon" class="w-4 h-4"></lucide-icon>
+              {{ translationService.t('common.logout') }}
+            </span>
+          </button>
+        </div>
+        }
       </div>
-      }
     </div>
   </div>
 </header>

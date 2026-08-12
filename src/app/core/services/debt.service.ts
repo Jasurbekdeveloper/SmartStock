@@ -1,5 +1,19 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, from } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  addDoc,
+  collection,
+  doc,
+  increment,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import { FIRESTORE } from '../firebase/firebase.providers';
+import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 
 export interface Customer {
   id: string;
@@ -7,6 +21,7 @@ export interface Customer {
   phone: string;
   address?: string;
   email?: string;
+  createdAt?: Date;
 }
 
 export interface Debt {
@@ -25,145 +40,62 @@ export interface Debt {
   providedIn: 'root'
 })
 export class DebtService {
-  private debts$ = new BehaviorSubject<Debt[]>([]);
-  private customers$ = new BehaviorSubject<Customer[]>([]);
-
-  constructor() {
-    // Dastlabki ma'lumotlar bilan to'ldirish
-    this.customers$.next([
-      {
-        id: '1',
-        name: 'Ali Valiyev',
-        phone: '+998901234567',
-        address: 'Toshkent shahri',
-        email: 'ali@example.com'
-      },
-      {
-        id: '2',
-        name: 'Bekzod Karimov',
-        phone: '+998931112233',
-        address: 'Samarqand',
-        email: 'bekzod@example.com'
-      },
-      {
-        id: '3',
-        name: 'Dilshod Rasulov',
-        phone: '+998909876543',
-        address: 'Andijon'
-      },
-      {
-        id: '4',
-        name: 'Jasmina Akhmedova',
-        phone: '+998935556677',
-        email: 'jasmina@example.com'
-      }
-    ]);
-    this.debts$.next([
-      {
-        id: 'd1',
-        customerId: '1',
-        customer: this.customers$.value[0],
-        totalAmount: 500000,
-        paidAmount: 200000,
-        remainingAmount: 300000,
-        createdAt: new Date('2026-03-01'),
-        lastPaymentDate: new Date('2026-03-05'),
-        notes: 'Telefon uchun qarz'
-      },
-      {
-        id: 'd2',
-        customerId: '2',
-        customer: this.customers$.value[1],
-        totalAmount: 750000,
-        paidAmount: 250000,
-        remainingAmount: 500000,
-        createdAt: new Date('2026-02-20'),
-        lastPaymentDate: new Date('2026-03-02'),
-        notes: 'Maishiy texnika'
-      },
-      {
-        id: 'd3',
-        customerId: '3',
-        customer: this.customers$.value[2],
-        totalAmount: 300000,
-        paidAmount: 100000,
-        remainingAmount: 200000,
-        createdAt: new Date('2026-02-25'),
-        notes: 'Aksessuarlar'
-      },
-      {
-        id: 'd4',
-        customerId: '4',
-        customer: this.customers$.value[3],
-        totalAmount: 1000000,
-        paidAmount: 400000,
-        remainingAmount: 600000,
-        createdAt: new Date('2026-01-15'),
-        lastPaymentDate: new Date('2026-02-10'),
-        notes: 'Noutbuk uchun qarz'
-      }
-    ]);
-  }
+  private firestore = inject(FIRESTORE);
 
   getDebts(): Observable<Debt[]> {
-    return this.debts$.asObservable();
+    const debtsQuery = query(collection(this.firestore, 'debts'), orderBy('createdAt', 'desc'));
+    return fromCollectionQuery<Debt>(debtsQuery);
   }
 
   getDebtById(id: string): Observable<Debt | undefined> {
-    return new Observable(observer => {
-      observer.next(this.debts$.value.find(d => d.id === id));
-      observer.complete();
-    });
+    return fromDocRef<Debt>(doc(this.firestore, 'debts', id));
   }
 
   getCustomerDebts(customerId: string): Observable<Debt[]> {
-    return new Observable(observer => {
-      observer.next(
-        this.debts$.value.filter(d => d.customerId === customerId)
-      );
-      observer.complete();
-    });
+    const debtsQuery = query(
+      collection(this.firestore, 'debts'),
+      where('customerId', '==', customerId),
+      orderBy('createdAt', 'desc')
+    );
+    return fromCollectionQuery<Debt>(debtsQuery);
   }
 
-  createDebt(debt: Debt): Observable<Debt> {
-    const newDebt = { ...debt, id: Date.now().toString() };
-    this.debts$.next([...this.debts$.value, newDebt]);
-    return new Observable(observer => {
-      observer.next(newDebt);
-      observer.complete();
-    });
+  createDebt(debt: {
+    customerId: string;
+    totalAmount: number;
+    notes?: string;
+  }): Observable<void> {
+    const data: Record<string, unknown> = {
+      customerId: debt.customerId,
+      totalAmount: debt.totalAmount,
+      paidAmount: 0,
+      remainingAmount: debt.totalAmount,
+      createdAt: serverTimestamp()
+    };
+    if (debt.notes) data['notes'] = debt.notes;
+
+    return from(addDoc(collection(this.firestore, 'debts'), data)).pipe(map(() => undefined));
   }
 
-  payDebt(debtId: string, amount: number): Observable<Debt> {
-    const updatedDebts = this.debts$.value.map(d => {
-      if (d.id === debtId) {
-        const newPaidAmount = d.paidAmount + amount;
-        return {
-          ...d,
-          paidAmount: newPaidAmount,
-          remainingAmount: Math.max(0, d.totalAmount - newPaidAmount),
-          lastPaymentDate: new Date()
-        };
-      }
-      return d;
-    });
-    this.debts$.next(updatedDebts);
-    return new Observable(observer => {
-      observer.next(updatedDebts.find(d => d.id === debtId)!);
-      observer.complete();
-    });
+  /** Applies a relative payment without a read-then-write race. */
+  payDebt(debtId: string, amount: number): Observable<void> {
+    return from(
+      updateDoc(doc(this.firestore, 'debts', debtId), {
+        paidAmount: increment(amount),
+        remainingAmount: increment(-amount),
+        lastPaymentDate: serverTimestamp()
+      })
+    );
   }
 
   getCustomers(): Observable<Customer[]> {
-    return this.customers$.asObservable();
+    const customersQuery = query(collection(this.firestore, 'customers'), orderBy('name'));
+    return fromCollectionQuery<Customer>(customersQuery);
   }
 
-  addCustomer(customer: Customer): Observable<Customer> {
-    const newCustomer = { ...customer, id: Date.now().toString() };
-    this.customers$.next([...this.customers$.value, newCustomer]);
-    return new Observable(observer => {
-      observer.next(newCustomer);
-      observer.complete();
-    });
+  addCustomer(customer: Omit<Customer, 'id'>): Observable<string> {
+    return from(
+      addDoc(collection(this.firestore, 'customers'), { ...customer, createdAt: serverTimestamp() })
+    ).pipe(map((ref) => ref.id));
   }
 }

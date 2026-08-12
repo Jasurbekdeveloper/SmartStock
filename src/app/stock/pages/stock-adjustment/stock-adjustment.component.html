@@ -1,0 +1,69 @@
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'stock.adjustment' | translate }}</h1>
+
+  <form (ngSubmit)="submitAdjustment()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+    <div>
+      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.product' | translate }}</label>
+      <select
+        [(ngModel)]="productId"
+        name="productId"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+      >
+        <option value="" disabled>{{ 'stock.selectProduct' | translate }}</option>
+        @for (product of products(); track product.id) {
+        <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity }})</option>
+        }
+      </select>
+    </div>
+
+    @if (selectedProduct(); as product) {
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.currentQuantity' | translate }}</label>
+        <p class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">{{ product.quantity }}</p>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.countedQuantity' | translate }}</label>
+        <input
+          type="number"
+          [(ngModel)]="countedQuantity"
+          name="countedQuantity"
+          min="0"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+        />
+      </div>
+    </div>
+
+    @if (difference(); as diff) {
+    <p class="font-semibold" [class.text-red-600]="diff < 0" [class.text-green-600]="diff > 0" [class.dark:text-red-400]="diff < 0" [class.dark:text-green-400]="diff > 0">
+      {{ 'stock.difference' | translate }}: {{ diff > 0 ? '+' : '' }}{{ diff }}
+    </p>
+    }
+    }
+
+    <div>
+      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.notes' | translate }}</label>
+      <textarea
+        [(ngModel)]="notes"
+        name="notes"
+        rows="3"
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+      ></textarea>
+    </div>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
+    <button
+      type="submit"
+      [disabled]="submitting()"
+      class="w-full bg-blue-600 dark:bg-blue-800 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition font-bold disabled:bg-gray-400 dark:disabled:bg-gray-600"
+    >
+      {{ 'stock.saveAdjustment' | translate }}
+    </button>
+  </form>
+</div>

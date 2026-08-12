@@ -15,6 +15,7 @@
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.price' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.cost' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.quantity' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.category' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
         </tr>
       </thead>
@@ -25,7 +26,23 @@
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
           <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price.toFixed(2) }} so'm</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.cost.toFixed(2) }} so'm</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.quantity }}</td>
+          <td class="px-4 py-3">
+            <span
+              [class.text-red-600]="isLowStock(product)"
+              [class.dark:text-red-400]="isLowStock(product)"
+              [class.font-bold]="isLowStock(product)"
+              [class.text-gray-900]="!isLowStock(product)"
+              [class.dark:text-white]="!isLowStock(product)"
+            >
+              {{ product.quantity }} {{ 'units.' + product.unit | translate }}
+            </span>
+            @if (isLowStock(product)) {
+            <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
+              {{ 'products.lowStock' | translate }}
+            </span>
+            }
+          </td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ categoryName(product.categoryId) }}</td>
           <td class="px-4 py-3">
             <button
               (click)="editProduct(product.id)"

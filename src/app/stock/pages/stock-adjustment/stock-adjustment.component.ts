@@ -7,11 +7,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { StockService } from '../../../core/services/stock.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 
 @Component({
   selector: 'app-stock-adjustment',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslatePipe, TranslateModule, SumPipe],
   templateUrl: './stock-adjustment.component.html',
   styleUrl: './stock-adjustment.component.css'
 })

@@ -12,7 +12,7 @@
         >
           <option value="" disabled>{{ 'stock.selectProduct' | translate }}</option>
           @for (product of products(); track product.id) {
-          <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity }})</option>
+          <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity | sum:0 }})</option>
           }
         </select>
       </div>

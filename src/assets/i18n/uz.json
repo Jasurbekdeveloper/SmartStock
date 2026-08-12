@@ -37,7 +37,8 @@
     "deleteConfirm": "Ushbu mahsulotni o'chirishga ishonchisiz?",
     "unit": "O'lchov birligi",
     "minQuantity": "Minimal qoldiq (ogohlantirish uchun)",
-    "lowStock": "Kam qoldiq"
+    "lowStock": "Kam qoldiq",
+    "createdAt": "Yaratilgan sana"
   },
   "units": {
     "dona": "dona",
@@ -80,7 +81,8 @@
     "insufficientAmount": "To'lov miqdori yetarli emas",
     "saleCompleted": "Sotuv muvaffaqiyatli yakunlandi! Qaytim",
     "saleError": "Sotuvni saqlashda xatolik yuz berdi",
-    "enterAmount": "Miqdorni kiriting"
+    "enterAmount": "Miqdorni kiriting",
+    "allOnCredit": "Hammasi qarzga"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -154,7 +156,11 @@
     "selectCustomer": "Xaridorni tanlang",
     "notes": "Izoh",
     "paymentSuccess": "To'lov muvaffaqiyatli qabul qilindi",
-    "fullyPaid": "Qarz to'liq to'langan"
+    "fullyPaid": "Qarz to'liq to'langan",
+    "searchCustomer": "Xaridor ismi bo'yicha qidirish...",
+    "totalOwed": "Jami qarzi",
+    "lastDebt": "Oxirgi olgan qarzi",
+    "debtHistory": "Qarzlar tarixi"
   },
   "statistics": {
     "title": "Statistika",

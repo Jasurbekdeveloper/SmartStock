@@ -1,6 +1,18 @@
-<nav class="bg-gray-900 dark:bg-gray-950 text-white h-screen transition-all" [class.w-64]="isOpen()" [class.w-20]="!isOpen()">
+@if (sidebarState.mobileOpen()) {
+<div
+  class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+  (click)="sidebarState.closeMobile()"
+></div>
+}
+
+<nav
+  class="bg-gray-900 dark:bg-gray-950 text-white h-screen transition-all duration-200 fixed inset-y-0 left-0 z-40 lg:static w-64 lg:translate-x-0"
+  [class.translate-x-0]="sidebarState.mobileOpen()"
+  [class.-translate-x-full]="!sidebarState.mobileOpen()"
+  [class.lg:w-20]="!sidebarState.isOpen()"
+>
   <div class="p-4 border-b border-gray-700 flex justify-between items-center">
-    @if (isOpen()) {
+    @if (showLabels()) {
     <h2 class="text-xl font-bold">{{ 'navigation.menu' | translate }}</h2>
     }
     <button (click)="toggleSidebar()" class="hover:bg-gray-800 dark:hover:bg-gray-800 p-2 rounded">
@@ -8,11 +20,11 @@
     </button>
   </div>
 
-  <ul class="mt-4">
+  <ul class="mt-4 overflow-y-auto" style="max-height: calc(100vh - 4.5rem)">
     @for (item of visibleMenuItems(); track $index) {
     <li class="mb-2">
       <div
-        (click)="toggleMenu(item)"
+        (click)="onItemClick(item)"
         [routerLink]="item.children ? null : item.path"
         class="px-4 py-3 hover:bg-gray-800 cursor-pointer flex justify-between items-center transition"
       >
@@ -20,18 +32,19 @@
           @if (item.icon) {
           <lucide-icon [img]="item.icon" class="w-5 h-5"></lucide-icon>
           }
-          @if (isOpen()) {
+          @if (showLabels()) {
           <span class="text-sm">{{ item.label | translate }}</span>
           }
         </div>
       </div>
 
-      @if (item.children && expandedMenu() === item.label && isOpen()) {
+      @if (item.children && expandedMenu() === item.label && showLabels()) {
       <ul class="ml-12 mt-2">
         @for (child of item.children; track $index) {
         <li class="mb-1">
           <a
             [routerLink]="child.path"
+            (click)="onNavigate()"
             class="block px-4 py-2 text-sm hover:bg-gray-800 rounded transition"
           >
             {{ child.label | translate }}

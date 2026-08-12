@@ -25,7 +25,7 @@
     <div class="flex flex-wrap gap-2">
       @for (product of lowStockProducts(); track product.id) {
       <span class="px-3 py-1 text-sm rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
-        {{ product.name }}: {{ product.quantity }} {{ 'units.' + product.unit | translate }}
+        {{ product.name }}: {{ product.quantity | sum:0 }} {{ 'units.' + product.unit | translate }}
       </span>
       }
     </div>
@@ -50,7 +50,7 @@
           <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.id }}</td>
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.items.length }}</td>
-            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">${{ sale.total.toFixed(2) }}</td>
+            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | sum }} so'm</td>
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
           </tr>
           }

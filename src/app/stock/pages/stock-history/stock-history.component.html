@@ -2,6 +2,7 @@
   <h1 class="text-3xl font-bold dark:text-white">{{ 'stock.stockHistory' | translate }}</h1>
 
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
@@ -43,12 +44,12 @@
             [class.dark:text-green-400]="quantityChange(entry) > 0"
             [class.dark:text-red-400]="quantityChange(entry) < 0"
           >
-            {{ quantityChange(entry) > 0 ? '+' : '' }}{{ quantityChange(entry) }}
+            {{ quantityChange(entry) > 0 ? '+' : '' }}{{ quantityChange(entry) | sum:0 }}
           </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.previousQuantity }} → {{ entry.newQuantity }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.previousQuantity | sum:0 }} → {{ entry.newQuantity | sum:0 }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">
             @if (entry.type === 'in') {
-              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice.toFixed(2) }} so'm) }
+              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice | sum }} so'm) }
             } @else if (reasonLabelKey(entry.reason); as key) {
               {{ key | translate }}@if (entry.notes) { — {{ entry.notes }} }
             } @else if (entry.notes) {
@@ -60,6 +61,7 @@
         }
       </tbody>
     </table>
+    </div>
     @if (stockEntries().length === 0) {
       <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'messages.noStockEntriesFound' | translate }}</p>
     }

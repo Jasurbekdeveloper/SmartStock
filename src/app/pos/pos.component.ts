@@ -2,14 +2,19 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, ProductService } from '../core/services/product.service';
-import { Sale, SaleItem, SalesService } from '../core/services/sales.service';
+import { Sale, SaleDebtInput, SaleItem, SalesService } from '../core/services/sales.service';
+import { DebtService } from '../core/services/debt.service';
 import { TranslationService } from '../core/services/translation.service';
+import { ToastService } from '../core/services/toast.service';
+import { SumPipe } from '../core/pipes/sum.pipe';
+import { formatNumber } from '../core/utils/format-number';
 
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, SumPipe],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.css'
 })
@@ -18,14 +23,22 @@ export class PosComponent implements OnInit {
   cart = signal<CartItem[]>([]);
   searchQuery = signal('');
   filteredProducts = signal<Product[]>([]);
-  selectedPaymentMethod = signal<'cash' | 'card' | 'debit'>('cash');
+  selectedPaymentMethod = signal<'cash' | 'card'>('cash');
   showPaymentModal = signal(false);
   paidAmount = signal(0);
   submitting = signal(false);
 
   private productService: ProductService = inject(ProductService);
   private salesService: SalesService = inject(SalesService);
+  private debtService: DebtService = inject(DebtService);
   private translation: TranslationService = inject(TranslationService);
+  private toast: ToastService = inject(ToastService);
+
+  customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+  isNewCustomer = signal(true);
+  selectedCustomerId = signal('');
+  customerName = signal('');
+  customerPhone = signal('');
 
   ngOnInit() {
     this.productService.getProducts().subscribe(products => {
@@ -99,7 +112,16 @@ export class PosComponent implements OnInit {
     Math.max(0, this.paidAmount() - this.total())
   );
 
-  insufficient = computed(() => this.paidAmount() < this.total());
+  /** Unpaid remainder that would need to go on a customer's debt. */
+  debtAmount = computed(() => Math.max(0, this.total() - this.paidAmount()));
+
+  hasDebtPortion = computed(() => this.debtAmount() > 0);
+
+  canSubmit = computed(() => {
+    if (this.cart().length === 0 || this.submitting()) return false;
+    if (!this.hasDebtPortion()) return true;
+    return this.isNewCustomer() ? this.customerName().trim().length > 0 : !!this.selectedCustomerId();
+  });
 
   quickAmounts = computed(() => {
     const total = this.total();
@@ -111,6 +133,10 @@ export class PosComponent implements OnInit {
 
   openPaymentModal() {
     this.paidAmount.set(Math.ceil(this.total()));
+    this.isNewCustomer.set(true);
+    this.selectedCustomerId.set('');
+    this.customerName.set('');
+    this.customerPhone.set('');
     this.showPaymentModal.set(true);
   }
 
@@ -119,7 +145,7 @@ export class PosComponent implements OnInit {
   }
 
   completeSale() {
-    if (this.cart().length === 0 || this.insufficient()) {
+    if (!this.canSubmit()) {
       return;
     }
 
@@ -132,6 +158,9 @@ export class PosComponent implements OnInit {
       total: item.total
     }));
 
+    const debtPortion = this.debtAmount();
+    const change = this.change();
+
     const sale: Omit<Sale, 'id' | 'createdAt'> = {
       items,
       subtotal: this.subtotal(),
@@ -139,20 +168,27 @@ export class PosComponent implements OnInit {
       total: this.total(),
       paymentMethod: this.selectedPaymentMethod(),
       paidAmount: this.paidAmount(),
-      change: this.change()
+      change
     };
 
-    this.salesService.createSale(sale).subscribe({
+    let debt: SaleDebtInput | undefined;
+    if (debtPortion > 0) {
+      debt = this.isNewCustomer()
+        ? { amount: debtPortion, newCustomer: { name: this.customerName().trim(), phone: this.customerPhone().trim() } }
+        : { amount: debtPortion, customerId: this.selectedCustomerId() };
+    }
+
+    this.salesService.createSale(sale, debt).subscribe({
       next: () => {
         this.reduceStock(items);
         this.submitting.set(false);
-        alert(this.translation.translate('pos.saleCompleted') + ': ' + this.change().toFixed(2) + " so'm");
+        this.toast.success(this.translation.translate('pos.saleCompleted') + ': ' + formatNumber(change) + " so'm");
         this.clearCart();
       },
       error: (err) => {
         console.error('Create sale error:', err);
         this.submitting.set(false);
-        alert(this.translation.translate('pos.saleError'));
+        this.toast.error(this.translation.translate('pos.saleError'));
       }
     });
   }
@@ -170,6 +206,10 @@ export class PosComponent implements OnInit {
     this.searchQuery.set('');
     this.paidAmount.set(0);
     this.showPaymentModal.set(false);
+    this.isNewCustomer.set(true);
+    this.selectedCustomerId.set('');
+    this.customerName.set('');
+    this.customerPhone.set('');
   }
 }
 

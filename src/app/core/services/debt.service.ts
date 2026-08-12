@@ -28,6 +28,8 @@ export interface Debt {
   id: string;
   customerId: string;
   customer?: Customer;
+  /** Set when this debt was opened from a POS sale's unpaid remainder. */
+  saleId?: string;
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;

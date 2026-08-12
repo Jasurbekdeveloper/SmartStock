@@ -6,11 +6,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, TranslateModule],
+  imports: [CommonModule, RouterModule, TranslatePipe, TranslateModule, SumPipe],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })

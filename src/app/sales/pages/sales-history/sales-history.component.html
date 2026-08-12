@@ -10,6 +10,7 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
@@ -21,17 +22,28 @@
         </tr>
       </thead>
       <tbody>
-        @for (sale of sales(); track $index) {
-        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+        @for (sale of sales(); track sale.id) {
+        <tr
+          [routerLink]="['/sales', sale.id]"
+          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+        >
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.id }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.items.length }}</td>
-          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">${{ sale.total.toFixed(2) }}</td>
-          <td class="px-4 py-3 capitalize text-gray-900 dark:text-white">{{ sale.paymentMethod }}</td>
+          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{{ sale.total | sum }} so'm</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">
+            {{ 'pos.' + sale.paymentMethod | translate }}
+            @if (sale.debtAmount && sale.debtAmount > 0) {
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300">
+              {{ 'debts.title' | translate }}
+            </span>
+            }
+          </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
         </tr>
         }
       </tbody>
     </table>
+    </div>
     @if (sales().length === 0) {
     <p class="p-8 text-center text-gray-500 dark:text-gray-400">
       {{ 'messages.noSalesYet' | translate }}

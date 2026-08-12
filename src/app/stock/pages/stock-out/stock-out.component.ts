@@ -7,13 +7,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { StockService } from '../../../core/services/stock.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 
 export type StockOutReason = 'damaged' | 'lost' | 'returned' | 'other';
 
 @Component({
   selector: 'app-stock-out',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslatePipe, TranslateModule, SumPipe],
   templateUrl: './stock-out.component.html',
   styleUrl: './stock-out.component.css'
 })

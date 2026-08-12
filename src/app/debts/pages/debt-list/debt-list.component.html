@@ -1,38 +1,54 @@
 <div class="space-y-6">
-  <div class="flex justify-between items-center">
+  <div class="flex justify-between items-center flex-wrap gap-3">
     <h1 class="text-3xl font-bold dark:text-white">{{ 'debts.title' | translate }}</h1>
     <a routerLink="/debts/create" class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900">
       + {{ 'debts.addDebt' | translate }}
     </a>
   </div>
 
+  <input
+    type="text"
+    [ngModel]="searchQuery()"
+    (ngModelChange)="searchQuery.set($event)"
+    [placeholder]="'debts.searchCustomer' | translate"
+    class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+  />
+
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.customer' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.totalAmount' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.paidAmount' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.remainingAmount' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.totalOwed' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.lastDebt' | translate }}</th>
         </tr>
       </thead>
       <tbody>
-        @for (debt of debts(); track debt.id) {
+        @for (summary of filteredSummaries(); track summary.customerId) {
         <tr
-          [routerLink]="['/debts', debt.id]"
+          [routerLink]="['/debts', summary.customerId]"
           class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
         >
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customerName(debt.customerId) }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.totalAmount.toFixed(2) }} so'm</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.paidAmount.toFixed(2) }} so'm</td>
-          <td class="px-4 py-3 font-semibold" [class.text-red-600]="debt.remainingAmount > 0" [class.dark:text-red-400]="debt.remainingAmount > 0" [class.text-green-600]="debt.remainingAmount === 0" [class.dark:text-green-400]="debt.remainingAmount === 0">{{ debt.remainingAmount.toFixed(2) }} so'm</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ debt.createdAt | date: 'short' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">
+            <p class="font-medium">{{ summary.customerName }}</p>
+            @if (summary.customerPhone) {
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.customerPhone }}</p>
+            }
+          </td>
+          <td class="px-4 py-3 font-semibold" [class.text-red-600]="summary.totalRemaining > 0" [class.dark:text-red-400]="summary.totalRemaining > 0" [class.text-green-600]="summary.totalRemaining === 0" [class.dark:text-green-400]="summary.totalRemaining === 0">
+            {{ summary.totalRemaining | sum }} so'm
+          </td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">
+            <p>{{ summary.lastDebtAmount | sum }} so'm</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.lastDebtDate | date: 'short' }}</p>
+          </td>
         </tr>
         }
       </tbody>
     </table>
-    @if (debts().length === 0) {
+    </div>
+    @if (filteredSummaries().length === 0) {
       <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'debts.noDebtsFound' | translate }}</p>
     }
   </div>

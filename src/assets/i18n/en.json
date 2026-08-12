@@ -37,6 +37,7 @@
     "unit": "Unit",
     "minQuantity": "Minimum Quantity (for low-stock alert)",
     "lowStock": "Low Stock",
+    "createdAt": "Created",
     "deleteConfirm": "Are you sure you want to delete this product?"
   },
   "units": {
@@ -80,7 +81,8 @@
     "insufficientAmount": "Paid amount is not enough",
     "saleCompleted": "Sale completed! Change",
     "saleError": "Failed to save the sale",
-    "enterAmount": "Enter amount"
+    "enterAmount": "Enter amount",
+    "allOnCredit": "All on credit"
   },
   "stock": {
     "title": "Stock Management",
@@ -154,7 +156,11 @@
     "selectCustomer": "Select customer",
     "notes": "Notes",
     "paymentSuccess": "Payment received successfully",
-    "fullyPaid": "Debt fully paid"
+    "fullyPaid": "Debt fully paid",
+    "searchCustomer": "Search by customer name...",
+    "totalOwed": "Total Owed",
+    "lastDebt": "Last Debt",
+    "debtHistory": "Debt History"
   },
   "statistics": {
     "title": "Statistics",

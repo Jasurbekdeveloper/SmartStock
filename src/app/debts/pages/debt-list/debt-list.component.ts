@@ -1,14 +1,25 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
+
+interface CustomerDebtSummary {
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  totalRemaining: number;
+  lastDebtDate: Date;
+  lastDebtAmount: number;
+}
 
 @Component({
   selector: 'app-debt-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, SumPipe],
   templateUrl: './debt-list.component.html',
   styleUrl: './debt-list.component.css'
 })
@@ -17,8 +28,43 @@ export class DebtListComponent {
 
   debts = toSignal(this.debtService.getDebts(), { initialValue: [] });
   customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+  searchQuery = signal('');
 
-  customerName(customerId: string): string {
-    return this.customers().find((c) => c.id === customerId)?.name ?? customerId;
-  }
+  /** One row per customer who has at least one debt — total owed + most recent debt. */
+  summaries = computed<CustomerDebtSummary[]>(() => {
+    const customers = this.customers();
+    const byCustomer = new Map<string, CustomerDebtSummary>();
+
+    for (const debt of this.debts()) {
+      const customer = customers.find((c) => c.id === debt.customerId);
+      const existing = byCustomer.get(debt.customerId);
+
+      if (!existing) {
+        byCustomer.set(debt.customerId, {
+          customerId: debt.customerId,
+          customerName: customer?.name ?? debt.customerId,
+          customerPhone: customer?.phone ?? '',
+          totalRemaining: debt.remainingAmount,
+          lastDebtDate: debt.createdAt,
+          lastDebtAmount: debt.totalAmount
+        });
+      } else {
+        existing.totalRemaining += debt.remainingAmount;
+        if (new Date(debt.createdAt) > new Date(existing.lastDebtDate)) {
+          existing.lastDebtDate = debt.createdAt;
+          existing.lastDebtAmount = debt.totalAmount;
+        }
+      }
+    }
+
+    return Array.from(byCustomer.values()).sort(
+      (a, b) => new Date(b.lastDebtDate).getTime() - new Date(a.lastDebtDate).getTime()
+    );
+  });
+
+  filteredSummaries = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) return this.summaries();
+    return this.summaries().filter((s) => s.customerName.toLowerCase().includes(query));
+  });
 }

@@ -2,11 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Sale, SalesService } from '../core/services/sales.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
+import { SumPipe } from '../core/pipes/sum.pipe';
 
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, SumPipe],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.css'
 })

@@ -1,16 +1,17 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { DebtService, Debt } from '../../../core/services/debt.service';
+import { Customer, Debt, DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 
 @Component({
   selector: 'app-debt-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, SumPipe],
   templateUrl: './debt-detail.component.html',
   styleUrl: './debt-detail.component.css'
 })
@@ -18,41 +19,56 @@ export class DebtDetailComponent implements OnInit {
   private debtService: DebtService = inject(DebtService);
   private route: ActivatedRoute = inject(ActivatedRoute);
   private translation: TranslationService = inject(TranslationService);
+  private toast: ToastService = inject(ToastService);
 
-  debt = signal<Debt | null>(null);
-  paymentAmount = 0;
+  customer = signal<Customer | null>(null);
+  debts = signal<Debt[]>([]);
+
+  payingDebtId = signal<string | null>(null);
+  paymentAmount = signal(0);
   submitting = signal(false);
 
-  customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+  totalRemaining = computed(() => this.debts().reduce((sum, d) => sum + d.remainingAmount, 0));
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.debtService.getDebtById(id).subscribe(debt => {
-        this.debt.set(debt ?? null);
-      });
-    }
+    const customerId = this.route.snapshot.paramMap.get('id');
+    if (!customerId) return;
+
+    this.debtService.getCustomers().subscribe((customers) => {
+      this.customer.set(customers.find((c) => c.id === customerId) ?? null);
+    });
+
+    this.debtService.getCustomerDebts(customerId).subscribe((debts) => {
+      this.debts.set(debts);
+    });
   }
 
-  customerName(customerId: string): string {
-    return this.customers().find((c) => c.id === customerId)?.name ?? customerId;
+  startPayment(debt: Debt) {
+    this.payingDebtId.set(debt.id);
+    this.paymentAmount.set(debt.remainingAmount);
   }
 
-  payDebt() {
-    const debt = this.debt();
-    if (!debt || this.paymentAmount <= 0) return;
+  cancelPayment() {
+    this.payingDebtId.set(null);
+    this.paymentAmount.set(0);
+  }
+
+  confirmPayment(debt: Debt) {
+    const amount = this.paymentAmount();
+    if (amount <= 0) return;
 
     this.submitting.set(true);
-    this.debtService.payDebt(debt.id, this.paymentAmount).subscribe({
+    this.debtService.payDebt(debt.id, amount).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.paymentAmount = 0;
-        alert(this.translation.translate('debts.paymentSuccess'));
+        this.payingDebtId.set(null);
+        this.paymentAmount.set(0);
+        this.toast.success(this.translation.translate('debts.paymentSuccess'));
       },
       error: (err) => {
         console.error('Pay debt error:', err);
         this.submitting.set(false);
-        alert(this.translation.translate('messages.error'));
+        this.toast.error(this.translation.translate('messages.error'));
       }
     });
   }

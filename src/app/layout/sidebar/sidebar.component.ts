@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { AuthService, UserRole } from '../../core/services/auth.service';
+import { SidebarStateService } from './sidebar-state.service';
 import { LucideAngularModule, ChartColumn, CreditCard, Inbox, LayoutDashboard, Package, ShoppingCart, Users, Menu } from 'lucide-angular';
 
 interface MenuItem {
@@ -23,8 +24,8 @@ interface MenuItem {
 })
 export class SidebarComponent {
   private authService = inject(AuthService);
+  sidebarState = inject(SidebarStateService);
 
-  isOpen = signal(true);
   expandedMenu = signal<string | null>(null);
 
   readonly MenuIcon = Menu;
@@ -56,7 +57,6 @@ export class SidebarComponent {
       icon: Package,
       children: [
         { label: 'buttons.list', path: '/products/list' },
-        { label: 'form.createProduct', path: '/products/create' },
         { label: 'categories.title', path: '/products/categories', roles: ['admin', 'manager'] }
       ]
     },
@@ -85,19 +85,31 @@ export class SidebarComponent {
     { label: 'navigation.users', path: '/users', icon: Users, roles: ['admin'] }
   ];
 
-    toggleMenu(item: MenuItem) {
-    if (!this.isOpen()) {
-      this.isOpen.set(true);
+  /** Whether the sidebar should show full labels (desktop expanded, or mobile drawer open). */
+  showLabels(): boolean {
+    return this.sidebarState.isOpen() || this.sidebarState.mobileOpen();
+  }
+
+  onItemClick(item: MenuItem) {
+    if (!this.sidebarState.isOpen()) {
+      this.sidebarState.isOpen.set(true);
     }
 
     if (item.children) {
       this.expandedMenu.set(
         this.expandedMenu() === item.label ? null : item.label
       );
+    } else {
+      this.onNavigate();
     }
   }
 
   toggleSidebar() {
-    this.isOpen.set(!this.isOpen());
+    this.sidebarState.toggleDesktop();
+    this.sidebarState.closeMobile();
+  }
+
+  onNavigate() {
+    this.sidebarState.closeMobile();
   }
 }

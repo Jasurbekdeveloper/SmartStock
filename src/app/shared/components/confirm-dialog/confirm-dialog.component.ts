@@ -10,8 +10,9 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
     @if (isOpen()) {
     <div
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      (click)="onCancel()"
     >
-      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm" (click)="$event.stopPropagation()">
         <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">{{ title() }}</h2>
         <p class="text-gray-600 dark:text-gray-300 mb-6">{{ message() }}</p>
         <div class="flex gap-3 justify-end">

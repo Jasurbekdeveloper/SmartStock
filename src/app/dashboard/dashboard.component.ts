@@ -4,6 +4,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Sale, SalesService } from '../core/services/sales.service';
 import { Product, ProductService } from '../core/services/product.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
+import { SumPipe } from '../core/pipes/sum.pipe';
+import { formatNumber } from '../core/utils/format-number';
 
 interface StatCard {
   label: string;
@@ -15,7 +17,7 @@ interface StatCard {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TranslateModule],
+  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -51,10 +53,10 @@ export class DashboardComponent implements OnInit {
     const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0);
 
     this.stats.set([
-      { label: 'dashboard.todaySales', value: todaySales.length, icon: '🛒', color: 'blue' },
-      { label: 'dashboard.todayRevenue', value: '$' + todayRevenue.toFixed(2), icon: '💰', color: 'green' },
-      { label: 'dashboard.totalRevenue', value: '$' + totalRevenue.toFixed(2), icon: '📊', color: 'purple' },
-      { label: 'dashboard.totalOrders', value: sales.length, icon: '📦', color: 'orange' }
+      { label: 'dashboard.todaySales', value: formatNumber(todaySales.length, 0), icon: '🛒', color: 'blue' },
+      { label: 'dashboard.todayRevenue', value: formatNumber(todayRevenue) + " so'm", icon: '💰', color: 'green' },
+      { label: 'dashboard.totalRevenue', value: formatNumber(totalRevenue) + " so'm", icon: '📊', color: 'purple' },
+      { label: 'dashboard.totalOrders', value: formatNumber(sales.length, 0), icon: '📦', color: 'orange' }
     ]);
   }
 }

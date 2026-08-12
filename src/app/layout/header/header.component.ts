@@ -5,9 +5,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ThemeService, type Theme } from '../../core/services/theme.service';
 import { Language, TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SidebarStateService } from '../sidebar/sidebar-state.service';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Globe, LogOut, Moon, MoreVertical, Sun, LucideAngularModule } from 'lucide-angular';
+import { Globe, LogOut, Menu, Moon, MoreVertical, Sun, LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
@@ -24,6 +25,7 @@ export class HeaderComponent {
   translationService = inject(TranslationService);
   themeService = inject(ThemeService);
   authService = inject(AuthService);
+  sidebarState = inject(SidebarStateService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private elementRef = inject(ElementRef);
@@ -41,6 +43,7 @@ export class HeaderComponent {
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   userName = computed(() => this.currentUser()?.displayName ?? this.currentUser()?.email ?? '—');
 
+  readonly MenuIcon = Menu;
   readonly GlobeIcon = Globe;
   readonly MoonIcon = Moon;
   readonly SunIcon = Sun;
@@ -53,6 +56,10 @@ export class HeaderComponent {
     { code: 'uz', name: "O'zbek (Latin)" },
     { code: 'uz-cyrillic', name: 'Ўзбек (Cyrillic)' }
   ];
+
+  currentLanguageName(): string {
+    return this.languages.find((l) => l.code === this.translationService.getLanguage())?.name ?? '';
+  }
 
   toggleDropdown() {
     this.isDropdownOpen = !this.isDropdownOpen;

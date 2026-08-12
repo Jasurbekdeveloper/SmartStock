@@ -5,11 +5,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { StockEntry, StockMovementType, StockService } from '../../../core/services/stock.service';
 import { ProductService } from '../../../core/services/product.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 
 @Component({
   selector: 'app-stock-history',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TranslateModule],
+  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe],
   templateUrl: './stock-history.component.html',
   styleUrl: './stock-history.component.css'
 })

@@ -1,7 +1,16 @@
 <header class="bg-blue-600 dark:bg-blue-800 text-white p-4 shadow-lg transition-colors">
-  <div class="container mx-auto flex justify-between items-center">
-    <h1 class="text-2xl font-bold">SmartStock</h1>
+  <div class="container mx-auto flex justify-between items-center gap-2 flex-wrap">
     <div class="flex items-center gap-2">
+      <button
+        (click)="sidebarState.toggleMobile()"
+        class="lg:hidden bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 p-2 rounded transition-colors"
+        title="Menu"
+      >
+        <lucide-icon [img]="MenuIcon" class="w-5 h-5"></lucide-icon>
+      </button>
+      <h1 class="text-xl sm:text-2xl font-bold">SmartStock</h1>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap justify-end">
       <!-- Language Selector -->
       <div class="relative">
         <button
@@ -9,9 +18,9 @@
           class="bg-blue-700 hover:bg-blue-800 dark:bg-blue-900 dark:hover:bg-blue-950 px-3 py-2 rounded text-sm font-medium transition-colors"
           title="Change Language"
         >
-          <span class="inline-flex items-center gap-2">
+          <span class="inline-flex items-center gap-2 whitespace-nowrap">
             <lucide-icon [img]="GlobeIcon" class="w-4 h-4"></lucide-icon>
-            {{ translationService.getLanguage() }}
+            {{ currentLanguageName() }}
           </span>
         </button>
         @if (isLanguageMenuOpen) {
@@ -43,7 +52,7 @@
       </button>
 
       <!-- User Menu -->
-      <span class="text-sm">{{ userName() }}</span>
+      <span class="text-sm hidden sm:inline">{{ userName() }}</span>
       <div class="relative">
         <button
           (click)="toggleDropdown()"

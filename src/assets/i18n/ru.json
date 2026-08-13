@@ -58,6 +58,7 @@
     "addCategory": "Добавить категорию",
     "name": "Название",
     "enterName": "Введите название категории",
+    "imageUrl": "Изображение (URL)",
     "noCategoriesFound": "Категории не найдены",
     "confirmDelete": "Вы уверены, что хотите удалить эту категорию?"
   },
@@ -82,7 +83,8 @@
     "saleCompleted": "Продажа завершена! Сдача",
     "saleError": "Ошибка при сохранении продажи",
     "enterAmount": "Введите сумму",
-    "allOnCredit": "Всё в долг"
+    "allOnCredit": "Всё в долг",
+    "discount": "Скидка"
   },
   "stock": {
     "title": "Управление запасами",
@@ -99,6 +101,7 @@
     "difference": "Разница",
     "supplier": "Поставщик",
     "costPrice": "Себестоимость",
+    "sellingPrice": "Цена продажи",
     "totalCost": "Общая стоимость",
     "date": "Дата",
     "addStock": "Добавить запас",
@@ -131,7 +134,12 @@
     "item": "Товар",
     "qty": "Кол-во",
     "unknownProduct": "Неизвестный товар",
-    "printReceipt": "Печать чека"
+    "printReceipt": "Печать чека",
+    "searchPlaceholder": "Поиск по названию товара или сумме...",
+    "allPaymentMethods": "Все способы оплаты",
+    "fromDate": "С даты",
+    "toDate": "По дату",
+    "noResults": "Нет продаж по заданным фильтрам"
   },
   "debts": {
     "title": "Управление долгами",
@@ -160,7 +168,8 @@
     "searchCustomer": "Поиск по имени клиента...",
     "totalOwed": "Общий долг",
     "lastDebt": "Последний долг",
-    "debtHistory": "История долгов"
+    "debtHistory": "История долгов",
+    "itemsPurchased": "Приобретённые товары"
   },
   "statistics": {
     "title": "Статистика",
@@ -170,9 +179,21 @@
     "topPaymentMethod": "Популярный способ оплаты",
     "revenue": "Выручка",
     "sales": "Продажи",
-    "topProducts": "Топ товаров",
+    "topProducts": "Самые продаваемые товары",
     "thisMonth": "В этом месяце",
-    "thisYear": "В этом году"
+    "thisYear": "В этом году",
+    "monthlyReport": "Отчёт по месяцам",
+    "month": "Месяц",
+    "ordersCount": "Заказы",
+    "quantitySold": "Продано штук",
+    "recentSales": "Последние продажи",
+    "debtStatistics": "Статистика по долгам",
+    "totalOutstanding": "Общий остаток долга",
+    "totalCollected": "Всего собрано",
+    "customersWithDebt": "Клиентов с долгом",
+    "topDebtors": "Крупнейшие должники",
+    "noData": "Нет данных",
+    "exportExcel": "Экспорт в Excel"
   },
   "dashboard": {
     "recentSales": "Недавние продажи",
@@ -258,6 +279,7 @@
     "import": "Импорт",
     "refresh": "Обновить",
     "back": "Назад",
+    "print": "Печать",
     "next": "Далее",
     "previous": "Предыдущий",
     "list": "Список",

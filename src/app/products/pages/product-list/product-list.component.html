@@ -1,12 +1,41 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
-    <a href="/products/create" class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900">
+    <a mat-flat-button color="primary" routerLink="/products/create">
       + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
     </a>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <mat-card class="!p-4">
+    <div class="flex flex-wrap gap-4 items-start">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[16rem]">
+        <mat-label>{{ 'common.search' | translate }}</mat-label>
+        <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.fromDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [ngModel]="fromDate()" (ngModelChange)="onFromDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.toDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="toPicker" [ngModel]="toDate()" (ngModelChange)="onToDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        {{ 'buttons.cancel' | translate }}
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card>
     <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
@@ -14,7 +43,9 @@
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.name' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.barcode' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.price' | translate }}</th>
+          @if (canSeeCost()) {
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.cost' | translate }}</th>
+          }
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.quantity' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.category' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.createdAt' | translate }}</th>
@@ -22,12 +53,14 @@
         </tr>
       </thead>
       <tbody>
-        @for (product of products(); track $index) {
+        @for (product of pagination.paged(); track product.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ product.name }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
           <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price | sum }} so'm</td>
+          @if (canSeeCost()) {
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.cost | sum }} so'm</td>
+          }
           <td class="px-4 py-3">
             <span
               [class.text-red-600]="isLowStock(product)"
@@ -46,18 +79,15 @@
           </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ categoryName(product.categoryId) }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.createdAt | date: 'short' }}</td>
-          <td class="px-4 py-3">
-            <button
-              (click)="editProduct(product.id)"
-              class="text-blue-600 hover:text-blue-800 mr-3"
-            >
-              {{ 'buttons.edit' | translate }}
+          <td class="px-4 py-3 whitespace-nowrap">
+            <button mat-icon-button [matTooltip]="'QR'" (click)="showQr(product)">
+              <mat-icon>qr_code_2</mat-icon>
             </button>
-            <button
-              (click)="deleteProduct(product.id)"
-              class="text-red-600 hover:text-red-800"
-            >
-              {{ 'buttons.delete' | translate }}
+            <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product.id)">
+              <mat-icon>delete</mat-icon>
             </button>
           </td>
         </tr>
@@ -67,6 +97,16 @@
     </div>
     @if (products().length === 0) {
       <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.noProducts' | translate }}</p>
+    } @else if (filteredProducts().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'sales.noResults' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="filteredProducts().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
     }
-  </div>
+  </mat-card>
 </div>

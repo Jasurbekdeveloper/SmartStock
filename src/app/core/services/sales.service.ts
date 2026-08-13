@@ -3,11 +3,14 @@ import { Observable, from } from 'rxjs';
 import { collection, doc, orderBy, query, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
-import { Product } from './product.service';
 
 export interface SaleItem {
   productId: string;
-  product?: Product;
+  /** Snapshotted at sale time, so the receipt/history — and category
+   * popularity ranking — stay accurate even if the product is later
+   * renamed, recategorized, or deleted. */
+  productName: string;
+  categoryId: string;
   quantity: number;
   price: number;
   total: number;
@@ -18,6 +21,8 @@ export interface Sale {
   items: SaleItem[];
   subtotal: number;
   tax: number;
+  /** Amount taken off subtotal+tax at checkout, if the cashier applied one. */
+  discount?: number;
   total: number;
   paymentMethod: 'cash' | 'card';
   paidAmount: number;
@@ -87,6 +92,7 @@ export class SalesService {
       batch.set(debtRef, {
         customerId,
         saleId: saleRef.id,
+        items: sale.items,
         totalAmount: debt.amount,
         paidAmount: 0,
         remainingAmount: debt.amount,

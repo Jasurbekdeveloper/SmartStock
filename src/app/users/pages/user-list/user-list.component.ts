@@ -3,30 +3,52 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { AppUser, UserRole } from '../../../core/services/auth.service';
 import { UserManagementService } from '../../../core/services/user-management.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { createPagination } from '../../../core/utils/pagination';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule, TranslatePipe, ConfirmDialogComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    TranslatePipe,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatPaginatorModule
+  ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.css'
 })
 export class UserListComponent {
   private userManagementService = inject(UserManagementService);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
 
   users = toSignal(this.userManagementService.getUsers(), { initialValue: [] });
+  pagination = createPagination(this.users);
 
   showCreateForm = signal(false);
   submitting = signal(false);
   errorKey = signal<string | null>(null);
-
-  confirmOpen = signal(false);
-  private pendingToggle: AppUser | null = null;
 
   readonly roles: UserRole[] = ['admin', 'cashier', 'manager'];
 
@@ -75,13 +97,15 @@ export class UserListComponent {
   }
 
   requestToggleActive(user: AppUser) {
-    this.pendingToggle = user;
-    this.confirmOpen.set(true);
-  }
-
-  confirmToggleActive() {
-    if (!this.pendingToggle) return;
-    this.userManagementService.setActive(this.pendingToggle.uid, !this.pendingToggle.active).subscribe();
-    this.pendingToggle = null;
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: { titleKey: 'users.deactivate', messageKey: 'users.confirmDeactivate' }
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.userManagementService.setActive(user.uid, !user.active).subscribe();
+        }
+      });
   }
 }

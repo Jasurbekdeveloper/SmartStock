@@ -3,37 +3,39 @@
 
 <!-- Asosiy qism -->
 <div class="flex flex-col min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-900 dark:to-blue-800">
-  
+
   <!-- Formani markazga keltiruvchi konteyner -->
   <div class="flex-grow flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-md">
-      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">SmartStock</h1>
+    <mat-card class="!p-8 w-full max-w-md">
+      <div class="flex flex-col items-center gap-2 mb-8">
+        <img src="/logo.svg" alt="SmartStock" class="w-14 h-14" />
+        <h1 class="text-3xl font-bold text-center text-gray-800 dark:text-white">SmartStock</h1>
+      </div>
 
-      <form (ngSubmit)="login()">
-        <div class="mb-6">
-          <label for="email" class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-            {{ 'auth.email' | translate }}
-          </label>
-          <input id="email" type="email" [(ngModel)]="email" name="email" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500" [placeholder]="'auth.enterEmail' | translate" />
-        </div>
+      <form (ngSubmit)="login()" class="space-y-2">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'auth.email' | translate }}</mat-label>
+          <input matInput id="email" type="email" [(ngModel)]="email" name="email" [placeholder]="'auth.enterEmail' | translate" />
+        </mat-form-field>
 
-        <div class="mb-6">
-          <label for="password" class="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-            {{ 'auth.password' | translate }}
-          </label>
-          <input id="password" type="password" [(ngModel)]="password" name="password" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500" [placeholder]="'auth.enterPassword' | translate" />
-        </div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'auth.password' | translate }}</mat-label>
+          <input matInput id="password" type="password" [(ngModel)]="password" name="password" [placeholder]="'auth.enterPassword' | translate" />
+        </mat-form-field>
 
         @if (error(); as errorMessage) {
-        <div class="mb-6 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+        <div class="mb-4 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
           {{ errorMessage | translate }}
         </div>
         }
 
-        <button type="submit" [disabled]="loading()" class="w-full bg-blue-600 dark:bg-blue-800 text-white font-medium py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()" class="w-full !py-2 !mt-4">
+          @if (loading()) {
+          <mat-progress-spinner diameter="20" mode="indeterminate" class="inline-block align-middle mr-2"></mat-progress-spinner>
+          }
           {{ loading() ? ('messages.loading' | translate) : ('auth.loginButton' | translate) }}
         </button>
       </form>
-    </div>
+    </mat-card>
   </div>
 </div>

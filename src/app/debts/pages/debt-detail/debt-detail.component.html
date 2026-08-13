@@ -1,6 +1,6 @@
 <div class="max-w-3xl mx-auto space-y-6">
   @if (customer(); as c) {
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+  <mat-card class="!p-6">
     <div class="flex justify-between items-start flex-wrap gap-3">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ c.name }}</h1>
@@ -24,14 +24,14 @@
         </p>
       </div>
     </div>
-  </div>
+  </mat-card>
   }
 
   <div class="space-y-3">
     <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ 'debts.debtHistory' | translate }}</h2>
 
     @for (debt of debts(); track debt.id) {
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+    <mat-card class="!p-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ debt.createdAt | date: 'medium' }}</p>
@@ -39,6 +39,11 @@
             {{ 'debts.totalAmount' | translate }}: <span class="font-semibold">{{ debt.totalAmount | sum }} so'm</span>
             · {{ 'debts.paidAmount' | translate }}: <span class="font-semibold">{{ debt.paidAmount | sum }} so'm</span>
           </p>
+          @if (debt.items && debt.items.length > 0) {
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            {{ 'debts.itemsPurchased' | translate }}: {{ itemsSummary(debt) }}
+          </p>
+          }
           @if (debt.notes) {
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ debt.notes }}</p>
           }
@@ -60,43 +65,36 @@
       @if (debt.remainingAmount > 0) {
         @if (payingDebtId() === debt.id) {
         <div class="mt-3 pt-3 border-t dark:border-gray-700 flex gap-2 items-center flex-wrap">
-          <input
-            type="number"
-            [ngModel]="paymentAmount()"
-            (ngModelChange)="paymentAmount.set($event)"
-            step="0.01"
-            [max]="debt.remainingAmount"
-            class="flex-1 min-w-[8rem] px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-            [placeholder]="'pos.enterAmount' | translate"
-          />
-          <button
-            (click)="confirmPayment(debt)"
-            [disabled]="paymentAmount() <= 0 || submitting()"
-            class="bg-green-600 dark:bg-green-700 text-white px-4 py-1.5 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 disabled:bg-gray-400 dark:disabled:bg-gray-600 transition"
-          >
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[8rem]">
+            <mat-label>{{ 'pos.enterAmount' | translate }}</mat-label>
+            <input
+              matInput
+              type="number"
+              [ngModel]="paymentAmount()"
+              (ngModelChange)="paymentAmount.set($event)"
+              step="0.01"
+              [max]="debt.remainingAmount"
+            />
+          </mat-form-field>
+          <button mat-flat-button color="primary" [disabled]="paymentAmount() <= 0 || submitting()" (click)="confirmPayment(debt)">
             {{ 'debts.processPayment' | translate }}
           </button>
-          <button
-            (click)="cancelPayment()"
-            class="bg-gray-400 dark:bg-gray-600 text-white px-4 py-1.5 rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition"
-          >
+          <button mat-button (click)="cancelPayment()">
             {{ 'buttons.cancel' | translate }}
           </button>
         </div>
         } @else {
-        <button
-          (click)="startPayment(debt)"
-          class="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
-        >
+        <button mat-button color="primary" class="mt-3" (click)="startPayment(debt)">
+          <mat-icon>payments</mat-icon>
           {{ 'debts.payDebt' | translate }}
         </button>
         }
       }
-    </div>
+    </mat-card>
     } @empty {
-    <p class="p-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+    <mat-card class="!p-8 text-center text-gray-500 dark:text-gray-400">
       {{ 'debts.noDebtsFound' | translate }}
-    </p>
+    </mat-card>
     }
   </div>
 </div>

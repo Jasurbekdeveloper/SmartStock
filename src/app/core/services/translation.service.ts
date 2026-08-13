@@ -33,6 +33,7 @@ export class TranslationService {
     this.translateService.use(defaultLang).subscribe({
       next: () => {
         this.currentLanguage.set(defaultLang);
+        
         this.languageChange$.next(defaultLang);
       },
       error: (err) => {

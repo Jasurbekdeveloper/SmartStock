@@ -1,115 +1,69 @@
 <div class="max-w-2xl mx-auto">
   <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'form.createProduct' | translate }}</h1>
 
-  <form (ngSubmit)="createProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.productName' | translate }}</label>
-        <input
-          type="text"
-          [(ngModel)]="product.name"
-          name="name"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          [placeholder]="'form.enterProductName' | translate"
-        />
-      </div>
+  <form (ngSubmit)="createProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.productName' | translate }}</mat-label>
+        <input matInput [(ngModel)]="product.name" name="name" [placeholder]="'form.enterProductName' | translate" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.barcode' | translate }}</label>
-        <input
-          type="text"
-          [(ngModel)]="product.barcode"
-          name="barcode"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          [placeholder]="'form.enterBarcode' | translate"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.barcode' | translate }}</mat-label>
+        <input matInput [(ngModel)]="product.barcode" name="barcode" [placeholder]="'form.enterBarcode' | translate" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.price' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="product.price"
-          name="price"
-          step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          placeholder="0.00"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.price' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="product.price" name="price" step="0.01" placeholder="0.00" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.cost' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="product.cost"
-          name="cost"
-          step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          placeholder="0.00"
-        />
-      </div>
+      @if (canSeeCost()) {
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.cost' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="product.cost" name="cost" step="0.01" placeholder="0.00" />
+      </mat-form-field>
+      }
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.quantity' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="product.quantity"
-          name="quantity"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          placeholder="0"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.quantity' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="product.quantity" name="quantity" placeholder="0" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.unit' | translate }}</label>
-        <select
-          [(ngModel)]="product.unit"
-          name="unit"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        >
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.unit' | translate }}</mat-label>
+        <mat-select [(ngModel)]="product.unit" name="unit">
           @for (u of units; track u) {
-          <option [value]="u">{{ 'units.' + u | translate }}</option>
+          <mat-option [value]="u">{{ 'units.' + u | translate }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.minQuantity' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="product.minQuantity"
-          name="minQuantity"
-          min="0"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-          placeholder="0"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.minQuantity' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="product.minQuantity" name="minQuantity" min="0" placeholder="0" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.category' | translate }}</label>
-        <select
-          [(ngModel)]="product.categoryId"
-          name="categoryId"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        >
-          <option value="" disabled>{{ 'form.enterCategory' | translate }}</option>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.category' | translate }}</mat-label>
+        <mat-select [(ngModel)]="product.categoryId" name="categoryId" [placeholder]="'form.enterCategory' | translate">
           @for (category of categories(); track category.id) {
-          <option [value]="category.id">{{ category.name }}</option>
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
     </div>
 
-    <div>
-      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.description' | translate }}</label>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'products.description' | translate }}</mat-label>
       <textarea
+        matInput
         [(ngModel)]="product.description"
         name="description"
-        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
         rows="4"
         [placeholder]="'form.enterDescription' | translate"
       ></textarea>
-    </div>
+    </mat-form-field>
 
     @if (errorKey(); as key) {
     <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
@@ -117,15 +71,11 @@
     </div>
     }
 
-    <div class="flex gap-4">
-      <button
-        type="submit"
-        [disabled]="submitting()"
-        class="bg-blue-600 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
-      >
+    <div class="flex gap-4 pt-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
         {{ 'form.createProduct' | translate }}
       </button>
-      <a href="/products/list" class="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition inline-block">
+      <a mat-button routerLink="/products/list">
         {{ 'common.cancel' | translate }}
       </a>
     </div>

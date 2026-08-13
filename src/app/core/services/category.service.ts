@@ -17,7 +17,13 @@ import { fromCollectionQuery } from '../firebase/firestore.utils';
 export interface Category {
   id: string;
   name: string;
+  imageUrl?: string;
   createdAt?: Date;
+}
+
+export interface CategoryInput {
+  name: string;
+  imageUrl?: string;
 }
 
 @Injectable({
@@ -31,14 +37,16 @@ export class CategoryService {
     return fromCollectionQuery<Category>(categoriesQuery);
   }
 
-  addCategory(name: string): Observable<void> {
-    return from(
-      addDoc(collection(this.firestore, 'categories'), { name, createdAt: serverTimestamp() })
-    ).pipe(map(() => undefined));
+  addCategory(input: CategoryInput): Observable<void> {
+    const data: Record<string, unknown> = { name: input.name, createdAt: serverTimestamp() };
+    if (input.imageUrl) data['imageUrl'] = input.imageUrl;
+
+    return from(addDoc(collection(this.firestore, 'categories'), data)).pipe(map(() => undefined));
   }
 
-  updateCategory(id: string, name: string): Observable<void> {
-    return from(updateDoc(doc(this.firestore, 'categories', id), { name }));
+  updateCategory(id: string, input: CategoryInput): Observable<void> {
+    const data: Record<string, unknown> = { name: input.name, imageUrl: input.imageUrl ?? null };
+    return from(updateDoc(doc(this.firestore, 'categories', id), data));
   }
 
   deleteCategory(id: string): Observable<void> {

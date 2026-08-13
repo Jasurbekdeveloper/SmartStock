@@ -2,15 +2,16 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { AuthService, UserRole } from '../../core/services/auth.service';
 import { SidebarStateService } from './sidebar-state.service';
-import { LucideAngularModule, ChartColumn, CreditCard, Inbox, LayoutDashboard, Package, ShoppingCart, Users, Menu } from 'lucide-angular';
 
 interface MenuItem {
   label: string;
   path: string;
-  icon?: any;
+  icon?: string;
   roles?: UserRole[];
   children?: MenuItem[];
 }
@@ -18,7 +19,7 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe, LucideAngularModule],
+  imports: [CommonModule, RouterModule, MatListModule, MatIconModule, TranslatePipe],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
@@ -27,8 +28,6 @@ export class SidebarComponent {
   sidebarState = inject(SidebarStateService);
 
   expandedMenu = signal<string | null>(null);
-
-  readonly MenuIcon = Menu;
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
 
@@ -41,11 +40,11 @@ export class SidebarComponent {
   });
 
   menuItems: MenuItem[] = [
-    { label: 'navigation.dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'navigation.dashboard', path: '/dashboard', icon: 'dashboard' },
     {
       label: 'navigation.pos',
       path: '/pos',
-      icon: ShoppingCart,
+      icon: 'shopping_cart',
       children: [
         { label: 'navigation.pos', path: '/pos' },
         { label: 'sales.salesHistory', path: '/sales/history' }
@@ -54,7 +53,7 @@ export class SidebarComponent {
     {
       label: 'navigation.products',
       path: '/products',
-      icon: Package,
+      icon: 'inventory_2',
       children: [
         { label: 'buttons.list', path: '/products/list' },
         { label: 'categories.title', path: '/products/categories', roles: ['admin', 'manager'] }
@@ -63,7 +62,7 @@ export class SidebarComponent {
     {
       label: 'navigation.stock',
       path: '/stock',
-      icon: Inbox,
+      icon: 'move_to_inbox',
       roles: ['admin', 'manager'],
       children: [
         { label: 'stock.stockIn', path: '/stock/in' },
@@ -72,41 +71,17 @@ export class SidebarComponent {
         { label: 'buttons.history', path: '/stock/history' }
       ]
     },
-    {
-      label: 'navigation.debts',
-      path: '/debts',
-      icon: CreditCard,
-      children: [
-        { label: 'buttons.list', path: '/debts/list' },
-        { label: 'debts.addDebt', path: '/debts/create' }
-      ]
-    },
-    { label: 'navigation.statistics', path: '/statistics', icon: ChartColumn },
-    { label: 'navigation.users', path: '/users', icon: Users, roles: ['admin'] }
+    { label: 'navigation.debts', path: '/debts/list', icon: 'credit_card' },
+    { label: 'navigation.statistics', path: '/statistics', icon: 'bar_chart' },
+    { label: 'navigation.users', path: '/users', icon: 'group', roles: ['admin'] }
   ];
 
-  /** Whether the sidebar should show full labels (desktop expanded, or mobile drawer open). */
-  showLabels(): boolean {
-    return this.sidebarState.isOpen() || this.sidebarState.mobileOpen();
-  }
-
   onItemClick(item: MenuItem) {
-    if (!this.sidebarState.isOpen()) {
-      this.sidebarState.isOpen.set(true);
-    }
-
     if (item.children) {
-      this.expandedMenu.set(
-        this.expandedMenu() === item.label ? null : item.label
-      );
+      this.expandedMenu.set(this.expandedMenu() === item.label ? null : item.label);
     } else {
       this.onNavigate();
     }
-  }
-
-  toggleSidebar() {
-    this.sidebarState.toggleDesktop();
-    this.sidebarState.closeMobile();
   }
 
   onNavigate() {

@@ -1,93 +1,60 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'users.title' | translate }}</h1>
-    <button
-      (click)="openCreateForm()"
-      class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900"
-    >
-      + {{ 'users.addEmployee' | translate }}
+    <button mat-flat-button color="primary" (click)="openCreateForm()">
+      <mat-icon>add</mat-icon>
+      {{ 'users.addEmployee' | translate }}
     </button>
   </div>
 
   @if (showCreateForm()) {
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-    <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ 'users.displayName' | translate }}
-        </label>
-        <input
-          type="text"
-          formControlName="displayName"
-          [placeholder]="'users.enterDisplayName' | translate"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'users.displayName' | translate }}</mat-label>
+          <input matInput formControlName="displayName" [placeholder]="'users.enterDisplayName' | translate" />
+        </mat-form-field>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ 'users.email' | translate }}
-        </label>
-        <input
-          type="email"
-          formControlName="email"
-          [placeholder]="'users.enterEmail' | translate"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'users.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="email" [placeholder]="'users.enterEmail' | translate" />
+        </mat-form-field>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ 'users.tempPassword' | translate }}
-        </label>
-        <input
-          type="text"
-          formControlName="tempPassword"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'users.tempPassword' | translate }}</mat-label>
+          <input matInput formControlName="tempPassword" />
+        </mat-form-field>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ 'users.role' | translate }}
-        </label>
-        <select
-          formControlName="role"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        >
-          @for (role of roles; track role) {
-          <option [value]="role">{{ roleLabelKey(role) | translate }}</option>
-          }
-        </select>
-      </div>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'users.role' | translate }}</mat-label>
+          <mat-select formControlName="role">
+            @for (role of roles; track role) {
+            <mat-option [value]="role">{{ roleLabelKey(role) | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-      @if (errorKey(); as errorMessage) {
-      <div class="md:col-span-2 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-        {{ errorMessage | translate }}
-      </div>
-      }
+        @if (errorKey(); as errorMessage) {
+        <div class="md:col-span-2 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+          {{ errorMessage | translate }}
+        </div>
+        }
 
-      <div class="md:col-span-2 flex gap-3 justify-end">
-        <button
-          type="button"
-          (click)="cancelCreate()"
-          class="px-4 py-2 bg-gray-400 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition"
-        >
-          {{ 'common.cancel' | translate }}
-        </button>
-        <button
-          type="submit"
-          [disabled]="submitting()"
-          class="px-4 py-2 bg-blue-600 dark:bg-blue-800 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
-        >
-          {{ 'common.save' | translate }}
-        </button>
-      </div>
-    </form>
-  </div>
+        <div class="md:col-span-2 flex gap-3 justify-end">
+          <button mat-button type="button" (click)="cancelCreate()">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+            {{ 'common.save' | translate }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
   }
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <mat-card>
     <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
@@ -100,7 +67,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (user of users(); track user.uid) {
+        @for (user of pagination.paged(); track user.uid) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ user.displayName }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ user.email }}</td>
@@ -117,8 +84,13 @@
             }
           </td>
           <td class="px-4 py-3">
-            <button (click)="requestToggleActive(user)" class="text-blue-600 hover:text-blue-800">
-              {{ (user.active ? 'users.deactivate' : 'users.activate') | translate }}
+            <button
+              mat-icon-button
+              [color]="user.active ? 'warn' : 'primary'"
+              [matTooltip]="(user.active ? 'users.deactivate' : 'users.activate') | translate"
+              (click)="requestToggleActive(user)"
+            >
+              <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
             </button>
           </td>
         </tr>
@@ -128,13 +100,14 @@
     </div>
     @if (users().length === 0) {
     <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'users.noUsersFound' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="users().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
     }
-  </div>
+  </mat-card>
 </div>
-
-<app-confirm-dialog
-  [(isOpen)]="confirmOpen"
-  [title]="'users.deactivate' | translate"
-  [message]="'users.confirmDeactivate' | translate"
-  (confirmed)="confirmToggleActive()"
-></app-confirm-dialog>

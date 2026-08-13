@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // categories/{fileName}: category images uploaded from Products > Categories.
+    // Any signed-in staff member can upload; the referencing Firestore
+    // category document itself is still gated to admin/manager (see
+    // firestore.rules), so this only controls the raw file blob.
+    match /categories/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

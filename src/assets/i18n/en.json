@@ -58,6 +58,7 @@
     "addCategory": "Add Category",
     "name": "Name",
     "enterName": "Enter category name",
+    "imageUrl": "Image (URL)",
     "noCategoriesFound": "No categories found",
     "confirmDelete": "Are you sure you want to delete this category?"
   },
@@ -82,7 +83,8 @@
     "saleCompleted": "Sale completed! Change",
     "saleError": "Failed to save the sale",
     "enterAmount": "Enter amount",
-    "allOnCredit": "All on credit"
+    "allOnCredit": "All on credit",
+    "discount": "Discount"
   },
   "stock": {
     "title": "Stock Management",
@@ -99,6 +101,7 @@
     "difference": "Difference",
     "supplier": "Supplier",
     "costPrice": "Cost Price",
+    "sellingPrice": "Selling Price",
     "totalCost": "Total Cost",
     "date": "Date",
     "addStock": "Add Stock",
@@ -131,7 +134,12 @@
     "item": "Item",
     "qty": "Qty",
     "unknownProduct": "Unknown product",
-    "printReceipt": "Print Receipt"
+    "printReceipt": "Print Receipt",
+    "searchPlaceholder": "Search by product name or amount...",
+    "allPaymentMethods": "All payment methods",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "noResults": "No sales match the filters"
   },
   "debts": {
     "title": "Debts Management",
@@ -160,7 +168,8 @@
     "searchCustomer": "Search by customer name...",
     "totalOwed": "Total Owed",
     "lastDebt": "Last Debt",
-    "debtHistory": "Debt History"
+    "debtHistory": "Debt History",
+    "itemsPurchased": "Items purchased"
   },
   "statistics": {
     "title": "Statistics",
@@ -170,9 +179,21 @@
     "topPaymentMethod": "Top Payment Method",
     "revenue": "Revenue",
     "sales": "Sales",
-    "topProducts": "Top Products",
+    "topProducts": "Top-Selling Products",
     "thisMonth": "This Month",
-    "thisYear": "This Year"
+    "thisYear": "This Year",
+    "monthlyReport": "Monthly Report",
+    "month": "Month",
+    "ordersCount": "Orders",
+    "quantitySold": "Quantity Sold",
+    "recentSales": "Recent Sales",
+    "debtStatistics": "Debt Statistics",
+    "totalOutstanding": "Total Outstanding",
+    "totalCollected": "Total Collected",
+    "customersWithDebt": "Customers with Debt",
+    "topDebtors": "Top Debtors",
+    "noData": "No data available",
+    "exportExcel": "Export Excel"
   },
   "dashboard": {
     "recentSales": "Recent Sales",
@@ -258,6 +279,7 @@
     "import": "Import",
     "refresh": "Refresh",
     "back": "Back",
+    "print": "Print",
     "next": "Next",
     "previous": "Previous",
     "list": "List",

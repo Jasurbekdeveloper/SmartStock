@@ -24,12 +24,23 @@ export interface Customer {
   createdAt?: Date;
 }
 
+export interface DebtItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
 export interface Debt {
   id: string;
   customerId: string;
   customer?: Customer;
   /** Set when this debt was opened from a POS sale's unpaid remainder. */
   saleId?: string;
+  /** What was bought on credit, if this debt came from a POS sale. Manually
+   * recorded debts (via the "add debt" form) have no items — that's fine. */
+  items?: DebtItem[];
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;

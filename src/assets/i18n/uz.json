@@ -58,6 +58,7 @@
     "addCategory": "Kategoriya qo'shish",
     "name": "Nomi",
     "enterName": "Kategoriya nomini kiriting",
+    "imageUrl": "Rasm (URL)",
     "noCategoriesFound": "Kategoriyalar topilmadi",
     "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?"
   },
@@ -82,7 +83,8 @@
     "saleCompleted": "Sotuv muvaffaqiyatli yakunlandi! Qaytim",
     "saleError": "Sotuvni saqlashda xatolik yuz berdi",
     "enterAmount": "Miqdorni kiriting",
-    "allOnCredit": "Hammasi qarzga"
+    "allOnCredit": "Hammasi qarzga",
+    "discount": "Chegirma"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -99,6 +101,7 @@
     "difference": "Farq",
     "supplier": "Ta'minotchi",
     "costPrice": "Xarajat narxi",
+    "sellingPrice": "Sotish narxi",
     "totalCost": "Jami xarajat",
     "date": "Sana",
     "addStock": "Qoldiq qo'shish",
@@ -131,7 +134,12 @@
     "item": "Mahsulot",
     "qty": "Soni",
     "unknownProduct": "Noma'lum mahsulot",
-    "printReceipt": "Chekni chop etish"
+    "printReceipt": "Chekni chop etish",
+    "searchPlaceholder": "Mahsulot nomi yoki summasi bo'yicha qidirish...",
+    "allPaymentMethods": "Barcha to'lov usullari",
+    "fromDate": "Sanadan",
+    "toDate": "Sanagacha",
+    "noResults": "Filtrga mos sotuvlar topilmadi"
   },
   "debts": {
     "title": "Qarzlarni boshqarish",
@@ -160,7 +168,8 @@
     "searchCustomer": "Xaridor ismi bo'yicha qidirish...",
     "totalOwed": "Jami qarzi",
     "lastDebt": "Oxirgi olgan qarzi",
-    "debtHistory": "Qarzlar tarixi"
+    "debtHistory": "Qarzlar tarixi",
+    "itemsPurchased": "Olingan mahsulotlar"
   },
   "statistics": {
     "title": "Statistika",
@@ -170,9 +179,21 @@
     "topPaymentMethod": "Mashhur to'lash usuli",
     "revenue": "Daromad",
     "sales": "Sotuvlar",
-    "topProducts": "Mashhur mahsulotlar",
+    "topProducts": "Eng ko'p sotilgan mahsulotlar",
     "thisMonth": "Shu oyda",
-    "thisYear": "Shu yilda"
+    "thisYear": "Shu yilda",
+    "monthlyReport": "Oylik hisobot",
+    "month": "Oy",
+    "ordersCount": "Buyurtmalar",
+    "quantitySold": "Sotilgan miqdor",
+    "recentSales": "Oxirgi savdolar",
+    "debtStatistics": "Qarzlar bo'yicha statistika",
+    "totalOutstanding": "Jami qolgan qarz",
+    "totalCollected": "Jami undirilgan",
+    "customersWithDebt": "Qarzdor mijozlar",
+    "topDebtors": "Eng ko'p qarzdorlar",
+    "noData": "Ma'lumot yo'q",
+    "exportExcel": "Excel'ga yuklab olish"
   },
   "dashboard": {
     "recentSales": "So'nggi sotuvlar",
@@ -258,6 +279,7 @@
     "import": "Import",
     "refresh": "Yangilash",
     "back": "Orqaga",
+    "print": "Chop etish",
     "next": "Keyingi",
     "previous": "Oldingi",
     "list": "Ro'yhat",

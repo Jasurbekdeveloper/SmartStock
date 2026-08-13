@@ -58,6 +58,7 @@
     "addCategory": "Категория қўшиш",
     "name": "Номи",
     "enterName": "Категория номини киритинг",
+    "imageUrl": "Расм (URL)",
     "noCategoriesFound": "Категориялар топилмади",
     "confirmDelete": "Ушбу категорияни ўчиришга ишончингиз комилми?"
   },
@@ -82,7 +83,8 @@
     "saleCompleted": "Сотув муваффақиятли якунланди! Қайтим",
     "saleError": "Сотувни сақлашда хатолик юз берди",
     "enterAmount": "Миқдорни киритинг",
-    "allOnCredit": "Ҳаммаси қарзга"
+    "allOnCredit": "Ҳаммаси қарзга",
+    "discount": "Чегирма"
   },
   "stock": {
     "title": "Қолдиқ бошқаруви",
@@ -99,6 +101,7 @@
     "difference": "Фарқ",
     "supplier": "Таъминотчи",
     "costPrice": "햀раҷат нархи",
+    "sellingPrice": "Сотиш нархи",
     "totalCost": "Жами햀раҷат",
     "date": "Сана",
     "addStock": "Қолдиқ қўшиш",
@@ -131,7 +134,12 @@
     "item": "Маҳсулот",
     "qty": "Сони",
     "unknownProduct": "Номаълум маҳсулот",
-    "printReceipt": "Чекни чоп этиш"
+    "printReceipt": "Чекни чоп этиш",
+    "searchPlaceholder": "Маҳсулот номи ёки суммаси бўйича қидириш...",
+    "allPaymentMethods": "Барча тўлов усуллари",
+    "fromDate": "Санадан",
+    "toDate": "Санагача",
+    "noResults": "Филтрга мос сотувлар топилмади"
   },
   "debts": {
     "title": "Қарзларни бошқариш",
@@ -160,7 +168,8 @@
     "searchCustomer": "Харидор исми бўйича қидириш...",
     "totalOwed": "Жами қарзи",
     "lastDebt": "Охирги олган қарзи",
-    "debtHistory": "Қарзлар тарихи"
+    "debtHistory": "Қарзлар тарихи",
+    "itemsPurchased": "Олинган маҳсулотлар"
   },
   "statistics": {
     "title": "Статистика",
@@ -170,9 +179,21 @@
     "topPaymentMethod": "Маш̯ҳур тўлаш усули",
     "revenue": "Даромад",
     "sales": "Сотувлар",
-    "topProducts": "Маш̯ҳур маҳсулотлар",
+    "topProducts": "Энг кўп сотилган маҳсулотлар",
     "thisMonth": "Шу ойда",
-    "thisYear": "Шу йилда"
+    "thisYear": "Шу йилда",
+    "monthlyReport": "Ойлик ҳисобот",
+    "month": "Ой",
+    "ordersCount": "Буюртмалар",
+    "quantitySold": "Сотилган миқдор",
+    "recentSales": "Охирги савдолар",
+    "debtStatistics": "Қарзлар бўйича статистика",
+    "totalOutstanding": "Жами қолган қарз",
+    "totalCollected": "Жами ундирилган",
+    "customersWithDebt": "Қарздор мижозлар",
+    "topDebtors": "Энг кўп қарздорлар",
+    "noData": "Маълумот йўқ",
+    "exportExcel": "Excel'га юклаб олиш"
   },
   "dashboard": {
     "recentSales": "Сўнгги сотувлар",
@@ -258,6 +279,7 @@
     "import": "Импорт",
     "refresh": "Янғилаш",
     "back": "Орқаға",
+    "print": "Чоп этиш",
     "next": "Кейинги",
     "previous": "Олдинги",
     "list": "Ro'yxat",

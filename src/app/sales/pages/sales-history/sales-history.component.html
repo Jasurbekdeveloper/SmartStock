@@ -1,15 +1,48 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold dark:text-white">{{ 'sales.salesHistory' | translate }}</h1>
-    <button
-      (click)="exportToCSV()"
-      class="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition"
-    >
-      📥 {{ 'sales.exportCSV' | translate }}
+    <button mat-flat-button color="primary" (click)="exportToCSV()">
+      <mat-icon>download</mat-icon>
+      {{ 'sales.exportCSV' | translate }}
     </button>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <mat-card class="!p-4">
+    <div class="flex flex-wrap gap-4 items-start">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[16rem]">
+        <mat-label>{{ 'common.search' | translate }}</mat-label>
+        <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" [placeholder]="'sales.searchPlaceholder' | translate" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.fromDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.toDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="toPicker" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-button-toggle-group [value]="paymentFilter()" (change)="onPaymentFilterChange($event.value)">
+        <mat-button-toggle value="all">{{ 'sales.allPaymentMethods' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="cash">{{ 'pos.cash' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="card">{{ 'pos.card' | translate }}</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button mat-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        {{ 'buttons.cancel' | translate }}
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card>
     <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
@@ -22,13 +55,13 @@
         </tr>
       </thead>
       <tbody>
-        @for (sale of sales(); track sale.id) {
+        @for (sale of pagination.paged(); track sale.id) {
         <tr
           [routerLink]="['/sales', sale.id]"
           class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
         >
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.id }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.items.length }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white max-w-xs truncate" [title]="itemNames(sale)">{{ itemNames(sale) }}</td>
           <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{{ sale.total | sum }} so'm</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">
             {{ 'pos.' + sale.paymentMethod | translate }}
@@ -48,6 +81,18 @@
     <p class="p-8 text-center text-gray-500 dark:text-gray-400">
       {{ 'messages.noSalesYet' | translate }}
     </p>
+    } @else if (filteredSales().length === 0) {
+    <p class="p-8 text-center text-gray-500 dark:text-gray-400">
+      {{ 'sales.noResults' | translate }}
+    </p>
+    } @else {
+      <mat-paginator
+        [length]="filteredSales().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
     }
-  </div>
+  </mat-card>
 </div>

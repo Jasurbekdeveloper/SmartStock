@@ -1,38 +1,28 @@
 <div class="max-w-2xl mx-auto">
   <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'stock.adjustment' | translate }}</h1>
 
-  <form (ngSubmit)="submitAdjustment()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
-    <div>
-      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.product' | translate }}</label>
-      <select
-        [(ngModel)]="productId"
-        name="productId"
-        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-      >
-        <option value="" disabled>{{ 'stock.selectProduct' | translate }}</option>
+  <mat-card class="!p-6">
+    <form (ngSubmit)="submitAdjustment()" class="space-y-6">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'stock.product' | translate }}</mat-label>
+      <mat-select [(ngModel)]="productId" name="productId">
         @for (product of products(); track product.id) {
-        <option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity | sum:0 }})</option>
+        <mat-option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity | sum:0 }})</mat-option>
         }
-      </select>
-    </div>
+      </mat-select>
+    </mat-form-field>
 
     @if (selectedProduct(); as product) {
-    <div class="grid grid-cols-2 gap-6">
+    <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.currentQuantity' | translate }}</label>
         <p class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">{{ product.quantity | sum:0 }}</p>
       </div>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.countedQuantity' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="countedQuantity"
-          name="countedQuantity"
-          min="0"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'stock.countedQuantity' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="countedQuantity" name="countedQuantity" min="0" />
+      </mat-form-field>
     </div>
 
     @if (difference(); as diff) {
@@ -42,15 +32,10 @@
     }
     }
 
-    <div>
-      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.notes' | translate }}</label>
-      <textarea
-        [(ngModel)]="notes"
-        name="notes"
-        rows="3"
-        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-      ></textarea>
-    </div>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'stock.notes' | translate }}</mat-label>
+      <textarea matInput [(ngModel)]="notes" name="notes" rows="3"></textarea>
+    </mat-form-field>
 
     @if (errorKey(); as key) {
     <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
@@ -58,12 +43,9 @@
     </div>
     }
 
-    <button
-      type="submit"
-      [disabled]="submitting()"
-      class="w-full bg-blue-600 dark:bg-blue-800 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition font-bold disabled:bg-gray-400 dark:disabled:bg-gray-600"
-    >
+    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()" class="w-full !py-3">
       {{ 'stock.saveAdjustment' | translate }}
     </button>
-  </form>
+    </form>
+  </mat-card>
 </div>

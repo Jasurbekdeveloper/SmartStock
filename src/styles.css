@@ -82,3 +82,22 @@ html.dark tr:hover {
 .animate-toast-in {
   animation: toast-in 0.2s ease-out;
 }
+
+/* So "print" buttons (receipt, QR label) only print their own content, not
+   the surrounding app chrome. */
+@media print {
+  app-header,
+  app-sidebar,
+  app-toast-container {
+    display: none !important;
+  }
+}
+
+/* Guards mat-icon's ligature rendering against ancestor components (e.g.
+   mat-list-item's "meta" slot) that set their own font-family with equal or
+   higher specificity — without this, the icon name renders as literal text
+   ("expand_more") instead of the glyph, clipped by the icon's fixed size. */
+.mat-icon {
+  font-family: 'Material Icons' !important;
+  font-feature-settings: 'liga' !important;
+}

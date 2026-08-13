@@ -1,20 +1,19 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center flex-wrap gap-3">
     <h1 class="text-3xl font-bold dark:text-white">{{ 'debts.title' | translate }}</h1>
-    <a routerLink="/debts/create" class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900">
-      + {{ 'debts.addDebt' | translate }}
+    <a mat-flat-button color="primary" routerLink="/debts/create">
+      <mat-icon>add</mat-icon>
+      {{ 'debts.addDebt' | translate }}
     </a>
   </div>
 
-  <input
-    type="text"
-    [ngModel]="searchQuery()"
-    (ngModelChange)="searchQuery.set($event)"
-    [placeholder]="'debts.searchCustomer' | translate"
-    class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-  />
+  <mat-form-field appearance="outline" class="w-full max-w-md">
+    <mat-label>{{ 'debts.searchCustomer' | translate }}</mat-label>
+    <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+    <mat-icon matPrefix>search</mat-icon>
+  </mat-form-field>
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <mat-card>
     <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
@@ -25,7 +24,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (summary of filteredSummaries(); track summary.customerId) {
+        @for (summary of pagination.paged(); track summary.customerId) {
         <tr
           [routerLink]="['/debts', summary.customerId]"
           class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
@@ -50,6 +49,14 @@
     </div>
     @if (filteredSummaries().length === 0) {
       <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'debts.noDebtsFound' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="filteredSummaries().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
     }
-  </div>
+  </mat-card>
 </div>

@@ -2,6 +2,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { SalesService, Sale } from '../../../core/services/sales.service';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -10,7 +13,7 @@ import { SumPipe } from '../../../core/pipes/sum.pipe';
 @Component({
   selector: 'app-sale-detail',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, SumPipe],
+  imports: [CommonModule, TranslatePipe, SumPipe, MatCardModule, MatButtonModule, MatIconModule],
   templateUrl: './sale-detail.component.html',
   styleUrl: './sale-detail.component.css'
 })

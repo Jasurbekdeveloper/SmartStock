@@ -3,18 +3,24 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Product, ProductService } from '../core/services/product.service';
+import { Category, CategoryService } from '../core/services/category.service';
 import { Sale, SaleDebtInput, SaleItem, SalesService } from '../core/services/sales.service';
 import { DebtService } from '../core/services/debt.service';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
 import { SumPipe } from '../core/pipes/sum.pipe';
 import { formatNumber } from '../core/utils/format-number';
+import { PosPaymentDialogComponent, PosPaymentDialogResult } from './pos-payment-dialog/pos-payment-dialog.component';
 
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, SumPipe],
+  imports: [CommonModule, FormsModule, TranslateModule, SumPipe, MatCardModule, MatButtonModule, MatIconModule],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.css'
 })
@@ -22,17 +28,22 @@ export class PosComponent implements OnInit {
   products = signal<Product[]>([]);
   cart = signal<CartItem[]>([]);
   searchQuery = signal('');
-  filteredProducts = signal<Product[]>([]);
+  selectedCategoryId = signal<string | null>(null);
   selectedPaymentMethod = signal<'cash' | 'card'>('cash');
-  showPaymentModal = signal(false);
   paidAmount = signal(0);
+  discount = signal(0);
   submitting = signal(false);
 
   private productService: ProductService = inject(ProductService);
+  private categoryService: CategoryService = inject(CategoryService);
   private salesService: SalesService = inject(SalesService);
   private debtService: DebtService = inject(DebtService);
   private translation: TranslationService = inject(TranslationService);
   private toast: ToastService = inject(ToastService);
+  private dialog: MatDialog = inject(MatDialog);
+
+  categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
+  sales = toSignal(this.salesService.getSales(), { initialValue: [] });
 
   customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
   isNewCustomer = signal(true);
@@ -43,16 +54,55 @@ export class PosComponent implements OnInit {
   ngOnInit() {
     this.productService.getProducts().subscribe(products => {
       this.products.set(products);
-      this.filteredProducts.set(products);
     });
   }
 
-  searchProducts() {
-    const query = this.searchQuery().toLowerCase();
-    const filtered = this.products().filter(p =>
-      p.name.toLowerCase().includes(query) || p.barcode.includes(query)
-    );
-    this.filteredProducts.set(filtered);
+  /** How many units of each category have ever sold — drives the "most sold first" card order. */
+  private categorySoldQty = computed(() => {
+    const counts = new Map<string, number>();
+    for (const sale of this.sales()) {
+      for (const item of sale.items) {
+        if (!item.categoryId) continue;
+        counts.set(item.categoryId, (counts.get(item.categoryId) ?? 0) + item.quantity);
+      }
+    }
+    return counts;
+  });
+
+  sortedCategories = computed(() => {
+    const counts = this.categorySoldQty();
+    return this.categories()
+      .slice()
+      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
+  });
+
+  /** Category cards are shown only when browsing (no search, no category picked yet). */
+  showCategoryCards = computed(() => !this.searchQuery().trim() && !this.selectedCategoryId());
+
+  displayedProducts = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (query) {
+      return this.products().filter(
+        (p) => p.name.toLowerCase().includes(query) || p.barcode.includes(query)
+      );
+    }
+    if (this.selectedCategoryId()) {
+      return this.products().filter((p) => p.categoryId === this.selectedCategoryId());
+    }
+    return [];
+  });
+
+  selectedCategoryName(): string {
+    return this.categories().find((c) => c.id === this.selectedCategoryId())?.name ?? '';
+  }
+
+  selectCategory(category: Category) {
+    this.selectedCategoryId.set(category.id);
+  }
+
+  backToCategories() {
+    this.selectedCategoryId.set(null);
+    this.searchQuery.set('');
   }
 
   addToCart(product: Product) {
@@ -65,6 +115,7 @@ export class PosComponent implements OnInit {
       this.cart.update(cart => [...cart, {
         productId: product.id,
         productName: product.name,
+        categoryId: product.categoryId,
         quantity: 1,
         price: product.price,
         total: product.price
@@ -97,7 +148,7 @@ export class PosComponent implements OnInit {
     }
   }
 
-  subtotal = computed(() => 
+  subtotal = computed(() =>
   this.cart().reduce((sum, item) => sum + item.total, 0)
 );
 
@@ -108,40 +159,40 @@ export class PosComponent implements OnInit {
 
   total = computed(() => this.subtotal() + this.tax());
 
+  /** What's actually owed once the cashier's discount is applied at checkout. */
+  finalTotal = computed(() => Math.max(0, this.total() - this.discount()));
+
   change = computed(() =>
-    Math.max(0, this.paidAmount() - this.total())
+    Math.max(0, this.paidAmount() - this.finalTotal())
   );
 
   /** Unpaid remainder that would need to go on a customer's debt. */
-  debtAmount = computed(() => Math.max(0, this.total() - this.paidAmount()));
+  debtAmount = computed(() => Math.max(0, this.finalTotal() - this.paidAmount()));
 
   hasDebtPortion = computed(() => this.debtAmount() > 0);
 
-  canSubmit = computed(() => {
-    if (this.cart().length === 0 || this.submitting()) return false;
-    if (!this.hasDebtPortion()) return true;
-    return this.isNewCustomer() ? this.customerName().trim().length > 0 : !!this.selectedCustomerId();
-  });
+  canSubmit = computed(() => this.cart().length > 0 && !this.submitting());
 
-  quickAmounts = computed(() => {
-    const total = this.total();
-    if (total <= 0) return [];
-    const roundUp = (value: number, step: number) => Math.ceil(value / step) * step;
-    const amounts = [total, roundUp(total, 10000), roundUp(total, 50000), roundUp(total, 100000)];
-    return Array.from(new Set(amounts.map(a => Math.round(a)))).sort((a, b) => a - b);
-  });
+  openPaymentDialog() {
+    this.dialog
+      .open(PosPaymentDialogComponent, {
+        width: '420px',
+        data: { total: this.total(), customers: this.customers() }
+      })
+      .afterClosed()
+      .subscribe((result: PosPaymentDialogResult | undefined) => {
+        if (!result) return;
 
-  openPaymentModal() {
-    this.paidAmount.set(Math.ceil(this.total()));
-    this.isNewCustomer.set(true);
-    this.selectedCustomerId.set('');
-    this.customerName.set('');
-    this.customerPhone.set('');
-    this.showPaymentModal.set(true);
-  }
+        this.selectedPaymentMethod.set(result.paymentMethod);
+        this.paidAmount.set(result.paidAmount);
+        this.discount.set(result.discount);
+        this.isNewCustomer.set(result.isNewCustomer);
+        this.selectedCustomerId.set(result.customerId ?? '');
+        this.customerName.set(result.customerName ?? '');
+        this.customerPhone.set(result.customerPhone ?? '');
 
-  setPaidAmount(amount: number) {
-    this.paidAmount.set(amount);
+        this.completeSale();
+      });
   }
 
   completeSale() {
@@ -153,6 +204,8 @@ export class PosComponent implements OnInit {
 
     const items: SaleItem[] = this.cart().map((item) => ({
       productId: item.productId,
+      productName: item.productName,
+      categoryId: item.categoryId,
       quantity: item.quantity,
       price: item.price,
       total: item.total
@@ -161,14 +214,17 @@ export class PosComponent implements OnInit {
     const debtPortion = this.debtAmount();
     const change = this.change();
 
+    const discount = this.discount();
+
     const sale: Omit<Sale, 'id' | 'createdAt'> = {
       items,
       subtotal: this.subtotal(),
       tax: this.tax(),
-      total: this.total(),
+      total: this.finalTotal(),
       paymentMethod: this.selectedPaymentMethod(),
       paidAmount: this.paidAmount(),
-      change
+      change,
+      ...(discount > 0 ? { discount } : {})
     };
 
     let debt: SaleDebtInput | undefined;
@@ -204,8 +260,9 @@ export class PosComponent implements OnInit {
   clearCart() {
     this.cart.set([]);
     this.searchQuery.set('');
+    this.selectedCategoryId.set(null);
     this.paidAmount.set(0);
-    this.showPaymentModal.set(false);
+    this.discount.set(0);
     this.isNewCustomer.set(true);
     this.selectedCustomerId.set('');
     this.customerName.set('');
@@ -216,6 +273,7 @@ export class PosComponent implements OnInit {
 interface CartItem {
   productId: string;
   productName: string;
+  categoryId: string;
   quantity: number;
   price: number;
   total: number;

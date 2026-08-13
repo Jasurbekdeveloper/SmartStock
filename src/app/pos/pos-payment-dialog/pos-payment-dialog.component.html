@@ -1,0 +1,103 @@
+<h2 mat-dialog-title>{{ 'pos.checkout' | translate }}</h2>
+
+<mat-dialog-content>
+  <div class="space-y-3">
+    <div class="grid gap-3 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg" [class.grid-cols-3]="hasDebtPortion()" [class.grid-cols-2]="!hasDebtPortion()">
+      <div>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'pos.amountDue' | translate }}</p>
+        @if (discount() > 0) {
+        <p class="text-xs text-gray-400 dark:text-gray-500 line-through">{{ data.total | sum }} so'm</p>
+        }
+        <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ discountedTotal() | sum }} so'm</p>
+      </div>
+      @if (hasDebtPortion()) {
+      <div>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'debts.remainingAmount' | translate }}</p>
+        <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ debtAmount() | sum }} so'm</p>
+      </div>
+      } @else if (paidAmount() > 0) {
+      <div>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'pos.change' | translate }}</p>
+        <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ change() | sum }} so'm</p>
+      </div>
+      }
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+      <mat-label>{{ 'pos.discount' | translate }}</mat-label>
+      <input matInput type="number" [ngModel]="discount()" (ngModelChange)="discount.set($event || 0)" step="0.01" min="0" [max]="data.total" placeholder="0.00" />
+    </mat-form-field>
+
+    <div>
+      <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">{{ 'pos.paymentMethod' | translate }}:</label>
+      <mat-button-toggle-group class="w-full" [value]="paymentMethod()" (change)="paymentMethod.set($event.value)">
+        <mat-button-toggle value="cash" class="!flex-1">{{ 'pos.cash' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="card" class="!flex-1">{{ 'pos.card' | translate }}</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+      <mat-label>{{ 'pos.paidAmount' | translate }}</mat-label>
+      <input matInput type="number" [ngModel]="paidAmount()" (ngModelChange)="paidAmount.set($event)" step="0.01" min="0" [placeholder]="'pos.enterAmount' | translate" />
+    </mat-form-field>
+
+    @if (quickAmounts().length > 0) {
+    <div class="flex flex-wrap gap-1.5">
+      @for (amount of quickAmounts(); track amount) {
+      <button
+        type="button"
+        mat-stroked-button
+        (click)="setPaidAmount(amount)"
+      >
+        {{ amount | sum:0 }} so'm
+      </button>
+      }
+      <button type="button" mat-stroked-button color="warn" (click)="setPaidAmount(0)">
+        {{ 'pos.allOnCredit' | translate }}
+      </button>
+    </div>
+    }
+    @if (hasDebtPortion()) {
+    <p class="text-orange-600 dark:text-orange-400 text-xs">
+      {{ debtAmount() | sum }} so'm — {{ 'debts.title' | translate }}
+    </p>
+    }
+
+    @if (hasDebtPortion()) {
+    <div class="p-2.5 border-2 border-orange-200 dark:border-orange-900 rounded-lg space-y-2">
+      <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium">{{ 'debts.customer' | translate }}:</label>
+      <mat-button-toggle-group class="w-full" [value]="isNewCustomer()" (change)="isNewCustomer.set($event.value)">
+        <mat-button-toggle [value]="true" class="!flex-1">{{ 'debts.newCustomer' | translate }}</mat-button-toggle>
+        <mat-button-toggle [value]="false" class="!flex-1">{{ 'debts.existingCustomer' | translate }}</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      @if (isNewCustomer()) {
+      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+        <mat-label>{{ 'debts.customerName' | translate }}</mat-label>
+        <input matInput [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+        <mat-label>{{ 'debts.customerPhone' | translate }}</mat-label>
+        <input matInput [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" />
+      </mat-form-field>
+      } @else {
+      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+        <mat-label>{{ 'debts.selectCustomer' | translate }}</mat-label>
+        <mat-select [ngModel]="selectedCustomerId()" (ngModelChange)="selectedCustomerId.set($event)">
+          @for (customer of data.customers; track customer.id) {
+          <mat-option [value]="customer.id">{{ customer.name }} — {{ customer.phone }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+    </div>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">{{ 'buttons.cancel' | translate }}</button>
+  <button mat-flat-button color="primary" [disabled]="!canSubmit()" (click)="submit()">
+    {{ 'buttons.submit' | translate }}
+  </button>
+</mat-dialog-actions>

@@ -2,108 +2,63 @@
   @if (product(); as p) {
   <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'form.editProduct' | translate }}</h1>
 
-  <form (ngSubmit)="updateProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.productName' | translate }}</label>
-        <input
-          type="text"
-          [(ngModel)]="p.name"
-          name="name"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+  <form (ngSubmit)="updateProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.productName' | translate }}</mat-label>
+        <input matInput [(ngModel)]="p.name" name="name" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.barcode' | translate }}</label>
-        <input
-          type="text"
-          [(ngModel)]="p.barcode"
-          name="barcode"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.barcode' | translate }}</mat-label>
+        <input matInput [(ngModel)]="p.barcode" name="barcode" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.price' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="p.price"
-          name="price"
-          step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.price' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="p.price" name="price" step="0.01" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'form.cost' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="p.cost"
-          name="cost"
-          step="0.01"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      @if (canSeeCost()) {
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'form.cost' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="p.cost" name="cost" step="0.01" />
+      </mat-form-field>
+      }
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.quantity' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="p.quantity"
-          name="quantity"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.quantity' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="p.quantity" name="quantity" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.unit' | translate }}</label>
-        <select
-          [(ngModel)]="p.unit"
-          name="unit"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        >
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.unit' | translate }}</mat-label>
+        <mat-select [(ngModel)]="p.unit" name="unit">
           @for (u of units; track u) {
-          <option [value]="u">{{ 'units.' + u | translate }}</option>
+          <mat-option [value]="u">{{ 'units.' + u | translate }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.minQuantity' | translate }}</label>
-        <input
-          type="number"
-          [(ngModel)]="p.minQuantity"
-          name="minQuantity"
-          min="0"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.minQuantity' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="p.minQuantity" name="minQuantity" min="0" />
+      </mat-form-field>
 
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.category' | translate }}</label>
-        <select
-          [(ngModel)]="p.categoryId"
-          name="categoryId"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        >
-          <option value="" disabled>{{ 'form.enterCategory' | translate }}</option>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'products.category' | translate }}</mat-label>
+        <mat-select [(ngModel)]="p.categoryId" name="categoryId">
           @for (category of categories(); track category.id) {
-          <option [value]="category.id">{{ category.name }}</option>
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
     </div>
 
-    <div>
-      <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'products.description' | translate }}</label>
-      <textarea
-        [(ngModel)]="p.description"
-        name="description"
-        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        rows="4"
-      ></textarea>
-    </div>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'products.description' | translate }}</mat-label>
+      <textarea matInput [(ngModel)]="p.description" name="description" rows="4"></textarea>
+    </mat-form-field>
 
     @if (errorKey(); as key) {
     <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
@@ -111,15 +66,11 @@
     </div>
     }
 
-    <div class="flex gap-4">
-      <button
-        type="submit"
-        [disabled]="submitting()"
-        class="bg-blue-600 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
-      >
+    <div class="flex gap-4 pt-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
         {{ 'common.save' | translate }}
       </button>
-      <a href="/products/list" class="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition inline-block">
+      <a mat-button routerLink="/products/list">
         {{ 'common.cancel' | translate }}
       </a>
     </div>

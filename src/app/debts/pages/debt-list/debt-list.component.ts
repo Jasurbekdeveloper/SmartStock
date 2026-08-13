@@ -3,9 +3,16 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { createPagination } from '../../../core/utils/pagination';
 
 interface CustomerDebtSummary {
   customerId: string;
@@ -19,7 +26,19 @@ interface CustomerDebtSummary {
 @Component({
   selector: 'app-debt-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, SumPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TranslatePipe,
+    SumPipe,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatPaginatorModule
+  ],
   templateUrl: './debt-list.component.html',
   styleUrl: './debt-list.component.css'
 })
@@ -67,4 +86,11 @@ export class DebtListComponent {
     if (!query) return this.summaries();
     return this.summaries().filter((s) => s.customerName.toLowerCase().includes(query));
   });
+
+  pagination = createPagination(this.filteredSummaries);
+
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.pagination.reset();
+  }
 }

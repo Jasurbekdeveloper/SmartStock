@@ -2,6 +2,11 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { Customer, Debt, DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -11,7 +16,18 @@ import { SumPipe } from '../../../core/pipes/sum.pipe';
 @Component({
   selector: 'app-debt-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TranslatePipe, SumPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TranslatePipe,
+    SumPipe,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule
+  ],
   templateUrl: './debt-detail.component.html',
   styleUrl: './debt-detail.component.css'
 })
@@ -41,6 +57,10 @@ export class DebtDetailComponent implements OnInit {
     this.debtService.getCustomerDebts(customerId).subscribe((debts) => {
       this.debts.set(debts);
     });
+  }
+
+  itemsSummary(debt: Debt): string {
+    return (debt.items ?? []).map((item) => `${item.productName} x${item.quantity}`).join(', ');
   }
 
   startPayment(debt: Debt) {

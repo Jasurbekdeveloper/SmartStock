@@ -1,6 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { Sale, SalesService } from '../core/services/sales.service';
 import { Product, ProductService } from '../core/services/product.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
@@ -17,7 +19,7 @@ interface StatCard {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe],
+  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe, MatCardModule, MatIconModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -44,6 +46,10 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  itemNames(sale: Sale): string {
+    return sale.items.map((item) => `${item.productName} x${item.quantity}`).join(', ');
+  }
+
   calculateStats(sales: Sale[]) {
     const todaySales = sales.filter(s =>
       new Date(s.createdAt).toDateString() === new Date().toDateString()
@@ -53,10 +59,10 @@ export class DashboardComponent implements OnInit {
     const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0);
 
     this.stats.set([
-      { label: 'dashboard.todaySales', value: formatNumber(todaySales.length, 0), icon: '🛒', color: 'blue' },
-      { label: 'dashboard.todayRevenue', value: formatNumber(todayRevenue) + " so'm", icon: '💰', color: 'green' },
-      { label: 'dashboard.totalRevenue', value: formatNumber(totalRevenue) + " so'm", icon: '📊', color: 'purple' },
-      { label: 'dashboard.totalOrders', value: formatNumber(sales.length, 0), icon: '📦', color: 'orange' }
+      { label: 'dashboard.todaySales', value: formatNumber(todaySales.length, 0), icon: 'shopping_cart', color: 'blue' },
+      { label: 'dashboard.todayRevenue', value: formatNumber(todayRevenue) + " so'm", icon: 'payments', color: 'green' },
+      { label: 'dashboard.totalRevenue', value: formatNumber(totalRevenue) + " so'm", icon: 'bar_chart', color: 'purple' },
+      { label: 'dashboard.totalOrders', value: formatNumber(sales.length, 0), icon: 'inventory_2', color: 'orange' }
     ]);
   }
 }

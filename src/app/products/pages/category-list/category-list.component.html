@@ -1,10 +1,7 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'categories.title' | translate }}</h1>
-    <button
-      (click)="openCreateForm()"
-      class="bg-blue-600 dark:bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900"
-    >
+    <button mat-flat-button color="primary" (click)="openCreateForm()">
       + {{ 'categories.addCategory' | translate }}
     </button>
   </div>
@@ -16,79 +13,99 @@
   }
 
   @if (showCreateForm()) {
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-    <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="flex gap-4 items-end">
-      <div class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ 'categories.name' | translate }}
-        </label>
-        <input
-          type="text"
-          formControlName="name"
-          [placeholder]="'categories.enterName' | translate"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-        />
-      </div>
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="flex gap-4 items-start flex-wrap pt-4">
+        <mat-form-field appearance="outline" class="!flex-1 !min-w-[10rem]">
+          <mat-label>{{ 'categories.name' | translate }}</mat-label>
+          <input matInput formControlName="name" [placeholder]="'categories.enterName' | translate" />
+        </mat-form-field>
 
-      <button
-        type="button"
-        (click)="cancelCreate()"
-        class="px-4 py-2 bg-gray-400 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-500 dark:hover:bg-gray-700 transition"
-      >
-        {{ 'common.cancel' | translate }}
-      </button>
-      <button
-        type="submit"
-        [disabled]="submitting()"
-        class="px-4 py-2 bg-blue-600 dark:bg-blue-800 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-900 transition disabled:bg-gray-400 dark:disabled:bg-gray-600"
-      >
-        {{ 'common.save' | translate }}
-      </button>
-    </form>
-  </div>
+        <div class="flex items-center gap-3">
+          @if (createImagePreviewUrl()) {
+          <img [src]="createImagePreviewUrl()" alt="" class="w-12 h-12 rounded object-cover" />
+          }
+          <button mat-stroked-button type="button" (click)="createFileInput.click()" [disabled]="createImageUploading()">
+            @if (createImageUploading()) {
+            <mat-progress-spinner diameter="18" mode="indeterminate" class="inline-block align-middle mr-2"></mat-progress-spinner>
+            } @else {
+            <mat-icon>upload</mat-icon>
+            }
+            {{ 'categories.imageUrl' | translate }}
+          </button>
+          <input #createFileInput type="file" accept="image/*" hidden (change)="onCreateFileSelected($event)" />
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button mat-button type="button" (click)="cancelCreate()">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+            {{ 'common.save' | translate }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
   }
 
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <mat-card>
     <div class="overflow-x-auto">
     <table class="w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.imageUrl' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.name' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
         </tr>
       </thead>
       <tbody>
-        @for (category of categories(); track category.id) {
+        @for (category of pagination.paged(); track category.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           @if (editingId() === category.id) {
           <td class="px-4 py-3">
-            <input
-              type="text"
-              [ngModel]="editName()"
-              (ngModelChange)="editName.set($event)"
-              class="w-full px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
-            />
+            <div class="flex items-center gap-2">
+              @if (editImageUrl()) {
+              <img [src]="editImageUrl()" alt="" class="w-10 h-10 rounded object-cover" />
+              }
+              <button mat-icon-button type="button" [matTooltip]="'categories.imageUrl' | translate" (click)="editFileInput.click()" [disabled]="editImageUploading()">
+                @if (editImageUploading()) {
+                <mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+                } @else {
+                <mat-icon>upload</mat-icon>
+                }
+              </button>
+              <input #editFileInput type="file" accept="image/*" hidden (change)="onEditFileSelected($event)" />
+            </div>
           </td>
           <td class="px-4 py-3">
-            <button
-              (click)="saveEdit(category.id)"
-              [disabled]="savingEdit()"
-              class="text-blue-600 hover:text-blue-800 mr-3 disabled:text-gray-400"
-            >
-              {{ 'common.save' | translate }}
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+              <input matInput [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
+            </mat-form-field>
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap">
+            <button mat-icon-button color="primary" [matTooltip]="'common.save' | translate" (click)="saveEdit(category.id)" [disabled]="savingEdit()">
+              <mat-icon>check</mat-icon>
             </button>
-            <button (click)="cancelEdit()" class="text-gray-600 hover:text-gray-800 dark:text-gray-300">
-              {{ 'common.cancel' | translate }}
+            <button mat-icon-button [matTooltip]="'common.cancel' | translate" (click)="cancelEdit()">
+              <mat-icon>close</mat-icon>
             </button>
           </td>
           } @else {
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ category.name }}</td>
           <td class="px-4 py-3">
-            <button (click)="startEdit(category)" class="text-blue-600 hover:text-blue-800 mr-3">
-              {{ 'buttons.edit' | translate }}
+            @if (category.imageUrl) {
+            <img [src]="category.imageUrl" [alt]="category.name" class="w-10 h-10 rounded object-cover" />
+            } @else {
+            <div class="w-10 h-10 rounded bg-gray-100 dark:bg-gray-700"></div>
+            }
+          </td>
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ category.name }}</td>
+          <td class="px-4 py-3 whitespace-nowrap">
+            <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="startEdit(category)">
+              <mat-icon>edit</mat-icon>
             </button>
-            <button (click)="requestDelete(category)" class="text-red-600 hover:text-red-800">
-              {{ 'buttons.delete' | translate }}
+            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="requestDelete(category)">
+              <mat-icon>delete</mat-icon>
             </button>
           </td>
           }
@@ -99,13 +116,14 @@
     </div>
     @if (categories().length === 0) {
     <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'categories.noCategoriesFound' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="categories().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
     }
-  </div>
+  </mat-card>
 </div>
-
-<app-confirm-dialog
-  [(isOpen)]="confirmOpen"
-  [title]="'buttons.delete' | translate"
-  [message]="'categories.confirmDelete' | translate"
-  (confirmed)="confirmDelete()"
-></app-confirm-dialog>

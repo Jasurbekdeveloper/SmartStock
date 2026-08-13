@@ -35,6 +35,7 @@ export interface StockInInput {
   currentQuantity: number;
   supplier: string;
   costPrice: number;
+  sellingPrice: number;
 }
 
 export interface StockOutInput {
@@ -74,16 +75,21 @@ export class StockService {
 
   stockIn(input: StockInInput): Observable<void> {
     const newQuantity = input.currentQuantity + input.quantity;
-    return this.recordMovement({
-      productId: input.productId,
-      type: 'in',
-      quantity: input.quantity,
-      previousQuantity: input.currentQuantity,
-      newQuantity,
-      supplier: input.supplier,
-      costPrice: input.costPrice,
-      totalCost: input.quantity * input.costPrice
-    });
+    return this.recordMovement(
+      {
+        productId: input.productId,
+        type: 'in',
+        quantity: input.quantity,
+        previousQuantity: input.currentQuantity,
+        newQuantity,
+        supplier: input.supplier,
+        costPrice: input.costPrice,
+        totalCost: input.quantity * input.costPrice
+      },
+      // Restocking is when cost/selling prices actually change in this business,
+      // so keep the product record in sync instead of only logging it here.
+      { cost: input.costPrice, price: input.sellingPrice }
+    );
   }
 
   stockOut(input: StockOutInput): Observable<void> {
@@ -110,7 +116,10 @@ export class StockService {
     });
   }
 
-  private recordMovement(entry: Omit<StockEntry, 'id' | 'createdAt'>): Observable<void> {
+  private recordMovement(
+    entry: Omit<StockEntry, 'id' | 'createdAt'>,
+    productUpdates?: Record<string, unknown>
+  ): Observable<void> {
     const batch = writeBatch(this.firestore);
     const entryRef = doc(collection(this.firestore, 'stockEntries'));
 
@@ -122,7 +131,8 @@ export class StockService {
     batch.set(entryRef, data);
     batch.update(doc(this.firestore, 'products', entry.productId), {
       quantity: entry.newQuantity,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
+      ...productUpdates
     });
 
     return from(batch.commit());

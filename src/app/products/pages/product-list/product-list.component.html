@@ -57,9 +57,9 @@
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ product.name }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
-          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price | sum }} so'm</td>
+          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price | currencyDisplay }}</td>
           @if (canSeeCost()) {
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.cost | sum }} so'm</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.cost | currencyDisplay }}</td>
           }
           <td class="px-4 py-3">
             <span
@@ -80,13 +80,13 @@
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ categoryName(product.categoryId) }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.createdAt | date: 'short' }}</td>
           <td class="px-4 py-3 whitespace-nowrap">
-            <button mat-icon-button [matTooltip]="'QR'" (click)="showQr(product)">
+            <button mat-icon-button [matTooltip]="'products.printBarcode' | translate" (click)="showBarcode(product)">
               <mat-icon>qr_code_2</mat-icon>
             </button>
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product.id)">
+            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

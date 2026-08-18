@@ -9,11 +9,12 @@ import { SalesService, Sale } from '../../../core/services/sales.service';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 
 @Component({
   selector: 'app-sale-detail',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, SumPipe, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, TranslatePipe, SumPipe, CurrencyDisplayPipe, MatCardModule, MatButtonModule, MatIconModule],
   templateUrl: './sale-detail.component.html',
   styleUrl: './sale-detail.component.css'
 })
@@ -42,6 +43,11 @@ export class SaleDetailComponent implements OnInit {
   }
 
   printReceipt() {
-    window.print();
+    const sale = this.sale();
+    if (!sale) return;
+    // Opens the dedicated receipt route in a new tab instead of printing
+    // this page directly, so the receipt's narrow @page print CSS is fully
+    // isolated from the sale-detail page (which has no such CSS itself).
+    window.open(`/sales/${sale.id}/receipt`, '_blank');
   }
 }

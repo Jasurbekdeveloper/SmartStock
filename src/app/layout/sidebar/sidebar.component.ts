@@ -47,7 +47,8 @@ export class SidebarComponent {
       icon: 'shopping_cart',
       children: [
         { label: 'navigation.pos', path: '/pos' },
-        { label: 'sales.salesHistory', path: '/sales/history' }
+        { label: 'sales.salesHistory', path: '/sales/history' },
+        { label: 'shifts.shiftHistory', path: '/shifts/history' }
       ]
     },
     {
@@ -72,8 +73,12 @@ export class SidebarComponent {
       ]
     },
     { label: 'navigation.debts', path: '/debts/list', icon: 'credit_card' },
+    { label: 'navigation.customers', path: '/customers/list', icon: 'people' },
+    { label: 'navigation.suppliers', path: '/suppliers/list', icon: 'local_shipping', roles: ['admin', 'manager'] },
     { label: 'navigation.statistics', path: '/statistics', icon: 'bar_chart' },
-    { label: 'navigation.users', path: '/users', icon: 'group', roles: ['admin'] }
+    { label: 'navigation.users', path: '/users', icon: 'group', roles: ['admin'] },
+    { label: 'navigation.auditLog', path: '/audit-log', icon: 'history', roles: ['admin', 'manager'] },
+    { label: 'navigation.settings', path: '/settings', icon: 'settings', roles: ['admin'] }
   ];
 
   onItemClick(item: MenuItem) {

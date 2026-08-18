@@ -11,8 +11,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { StockService } from '../../../core/services/stock.service';
+import { SupplierService } from '../../../core/services/supplier.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+
+/** Special mat-select value that reveals the free-text fallback input, for
+ *  one-off suppliers that aren't worth adding to the catalog. */
+export const MANUAL_SUPPLIER_OPTION = '__manual__';
 
 @Component({
   selector: 'app-stock-in',
@@ -35,12 +40,20 @@ import { SumPipe } from '../../../core/pipes/sum.pipe';
 export class StockInComponent {
   private stockService = inject(StockService);
   private productService = inject(ProductService);
+  private supplierService = inject(SupplierService);
   private router = inject(Router);
 
+  readonly manualSupplierOption = MANUAL_SUPPLIER_OPTION;
+
   products = toSignal(this.productService.getProducts(), { initialValue: [] });
+  suppliers = toSignal(this.supplierService.getSuppliers(), { initialValue: [] });
 
   productId = '';
   quantity: number | null = null;
+  /** Bound to the mat-select: either a `suppliers/{id}`, or the manual-entry sentinel. */
+  supplierId: string = MANUAL_SUPPLIER_OPTION;
+  /** Free-text fallback, used when `supplierId` is the manual sentinel (or no
+   *  suppliers exist yet) — keeps one-off suppliers from requiring a catalog entry. */
   supplier = '';
   costPrice: number | null = null;
   sellingPrice: number | null = null;
@@ -60,6 +73,19 @@ export class StockInComponent {
     this.sellingPrice = product.price;
   }
 
+  /** Resolves the mat-select state into what `stockIn()` needs: a catalog
+   *  `supplierId` + its name when a real supplier was picked, or just the
+   *  free-typed name (no id) for the manual fallback / one-off suppliers. */
+  private resolveSupplier(): { supplierId?: string; supplierName: string } {
+    if (this.supplierId !== MANUAL_SUPPLIER_OPTION) {
+      const supplier = this.suppliers().find((s) => s.id === this.supplierId);
+      if (supplier) {
+        return { supplierId: supplier.id, supplierName: supplier.name };
+      }
+    }
+    return { supplierId: undefined, supplierName: this.supplier };
+  }
+
   addStock() {
     const product = this.selectedProduct();
     if (!product || !this.quantity || this.quantity <= 0) {
@@ -70,12 +96,15 @@ export class StockInComponent {
     this.submitting.set(true);
     this.errorKey.set(null);
 
+    const { supplierId, supplierName } = this.resolveSupplier();
+
     this.stockService
       .stockIn({
         productId: product.id,
         quantity: this.quantity,
         currentQuantity: product.quantity,
-        supplier: this.supplier,
+        supplier: supplierName,
+        supplierId,
         costPrice: this.costPrice ?? 0,
         sellingPrice: this.sellingPrice ?? product.price
       })

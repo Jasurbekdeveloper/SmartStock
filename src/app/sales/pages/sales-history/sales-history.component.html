@@ -62,7 +62,7 @@
         >
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.id }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white max-w-xs truncate" [title]="itemNames(sale)">{{ itemNames(sale) }}</td>
-          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{{ sale.total | sum }} so'm</td>
+          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{{ sale.total | currencyDisplay }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">
             {{ 'pos.' + sale.paymentMethod | translate }}
             @if (sale.debtAmount && sale.debtAmount > 0) {

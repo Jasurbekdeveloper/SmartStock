@@ -14,15 +14,12 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { Customer } from './customer.service';
 
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  address?: string;
-  email?: string;
-  createdAt?: Date;
-}
+// Customer now lives in customer.service.ts (its own CRUD module — see 5-band CRM
+// plan); re-exported here so existing imports across pos/sale-detail/statistics/debt
+// pages keep working unchanged.
+export type { Customer } from './customer.service';
 
 export interface DebtItem {
   productId: string;
@@ -47,6 +44,9 @@ export interface Debt {
   createdAt: Date;
   lastPaymentDate?: Date;
   notes?: string;
+  /** Optional "pay by" date, set at debt creation. Used by the 11-band low-stock/debt-due
+   *  alert check (dashboard) to flag debts that are now overdue. */
+  dueDate?: Date;
 }
 
 @Injectable({
@@ -77,6 +77,7 @@ export class DebtService {
     customerId: string;
     totalAmount: number;
     notes?: string;
+    dueDate?: Date;
   }): Observable<void> {
     const data: Record<string, unknown> = {
       customerId: debt.customerId,
@@ -86,6 +87,7 @@ export class DebtService {
       createdAt: serverTimestamp()
     };
     if (debt.notes) data['notes'] = debt.notes;
+    if (debt.dueDate) data['dueDate'] = debt.dueDate;
 
     return from(addDoc(collection(this.firestore, 'debts'), data)).pipe(map(() => undefined));
   }

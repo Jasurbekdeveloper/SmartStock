@@ -1,0 +1,77 @@
+<div class="max-w-2xl mx-auto space-y-6">
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'shifts.closeShift' | translate }}</h1>
+
+  @if (!shift()) {
+  <mat-card class="!p-6 text-center text-gray-500 dark:text-gray-400">
+    {{ 'messages.loading' | translate }}
+  </mat-card>
+  } @else if (alreadyClosed()) {
+  <mat-card class="!p-6 text-center text-gray-500 dark:text-gray-400">
+    {{ 'shifts.alreadyClosed' | translate }}
+  </mat-card>
+  } @else {
+  <mat-card class="!p-6">
+    <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">{{ 'shifts.byPaymentMethod' | translate }}</h2>
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'pos.cash' | translate }}</p>
+        <p class="text-xl font-bold text-gray-900 dark:text-white">{{ cashTotal() | currencyDisplay }}</p>
+      </div>
+      <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'pos.card' | translate }}</p>
+        <p class="text-xl font-bold text-gray-900 dark:text-white">{{ cardTotal() | currencyDisplay }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6 font-semibold text-gray-900 dark:text-white">
+      <div class="flex justify-between col-span-2">
+        <span>{{ 'shifts.salesCount' | translate }}:</span>
+        <span>{{ salesCount() }}</span>
+      </div>
+      <div class="flex justify-between col-span-2">
+        <span>{{ 'shifts.totalRevenue' | translate }}:</span>
+        <span>{{ totalRevenue() | currencyDisplay }}</span>
+      </div>
+      <div class="flex justify-between col-span-2">
+        <span>{{ 'shifts.startingCash' | translate }}:</span>
+        <span>{{ shift()!.startingCash | currencyDisplay }}</span>
+      </div>
+      <div class="flex justify-between col-span-2 border-t dark:border-gray-700 pt-2">
+        <span>{{ 'shifts.expectedCash' | translate }}:</span>
+        <span>{{ expectedCash() | currencyDisplay }}</span>
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'shifts.countedCash' | translate }}</mat-label>
+      <input matInput type="number" [(ngModel)]="countedCash" name="countedCash" step="0.01" min="0" placeholder="0.00" />
+    </mat-form-field>
+
+    @if (countedCash !== null) {
+    <div
+      class="p-3 rounded-lg mb-4 font-semibold flex justify-between"
+      [class.bg-green-100]="variance() >= 0"
+      [class.text-green-800]="variance() >= 0"
+      [class.dark:bg-green-900]="variance() >= 0"
+      [class.dark:text-green-300]="variance() >= 0"
+      [class.bg-red-100]="variance() < 0"
+      [class.text-red-800]="variance() < 0"
+      [class.dark:bg-red-900]="variance() < 0"
+      [class.dark:text-red-300]="variance() < 0"
+    >
+      <span>{{ 'shifts.variance' | translate }} ({{ (variance() >= 0 ? 'shifts.variancePositive' : 'shifts.varianceNegative') | translate }}):</span>
+      <span>{{ variance() | currencyDisplay }}</span>
+    </div>
+    }
+
+    <div class="flex gap-4">
+      <button mat-flat-button color="primary" [disabled]="submitting() || countedCash === null" (click)="confirmClose()">
+        {{ 'shifts.confirmClose' | translate }}
+      </button>
+      <a mat-button routerLink="/pos">
+        {{ 'common.cancel' | translate }}
+      </a>
+    </div>
+  </mat-card>
+  }
+</div>

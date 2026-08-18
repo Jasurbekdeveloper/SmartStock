@@ -104,7 +104,7 @@ export class UserListComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.userManagementService.setActive(user.uid, !user.active).subscribe();
+          this.userManagementService.setActive(user.uid, !user.active, user.active).subscribe();
         }
       });
   }

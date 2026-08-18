@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
-import { collection, doc, orderBy, query, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, doc, orderBy, query, serverTimestamp, where, writeBatch } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 
@@ -14,6 +14,12 @@ export interface SaleItem {
   quantity: number;
   price: number;
   total: number;
+  /** Per-line amount taken off `quantity * price` before it flows into the sale's
+   *  `subtotal` (absolute currency, not a percentage — same semantics as the
+   *  cart-level `Sale.discount`). Stacks additively with the cart-level discount:
+   *  this reduces the line total first, then the cart-level discount applies on
+   *  top of the resulting subtotal, unchanged from existing behavior. */
+  discount?: number;
 }
 
 export interface Sale {
@@ -33,6 +39,8 @@ export interface Sale {
   customerId?: string;
   notes?: string;
   createdAt: Date;
+  /** Links this sale to the cashier's open shift, if one was active at checkout. */
+  shiftId?: string;
 }
 
 export interface SaleDebtInput {
@@ -56,6 +64,19 @@ export class SalesService {
 
   getSaleById(id: string): Observable<Sale | undefined> {
     return fromDocRef<Sale>(doc(this.firestore, 'sales', id));
+  }
+
+  /** A customer's purchase history, newest first. NOTE: on first real use Firestore
+   *  will likely throw with a console link to auto-create the required composite
+   *  index (customerId ==, createdAt desc) — that link must be followed manually,
+   *  it cannot be created from code. */
+  getSalesByCustomerId(customerId: string): Observable<Sale[]> {
+    const salesQuery = query(
+      collection(this.firestore, 'sales'),
+      where('customerId', '==', customerId),
+      orderBy('createdAt', 'desc')
+    );
+    return fromCollectionQuery<Sale>(salesQuery);
   }
 
   /**

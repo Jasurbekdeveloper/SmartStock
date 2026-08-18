@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, tap } from 'rxjs';
 import { deleteApp, initializeApp } from 'firebase/app';
 import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
 import {
@@ -16,6 +16,7 @@ import { environment } from '../../../environments/environment';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { AppUser, UserRole } from './auth.service';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
+import { AuditLogService } from './audit-log.service';
 
 export interface CreateEmployeeInput {
   email: string;
@@ -29,6 +30,7 @@ export interface CreateEmployeeInput {
 })
 export class UserManagementService {
   private firestore: Firestore = inject(FIRESTORE);
+  private auditLogService = inject(AuditLogService);
 
   getUsers(): Observable<AppUser[]> {
     const usersQuery = query(collection(this.firestore, 'users'), orderBy('createdAt', 'desc'));
@@ -39,12 +41,41 @@ export class UserManagementService {
     return from(this.createEmployeeAsync(input));
   }
 
-  updateRole(uid: string, role: UserRole): Observable<void> {
-    return from(updateDoc(doc(this.firestore, 'users', uid), { role }));
+  /** `previousRole` is optional only so this keeps compiling for any future caller
+   *  that doesn't have it handy — pass it whenever the caller already has the
+   *  user's current role in scope (see `setActive()`/its call site for the pattern). */
+  updateRole(uid: string, role: UserRole, previousRole?: UserRole): Observable<void> {
+    return from(updateDoc(doc(this.firestore, 'users', uid), { role })).pipe(
+      tap(() => {
+        // Non-atomic by design (see plan) — a failure here doesn't roll back the
+        // role change itself, it only means this one change goes unlogged.
+        this.auditLogService
+          .log({
+            action: 'role_change',
+            entityType: 'user',
+            entityId: uid,
+            before: previousRole !== undefined ? { role: previousRole } : undefined,
+            after: { role }
+          })
+          .subscribe();
+      })
+    );
   }
 
-  setActive(uid: string, active: boolean): Observable<void> {
-    return from(updateDoc(doc(this.firestore, 'users', uid), { active }));
+  setActive(uid: string, active: boolean, previousActive?: boolean): Observable<void> {
+    return from(updateDoc(doc(this.firestore, 'users', uid), { active })).pipe(
+      tap(() => {
+        this.auditLogService
+          .log({
+            action: 'active_toggle',
+            entityType: 'user',
+            entityId: uid,
+            before: previousActive !== undefined ? { active: previousActive } : undefined,
+            after: { active }
+          })
+          .subscribe();
+      })
+    );
   }
 
   /**

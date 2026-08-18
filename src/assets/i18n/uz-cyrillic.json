@@ -21,7 +21,11 @@
     "debts": "Қарзлар",
     "statistics": "Статистика",
     "users": "Фойдаланувчилар",
-    "menu": "Меню"
+    "settings": "Созламалар",
+    "menu": "Меню",
+    "customers": "Мижозлар",
+    "suppliers": "Таъминотчилар",
+    "auditLog": "Амаллар журнали"
   },
   "products": {
     "title": "Маҳсулотлар",
@@ -38,7 +42,12 @@
     "minQuantity": "Минимал қолдиқ (огоҳлантириш учун)",
     "lowStock": "Кам қолдиқ",
     "createdAt": "Яратилган сана",
-    "deleteConfirm": "Ушбу маҳсулотни ўчиришга ишончисиз?"
+    "deleteConfirm": "Ушбу маҳсулотни ўчиришга ишончисиз?",
+    "scanBarcode": "Штрих кодни сканерлаш",
+    "printBarcode": "Штрих-код ёрлиғини чоп этиш",
+    "altUnit": "Муқобил бирлик",
+    "altUnitFactor": "Муқобил бирлик коэффициенти",
+    "altUnitFactorHint": "1 муқобил бирлик нечта асосий бирликка тенг"
   },
   "units": {
     "dona": "дона",
@@ -74,6 +83,7 @@
     "tax": "Солиқ",
     "total": "Умумий жами",
     "clearCart": "Савдони тозалаш",
+    "clearCartConfirm": "Саватни тозалашга ишончингиз комилми?",
     "proceedToPay": "ТЎЛАШГА Ў'ТИШ",
     "cash": "Нақд",
     "card": "Карта",
@@ -84,7 +94,20 @@
     "saleError": "Сотувни сақлашда хатолик юз берди",
     "enterAmount": "Миқдорни киритинг",
     "allOnCredit": "Ҳаммаси қарзга",
-    "discount": "Чегирма"
+    "discount": "Чегирма",
+    "itemDiscount": "Маҳсулот чегирмаси",
+    "scanBarcode": "Штрих кодни сканерлаш",
+    "scanNotFound": "Бу штрих кодга мос маҳсулот топилмади",
+    "cameraError": "Камерага рухсат берилмади ёки камера топилмади",
+    "holdCart": "Ушлаб туриш",
+    "heldCarts": "Ушлаб турилганлар",
+    "resumeCart": "Давом эттириш",
+    "discardHeldCart": "Ўчириш",
+    "resumeCartConfirm": "Жорий сават бўш эмас. Ушбу ушлаб турилган саватни тиклаш уни алмаштиради. Давом этилсинми?",
+    "discardHeldCartConfirm": "Ушбу ушлаб турилган саватни ўчиришга ишончингиз комилми? Бу амални бекор қилиб бўлмайди.",
+    "holdCartLabelPrompt": "Ушбу сават учун ихтиёрий ёрлиқ (масалан, мижоз исми):",
+    "enterInAltUnit": "Бирликда киритиш",
+    "creditLimitExceeded": "Мижознинг қарз лимити {{limit}} сўм, жорий қарзи {{current}} сўм — бу харид лимитдан ошиб кетади"
   },
   "stock": {
     "title": "Қолдиқ бошқаруви",
@@ -120,7 +143,9 @@
     "previousNew": "Олдин → Кейин",
     "detail": "Тафсилот",
     "selectProductAndQuantity": "Маҳсулот ва миқдорни тўғри киритинг",
-    "insufficientQuantity": "Қолдиқда етарли миқдор йўқ"
+    "insufficientQuantity": "Қолдиқда етарли миқдор йўқ",
+    "selectSupplier": "Таъминотчи",
+    "supplierOther": "Бошқа (қўлда киритиш)"
   },
   "sales": {
     "title": "Сотувлар",
@@ -140,6 +165,35 @@
     "fromDate": "Санадан",
     "toDate": "Санагача",
     "noResults": "Филтрга мос сотувлар топилмади"
+  },
+  "shifts": {
+    "title": "Смена бошқаруви",
+    "openShift": "Смена очиш",
+    "closeShift": "Смена ёпиш",
+    "shiftHistory": "Смена тарихи",
+    "startingCash": "Бошланғич нақд",
+    "countedCash": "Саналган нақд",
+    "expectedCash": "Кутилган нақд",
+    "variance": "Фарқ",
+    "variancePositive": "Ортиқча",
+    "varianceNegative": "Камомад",
+    "salesCount": "Чеклар сони",
+    "totalRevenue": "Жами тушум",
+    "cashier": "Кассир",
+    "openedAt": "Очилган вақти",
+    "closedAt": "Ёпилган вақти",
+    "statusOpen": "Очиқ",
+    "statusClosed": "Ёпиқ",
+    "byPaymentMethod": "Тўлов тури бўйича",
+    "noActiveShift": "Фаол смена йўқ",
+    "openShiftPrompt": "Савдони бошлашдан олдин смена очинг",
+    "shiftOpened": "Смена муваффақиятли очилди",
+    "shiftOpenError": "Смена очишда хатолик юз берди",
+    "shiftClosed": "Смена муваффақиятли ёпилди",
+    "confirmClose": "Тасдиқлаш ва ёпиш",
+    "alreadyClosed": "Бу смена аллақачон ёпилган",
+    "noShiftsFound": "Смена топилмади",
+    "notes": "Изоҳ"
   },
   "debts": {
     "title": "Қарзларни бошқариш",
@@ -171,6 +225,51 @@
     "debtHistory": "Қарзлар тарихи",
     "itemsPurchased": "Олинган маҳсулотлар"
   },
+  "customers": {
+    "title": "Мижозлар",
+    "addCustomer": "Мижоз қўшиш",
+    "editCustomer": "Мижозни таҳрирлаш",
+    "name": "Исми",
+    "phone": "Телефон",
+    "address": "Манзил",
+    "email": "Электрон почта",
+    "creditLimit": "Қарз лимити",
+    "creditLimitHint": "Мижоз бир вақтда кўтариши мумкин бўлган максимал қарз. Чекловсиз учун бўш қолдиринг.",
+    "purchaseHistory": "Харид тарихи",
+    "noPurchases": "Ҳали харидлар йўқ",
+    "deleteConfirm": "Ушбу мижозни ўчиришга ишончингиз комилми?",
+    "noCustomersFound": "Мижозлар топилмади"
+  },
+  "suppliers": {
+    "title": "Таъминотчилар",
+    "addSupplier": "Таъминотчи қўшиш",
+    "editSupplier": "Таъминотчини таҳрирлаш",
+    "name": "Номи",
+    "phone": "Телефон",
+    "address": "Манзил",
+    "contactPerson": "Алоқа шахси",
+    "notes": "Изоҳ",
+    "purchaseHistory": "Харид тарихи",
+    "noPurchases": "Ҳали харидлар йўқ",
+    "totalPurchased": "Жами харид",
+    "deleteConfirm": "Ушбу таъминотчини ўчиришга ишончингиз комилми?",
+    "noSuppliersFound": "Таъминотчилар топилмади"
+  },
+  "settings": {
+    "title": "Созламалар",
+    "generalSettings": "Умумий",
+    "integrations": "Интеграциялар",
+    "vatRate": "ҚҚС ставкаси",
+    "currencySymbol": "Валюта белгиси",
+    "storeName": "Дўкон номи",
+    "storeAddress": "Дўкон манзили",
+    "storePhone": "Дўкон телефони",
+    "storeTaxId": "СТИР",
+    "receiptPaperWidth": "Чек қоғози кенглиги",
+    "telegramBotToken": "Telegram бот токени",
+    "telegramChatId": "Telegram чат ID",
+    "telegramHint": "Кам қолган товар ва қарз муддати огоҳлантиришлари учун ишлатилади (кейинги янгиланишда)."
+  },
   "statistics": {
     "title": "Статистика",
     "totalSales": "Жами сотувлар",
@@ -178,6 +277,9 @@
     "averageOrderValue": "Ўртача буюртма нархи",
     "topPaymentMethod": "Маш̯ҳур тўлаш усули",
     "revenue": "Даромад",
+    "revenueOverTime": "Даромад динамикаси",
+    "topProductsChart": "Энг кўп сотилган маҳсулотлар (график)",
+    "paymentMethodBreakdown": "Тўлов усуллари тақсимоти",
     "sales": "Сотувлар",
     "topProducts": "Энг кўп сотилган маҳсулотлар",
     "thisMonth": "Шу ойда",
@@ -201,10 +303,12 @@
     "totalSales": "Жами сотувлар",
     "totalProducts": "Жами маҳсулотлар",
     "totalDebts": "Жами қарзлар",
-    "todaySales": "Бугун сотувлар",
     "todayRevenue": "Бугун даромад",
-    "totalOrders": "Жами буюртмалар",
-    "lowStock": "Кам қолган маҳсулотлар"
+    "receiptsToday": "Бугунги чеклар сони",
+    "avgReceiptValue": "Ўртача чек суммаси",
+    "lowStock": "Кам қолган маҳсулотлар",
+    "lowStockAlert": "Кам қолди: «{{name}}» — {{quantity}} {{unit}} қолди.",
+    "debtDueAlert": "Қарз муддати ўтди: {{name}} — қолдиқ {{amount}} сўм."
   },
   "table": {
     "saleId": "Сотувning ID",
@@ -284,6 +388,28 @@
     "previous": "Олдинги",
     "list": "Ro'yxat",
     "history": "Tarix"
+  },
+  "auditLog": {
+    "title": "Амаллар журнали",
+    "user": "Фойдаланувчи",
+    "action": "Амал",
+    "entity": "Объект",
+    "before": "Олдин",
+    "after": "Кейин",
+    "timestamp": "Сана/вақт",
+    "filterByType": "Объект тури",
+    "filterByAction": "Амал",
+    "dateRange": "Сана оралиғи",
+    "noEntriesFound": "Журнал ёзувлари топилмади",
+    "actionStockAdjustment": "Инвентаризация",
+    "actionProductUpdate": "Маҳсулот ўзгартирилди",
+    "actionProductDelete": "Маҳсулот ўчирилди",
+    "actionRoleChange": "Роль ўзгартирилди",
+    "actionActiveToggle": "Фаоллик ҳолати ўзгартирилди",
+    "entityType": {
+      "product": "Маҳсулот",
+      "user": "Фойдаланувчи"
+    }
   },
   "messages": {
     "noSalesYet": "Сотувлар йўқ",

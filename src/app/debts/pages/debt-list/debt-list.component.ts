@@ -11,8 +11,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { createPagination } from '../../../core/utils/pagination';
+import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 
 interface CustomerDebtSummary {
   customerId: string;
@@ -31,7 +32,7 @@ interface CustomerDebtSummary {
     RouterModule,
     FormsModule,
     TranslatePipe,
-    SumPipe,
+    CurrencyDisplayPipe,
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -82,9 +83,12 @@ export class DebtListComponent {
   });
 
   filteredSummaries = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
+    const query = this.searchQuery().trim();
     if (!query) return this.summaries();
-    return this.summaries().filter((s) => s.customerName.toLowerCase().includes(query));
+    // Cross-script normalization (13-band, bonus fix) — same underlying bug as the
+    // product/customer/supplier search sites.
+    const normalizedQuery = normalizeForSearch(query);
+    return this.summaries().filter((s) => normalizeForSearch(s.customerName).includes(normalizedQuery));
   });
 
   pagination = createPagination(this.filteredSummaries);

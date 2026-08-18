@@ -5,6 +5,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   increment,
   orderBy,
@@ -23,6 +24,12 @@ export interface Product {
   cost: number;
   quantity: number;
   unit: string;
+  /** Optional alternate sale unit (e.g. primary "dona", alt "quti") — stock quantity
+   *  itself always stays in the primary unit; this is only used to let POS/staff
+   *  enter quantities in a more convenient unit and convert on the fly. */
+  altUnit?: string;
+  /** How many primary units make up 1 alt unit (e.g. altUnit "quti", factor 20 → 1 quti = 20 dona). */
+  altUnitFactor?: number;
   minQuantity?: number;
   categoryId: string;
   description?: string;
@@ -46,19 +53,28 @@ export class ProductService {
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<void> {
-    return from(
-      addDoc(collection(this.firestore, 'products'), {
-        ...product,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
-    ).pipe(map(() => undefined));
+    // Optional fields (e.g. altUnit/altUnitFactor left unset) must not reach Firestore
+    // as explicit `undefined` — addDoc rejects that. Simplest for a new doc: drop them.
+    const data: Record<string, unknown> = {
+      ...product,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    for (const key of Object.keys(data)) {
+      if (data[key] === undefined) delete data[key];
+    }
+    return from(addDoc(collection(this.firestore, 'products'), data)).pipe(map(() => undefined));
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<void> {
-    return from(
-      updateDoc(doc(this.firestore, 'products', id), { ...product, updatedAt: serverTimestamp() })
-    );
+    // Here an explicit `undefined` (e.g. clearing altUnit in the edit form) means
+    // "remove this field" — convert it to Firestore's deleteField() sentinel so the
+    // old value actually gets cleared instead of being silently skipped.
+    const data: Record<string, unknown> = { ...product, updatedAt: serverTimestamp() };
+    for (const key of Object.keys(data)) {
+      if (data[key] === undefined) data[key] = deleteField();
+    }
+    return from(updateDoc(doc(this.firestore, 'products', id), data));
   }
 
   deleteProduct(id: string): Observable<void> {

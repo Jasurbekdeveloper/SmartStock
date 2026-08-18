@@ -1,0 +1,27 @@
+<div class="max-w-md mx-auto">
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'shifts.openShift' | translate }}</h1>
+
+  <mat-card class="!p-6">
+    <form (ngSubmit)="submit()" class="space-y-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'shifts.startingCash' | translate }}</mat-label>
+        <input matInput type="number" [(ngModel)]="startingCash" name="startingCash" step="0.01" min="0" placeholder="0.00" />
+      </mat-form-field>
+
+      @if (errorKey(); as key) {
+      <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+        {{ key | translate }}
+      </div>
+      }
+
+      <div class="flex gap-4">
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+          {{ 'shifts.openShift' | translate }}
+        </button>
+        <a mat-button routerLink="/pos">
+          {{ 'common.cancel' | translate }}
+        </a>
+      </div>
+    </form>
+  </mat-card>
+</div>

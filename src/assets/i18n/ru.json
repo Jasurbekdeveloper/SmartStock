@@ -19,9 +19,13 @@
     "sales": "Продажи",
     "stock": "Запасы",
     "debts": "Долги",
+    "customers": "Клиенты",
+    "suppliers": "Поставщики",
     "statistics": "Статистика",
     "users": "Пользователи",
-    "menu": "Меню"
+    "settings": "Настройки",
+    "menu": "Меню",
+    "auditLog": "Журнал действий"
   },
   "products": {
     "title": "Товары",
@@ -38,7 +42,12 @@
     "minQuantity": "Минимальный остаток (для оповещения)",
     "lowStock": "Мало на складе",
     "createdAt": "Дата создания",
-    "deleteConfirm": "Вы уверены, что хотите удалить этот товар?"
+    "deleteConfirm": "Вы уверены, что хотите удалить этот товар?",
+    "scanBarcode": "Сканировать штрихкод",
+    "printBarcode": "Печать этикетки со штрихкодом",
+    "altUnit": "Альтернативная единица",
+    "altUnitFactor": "Коэффициент альт. единицы",
+    "altUnitFactorHint": "Сколько основных единиц равно 1 альтернативной единице"
   },
   "units": {
     "dona": "шт",
@@ -74,6 +83,7 @@
     "tax": "Налог",
     "total": "Итого",
     "clearCart": "Очистить корзину",
+    "clearCartConfirm": "Вы уверены, что хотите очистить корзину?",
     "proceedToPay": "ПЕРЕЙТИ К ОПЛАТЕ",
     "cash": "Наличные",
     "card": "Карта",
@@ -84,7 +94,20 @@
     "saleError": "Ошибка при сохранении продажи",
     "enterAmount": "Введите сумму",
     "allOnCredit": "Всё в долг",
-    "discount": "Скидка"
+    "discount": "Скидка",
+    "itemDiscount": "Скидка на товар",
+    "scanBarcode": "Сканировать штрихкод",
+    "scanNotFound": "Товар с таким штрихкодом не найден",
+    "cameraError": "Доступ к камере запрещён или камера недоступна",
+    "holdCart": "Отложить корзину",
+    "heldCarts": "Отложенные корзины",
+    "resumeCart": "Продолжить",
+    "discardHeldCart": "Удалить",
+    "resumeCartConfirm": "Текущая корзина не пуста. Возобновление отложенной корзины заменит её. Продолжить?",
+    "discardHeldCartConfirm": "Вы уверены, что хотите удалить эту отложенную корзину? Это действие нельзя отменить.",
+    "holdCartLabelPrompt": "Необязательная метка для отложенной корзины (например, имя клиента):",
+    "enterInAltUnit": "Ввести в единице",
+    "creditLimitExceeded": "Кредитный лимит клиента {{limit}}, текущий долг {{current}} — эта продажа превысит лимит"
   },
   "stock": {
     "title": "Управление запасами",
@@ -120,7 +143,9 @@
     "previousNew": "Было → Стало",
     "detail": "Детали",
     "selectProductAndQuantity": "Выберите товар и укажите корректное количество",
-    "insufficientQuantity": "Недостаточно товара на складе"
+    "insufficientQuantity": "Недостаточно товара на складе",
+    "selectSupplier": "Поставщик",
+    "supplierOther": "Другой (ввести вручную)"
   },
   "sales": {
     "title": "Продажи",
@@ -140,6 +165,35 @@
     "fromDate": "С даты",
     "toDate": "По дату",
     "noResults": "Нет продаж по заданным фильтрам"
+  },
+  "shifts": {
+    "title": "Управление сменами",
+    "openShift": "Открыть смену",
+    "closeShift": "Закрыть смену",
+    "shiftHistory": "История смен",
+    "startingCash": "Начальная наличность",
+    "countedCash": "Подсчитанная наличность",
+    "expectedCash": "Ожидаемая наличность",
+    "variance": "Разница",
+    "variancePositive": "Излишек",
+    "varianceNegative": "Недостача",
+    "salesCount": "Кол-во чеков",
+    "totalRevenue": "Общая выручка",
+    "cashier": "Кассир",
+    "openedAt": "Время открытия",
+    "closedAt": "Время закрытия",
+    "statusOpen": "Открыта",
+    "statusClosed": "Закрыта",
+    "byPaymentMethod": "По способу оплаты",
+    "noActiveShift": "Нет активной смены",
+    "openShiftPrompt": "Откройте смену перед началом продаж",
+    "shiftOpened": "Смена успешно открыта",
+    "shiftOpenError": "Не удалось открыть смену",
+    "shiftClosed": "Смена успешно закрыта",
+    "confirmClose": "Подтвердить и закрыть",
+    "alreadyClosed": "Эта смена уже закрыта",
+    "noShiftsFound": "Смены не найдены",
+    "notes": "Примечание"
   },
   "debts": {
     "title": "Управление долгами",
@@ -171,6 +225,51 @@
     "debtHistory": "История долгов",
     "itemsPurchased": "Приобретённые товары"
   },
+  "customers": {
+    "title": "Клиенты",
+    "addCustomer": "Добавить клиента",
+    "editCustomer": "Изменить клиента",
+    "name": "Имя",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "email": "Email",
+    "creditLimit": "Кредитный лимит",
+    "creditLimitHint": "Максимальный долг, который может иметь этот клиент одновременно. Оставьте пустым, если без лимита.",
+    "purchaseHistory": "История покупок",
+    "noPurchases": "Пока нет покупок",
+    "deleteConfirm": "Вы уверены, что хотите удалить этого клиента?",
+    "noCustomersFound": "Клиенты не найдены"
+  },
+  "suppliers": {
+    "title": "Поставщики",
+    "addSupplier": "Добавить поставщика",
+    "editSupplier": "Изменить поставщика",
+    "name": "Название",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "contactPerson": "Контактное лицо",
+    "notes": "Примечание",
+    "purchaseHistory": "История закупок",
+    "noPurchases": "Пока нет закупок",
+    "totalPurchased": "Всего закуплено",
+    "deleteConfirm": "Вы уверены, что хотите удалить этого поставщика?",
+    "noSuppliersFound": "Поставщики не найдены"
+  },
+  "settings": {
+    "title": "Настройки",
+    "generalSettings": "Общие",
+    "integrations": "Интеграции",
+    "vatRate": "Ставка НДС",
+    "currencySymbol": "Символ валюты",
+    "storeName": "Название магазина",
+    "storeAddress": "Адрес магазина",
+    "storePhone": "Телефон магазина",
+    "storeTaxId": "ИНН",
+    "receiptPaperWidth": "Ширина чека",
+    "telegramBotToken": "Токен Telegram-бота",
+    "telegramChatId": "ID чата Telegram",
+    "telegramHint": "Используется для уведомлений о низком остатке и просроченных долгах (появится в будущем обновлении)."
+  },
   "statistics": {
     "title": "Статистика",
     "totalSales": "Всего продаж",
@@ -178,6 +277,9 @@
     "averageOrderValue": "Средняя стоимость заказа",
     "topPaymentMethod": "Популярный способ оплаты",
     "revenue": "Выручка",
+    "revenueOverTime": "Динамика выручки",
+    "topProductsChart": "Самые продаваемые товары (график)",
+    "paymentMethodBreakdown": "Разбивка по способам оплаты",
     "sales": "Продажи",
     "topProducts": "Самые продаваемые товары",
     "thisMonth": "В этом месяце",
@@ -201,10 +303,12 @@
     "totalSales": "Всего продаж",
     "totalProducts": "Всего товаров",
     "totalDebts": "Всего долгов",
-    "todaySales": "Продажи сегодня",
     "todayRevenue": "Выручка сегодня",
-    "totalOrders": "Всего заказов",
-    "lowStock": "Товары с низким остатком"
+    "receiptsToday": "Чеков сегодня",
+    "avgReceiptValue": "Средний чек",
+    "lowStock": "Товары с низким остатком",
+    "lowStockAlert": "Низкий остаток: «{{name}}» — осталось {{quantity}} {{unit}}.",
+    "debtDueAlert": "Просрочен долг: {{name}} — остаток {{amount}} сум."
   },
   "table": {
     "saleId": "ID продажи",
@@ -284,6 +388,28 @@
     "previous": "Предыдущий",
     "list": "Список",
     "history": "История"
+  },
+  "auditLog": {
+    "title": "Журнал действий",
+    "user": "Пользователь",
+    "action": "Действие",
+    "entity": "Объект",
+    "before": "До",
+    "after": "После",
+    "timestamp": "Дата/время",
+    "filterByType": "Тип объекта",
+    "filterByAction": "Действие",
+    "dateRange": "Период",
+    "noEntriesFound": "Записи журнала не найдены",
+    "actionStockAdjustment": "Инвентаризация",
+    "actionProductUpdate": "Изменение товара",
+    "actionProductDelete": "Удаление товара",
+    "actionRoleChange": "Изменение роли",
+    "actionActiveToggle": "Изменение статуса активности",
+    "entityType": {
+      "product": "Товар",
+      "user": "Пользователь"
+    }
   },
   "messages": {
     "noSalesYet": "Нет продаж",

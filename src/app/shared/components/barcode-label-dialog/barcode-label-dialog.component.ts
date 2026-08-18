@@ -1,19 +1,19 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import * as QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
-export interface QrCodeDialogData {
+export interface BarcodeLabelDialogData {
   title: string;
   subtitle?: string;
   value: string;
 }
 
 @Component({
-  selector: 'app-qr-code-dialog',
+  selector: 'app-barcode-label-dialog',
   standalone: true,
   imports: [CommonModule, TranslatePipe, MatDialogModule, MatButtonModule, MatIconModule],
   template: `
@@ -23,12 +23,10 @@ export interface QrCodeDialogData {
         @if (data.subtitle) {
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ data.subtitle }}</p>
         }
-        @if (qrDataUrl()) {
-        <img [src]="qrDataUrl()" alt="QR code" class="mx-auto w-48 h-48 mt-2" />
-        }
+        <canvas #barcodeCanvas class="mx-auto mt-2"></canvas>
       </mat-dialog-content>
       <mat-dialog-actions align="center" class="print:hidden">
-        <button mat-flat-button color="primary" [disabled]="!qrDataUrl()" (click)="print()">
+        <button mat-flat-button color="primary" (click)="print()">
           <mat-icon>print</mat-icon>
           {{ 'buttons.print' | translate }}
         </button>
@@ -39,20 +37,25 @@ export interface QrCodeDialogData {
     </div>
   `
 })
-export class QrCodeDialogComponent implements OnInit {
-  dialogRef = inject(MatDialogRef<QrCodeDialogComponent>);
-  data = inject<QrCodeDialogData>(MAT_DIALOG_DATA);
+export class BarcodeLabelDialogComponent implements AfterViewInit {
+  dialogRef = inject(MatDialogRef<BarcodeLabelDialogComponent>);
+  data = inject<BarcodeLabelDialogData>(MAT_DIALOG_DATA);
 
-  qrDataUrl = signal<string | null>(null);
+  @ViewChild('barcodeCanvas') private canvasRef?: ElementRef<HTMLCanvasElement>;
 
-  ngOnInit() {
-    if (!this.data.value) return;
-    QRCode.toDataURL(this.data.value, { width: 240, margin: 1 })
-      .then((url) => this.qrDataUrl.set(url))
-      .catch((err) => {
-        console.error('QR generation error:', err);
-        this.qrDataUrl.set(null);
+  ngAfterViewInit() {
+    if (!this.data.value || !this.canvasRef) return;
+    try {
+      JsBarcode(this.canvasRef.nativeElement, this.data.value, {
+        format: 'CODE128',
+        displayValue: true,
+        width: 2,
+        height: 80,
+        margin: 8
       });
+    } catch (err) {
+      console.error('Barcode generation error:', err);
+    }
   }
 
   print() {

@@ -1,0 +1,55 @@
+<div class="max-w-2xl mx-auto">
+  @if (supplier(); as s) {
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'suppliers.editSupplier' | translate }}</h1>
+
+  <form (ngSubmit)="updateSupplier()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'suppliers.name' | translate }}</mat-label>
+        <input matInput [(ngModel)]="s.name" name="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'suppliers.phone' | translate }}</mat-label>
+        <input matInput [(ngModel)]="s.phone" name="phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'suppliers.contactPerson' | translate }}</mat-label>
+        <input matInput [(ngModel)]="s.contactPerson" name="contactPerson" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'suppliers.address' | translate }}</mat-label>
+        <input matInput [(ngModel)]="s.address" name="address" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-label>{{ 'suppliers.notes' | translate }}</mat-label>
+        <textarea matInput [(ngModel)]="s.notes" name="notes" rows="3"></textarea>
+      </mat-form-field>
+    </div>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
+    <div class="flex gap-4 pt-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+        {{ 'common.save' | translate }}
+      </button>
+      <a mat-button routerLink="/suppliers/list">
+        {{ 'common.cancel' | translate }}
+      </a>
+    </div>
+  </form>
+  } @else if (errorKey(); as key) {
+  <div class="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+    {{ key | translate }}
+  </div>
+  } @else {
+  <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.loading' | translate }}</p>
+  }
+</div>

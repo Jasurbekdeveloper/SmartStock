@@ -49,7 +49,7 @@
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.previousQuantity | sum:0 }} → {{ entry.newQuantity | sum:0 }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">
             @if (entry.type === 'in') {
-              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice | sum }} so'm) }
+              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice | currencyDisplay }}) }
             } @else if (reasonLabelKey(entry.reason); as key) {
               {{ key | translate }}@if (entry.notes) { — {{ entry.notes }} }
             } @else if (entry.notes) {

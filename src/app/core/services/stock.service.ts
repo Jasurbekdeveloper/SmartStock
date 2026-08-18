@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
+import { AuditLogService } from './audit-log.service';
 
 export type StockMovementType = 'in' | 'out' | 'adjustment';
 
@@ -22,7 +23,14 @@ export interface StockEntry {
   previousQuantity: number;
   newQuantity: number;
   reason?: string;
+  /** Free-text supplier name, kept for backward compatibility with older entries
+   *  and for one-off suppliers that never get added to the catalog. When
+   *  `supplierId` is set, this is a denormalized copy of that supplier's name
+   *  so existing rendering code (which only reads `supplier`) keeps working. */
   supplier?: string;
+  /** Links this entry to a `suppliers/{id}` catalog document, when the stock-in
+   *  was recorded against a known supplier rather than typed in manually. */
+  supplierId?: string;
   costPrice?: number;
   totalCost?: number;
   notes?: string;
@@ -34,6 +42,7 @@ export interface StockInInput {
   quantity: number;
   currentQuantity: number;
   supplier: string;
+  supplierId?: string;
   costPrice: number;
   sellingPrice: number;
 }
@@ -58,6 +67,7 @@ export interface StockAdjustmentInput {
 })
 export class StockService {
   private firestore = inject(FIRESTORE);
+  private auditLogService = inject(AuditLogService);
 
   getStockEntries(): Observable<StockEntry[]> {
     const entriesQuery = query(collection(this.firestore, 'stockEntries'), orderBy('createdAt', 'desc'));
@@ -73,6 +83,15 @@ export class StockService {
     return fromCollectionQuery<StockEntry>(entriesQuery);
   }
 
+  getStockEntriesBySupplierId(supplierId: string): Observable<StockEntry[]> {
+    const entriesQuery = query(
+      collection(this.firestore, 'stockEntries'),
+      where('supplierId', '==', supplierId),
+      orderBy('createdAt', 'desc')
+    );
+    return fromCollectionQuery<StockEntry>(entriesQuery);
+  }
+
   stockIn(input: StockInInput): Observable<void> {
     const newQuantity = input.currentQuantity + input.quantity;
     return this.recordMovement(
@@ -83,6 +102,7 @@ export class StockService {
         previousQuantity: input.currentQuantity,
         newQuantity,
         supplier: input.supplier,
+        supplierId: input.supplierId,
         costPrice: input.costPrice,
         totalCost: input.quantity * input.costPrice
       },
@@ -134,6 +154,18 @@ export class StockService {
       updatedAt: serverTimestamp(),
       ...productUpdates
     });
+
+    // Inventory counts (not routine in/out) are the "sensitive" stock action worth
+    // auditing — log it in the SAME batch so it commits atomically with the entry.
+    if (entry.type === 'adjustment') {
+      this.auditLogService.logInBatch(batch, {
+        action: 'stock_adjustment',
+        entityType: 'product',
+        entityId: entry.productId,
+        before: { quantity: entry.previousQuantity },
+        after: { quantity: entry.newQuantity }
+      });
+    }
 
     return from(batch.commit());
   }

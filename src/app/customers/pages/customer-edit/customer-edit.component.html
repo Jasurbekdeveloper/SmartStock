@@ -1,0 +1,56 @@
+<div class="max-w-2xl mx-auto">
+  @if (customer(); as c) {
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'customers.editCustomer' | translate }}</h1>
+
+  <form (ngSubmit)="updateCustomer()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'customers.name' | translate }}</mat-label>
+        <input matInput [(ngModel)]="c.name" name="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'customers.phone' | translate }}</mat-label>
+        <input matInput [(ngModel)]="c.phone" name="phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'customers.address' | translate }}</mat-label>
+        <input matInput [(ngModel)]="c.address" name="address" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'customers.email' | translate }}</mat-label>
+        <input matInput type="email" [(ngModel)]="c.email" name="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'customers.creditLimit' | translate }}</mat-label>
+        <input matInput type="number" step="0.01" min="0" [(ngModel)]="c.creditLimit" name="creditLimit" placeholder="0.00" />
+        <mat-hint>{{ 'customers.creditLimitHint' | translate }}</mat-hint>
+      </mat-form-field>
+    </div>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+      {{ key | translate }}
+    </div>
+    }
+
+    <div class="flex gap-4 pt-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+        {{ 'common.save' | translate }}
+      </button>
+      <a mat-button routerLink="/customers/list">
+        {{ 'common.cancel' | translate }}
+      </a>
+    </div>
+  </form>
+  } @else if (errorKey(); as key) {
+  <div class="p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+    {{ key | translate }}
+  </div>
+  } @else {
+  <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.loading' | translate }}</p>
+  }
+</div>

@@ -19,9 +19,13 @@
     "sales": "Sales",
     "stock": "Stock",
     "debts": "Debts",
+    "customers": "Customers",
+    "suppliers": "Suppliers",
     "statistics": "Statistics",
     "users": "Users",
-    "menu": "Menu"
+    "settings": "Settings",
+    "menu": "Menu",
+    "auditLog": "Audit Log"
   },
   "products": {
     "title": "Products",
@@ -38,7 +42,12 @@
     "minQuantity": "Minimum Quantity (for low-stock alert)",
     "lowStock": "Low Stock",
     "createdAt": "Created",
-    "deleteConfirm": "Are you sure you want to delete this product?"
+    "deleteConfirm": "Are you sure you want to delete this product?",
+    "scanBarcode": "Scan barcode",
+    "printBarcode": "Print barcode label",
+    "altUnit": "Alternate Unit",
+    "altUnitFactor": "Alternate Unit Factor",
+    "altUnitFactorHint": "How many primary units equal 1 alternate unit"
   },
   "units": {
     "dona": "pcs",
@@ -74,6 +83,7 @@
     "tax": "Tax",
     "total": "Total",
     "clearCart": "Clear Cart",
+    "clearCartConfirm": "Are you sure you want to clear the cart?",
     "proceedToPay": "PROCEED TO PAY",
     "cash": "Cash",
     "card": "Card",
@@ -84,7 +94,20 @@
     "saleError": "Failed to save the sale",
     "enterAmount": "Enter amount",
     "allOnCredit": "All on credit",
-    "discount": "Discount"
+    "discount": "Discount",
+    "itemDiscount": "Item discount",
+    "scanBarcode": "Scan barcode",
+    "scanNotFound": "No product matches this barcode",
+    "cameraError": "Camera access denied or unavailable",
+    "holdCart": "Hold Cart",
+    "heldCarts": "Held Carts",
+    "resumeCart": "Resume",
+    "discardHeldCart": "Discard",
+    "resumeCartConfirm": "The current cart is not empty. Resuming this held cart will replace it. Continue?",
+    "discardHeldCartConfirm": "Are you sure you want to discard this held cart? This cannot be undone.",
+    "holdCartLabelPrompt": "Optional label for this held cart (e.g. customer name):",
+    "enterInAltUnit": "Enter in unit",
+    "creditLimitExceeded": "Customer's credit limit is {{limit}}, current debt is {{current}} — this sale would exceed the limit"
   },
   "stock": {
     "title": "Stock Management",
@@ -120,7 +143,9 @@
     "previousNew": "Previous → New",
     "detail": "Detail",
     "selectProductAndQuantity": "Select a product and enter a valid quantity",
-    "insufficientQuantity": "Not enough stock available"
+    "insufficientQuantity": "Not enough stock available",
+    "selectSupplier": "Supplier",
+    "supplierOther": "Other (enter manually)"
   },
   "sales": {
     "title": "Sales",
@@ -140,6 +165,35 @@
     "fromDate": "From date",
     "toDate": "To date",
     "noResults": "No sales match the filters"
+  },
+  "shifts": {
+    "title": "Shift Management",
+    "openShift": "Open Shift",
+    "closeShift": "Close Shift",
+    "shiftHistory": "Shift History",
+    "startingCash": "Starting Cash",
+    "countedCash": "Counted Cash",
+    "expectedCash": "Expected Cash",
+    "variance": "Variance",
+    "variancePositive": "Surplus",
+    "varianceNegative": "Shortage",
+    "salesCount": "Receipts",
+    "totalRevenue": "Total Revenue",
+    "cashier": "Cashier",
+    "openedAt": "Opened At",
+    "closedAt": "Closed At",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "byPaymentMethod": "By Payment Method",
+    "noActiveShift": "No active shift",
+    "openShiftPrompt": "Open a shift before starting checkout",
+    "shiftOpened": "Shift opened successfully",
+    "shiftOpenError": "Failed to open the shift",
+    "shiftClosed": "Shift closed successfully",
+    "confirmClose": "Confirm and close",
+    "alreadyClosed": "This shift has already been closed",
+    "noShiftsFound": "No shifts found",
+    "notes": "Notes"
   },
   "debts": {
     "title": "Debts Management",
@@ -171,6 +225,51 @@
     "debtHistory": "Debt History",
     "itemsPurchased": "Items purchased"
   },
+  "customers": {
+    "title": "Customers",
+    "addCustomer": "Add Customer",
+    "editCustomer": "Edit Customer",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Address",
+    "email": "Email",
+    "creditLimit": "Credit Limit",
+    "creditLimitHint": "Maximum debt this customer may carry at once. Leave empty for no limit.",
+    "purchaseHistory": "Purchase History",
+    "noPurchases": "No purchases yet",
+    "deleteConfirm": "Are you sure you want to delete this customer?",
+    "noCustomersFound": "No customers found"
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "addSupplier": "Add Supplier",
+    "editSupplier": "Edit Supplier",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Address",
+    "contactPerson": "Contact Person",
+    "notes": "Notes",
+    "purchaseHistory": "Purchase History",
+    "noPurchases": "No purchases yet",
+    "totalPurchased": "Total Purchased",
+    "deleteConfirm": "Are you sure you want to delete this supplier?",
+    "noSuppliersFound": "No suppliers found"
+  },
+  "settings": {
+    "title": "Settings",
+    "generalSettings": "General",
+    "integrations": "Integrations",
+    "vatRate": "VAT Rate",
+    "currencySymbol": "Currency Symbol",
+    "storeName": "Store Name",
+    "storeAddress": "Store Address",
+    "storePhone": "Store Phone",
+    "storeTaxId": "Tax ID",
+    "receiptPaperWidth": "Receipt Paper Width",
+    "telegramBotToken": "Telegram Bot Token",
+    "telegramChatId": "Telegram Chat ID",
+    "telegramHint": "Used for low-stock and debt-due alerts (coming in a future update)."
+  },
   "statistics": {
     "title": "Statistics",
     "totalSales": "Total Sales",
@@ -178,6 +277,9 @@
     "averageOrderValue": "Average Order Value",
     "topPaymentMethod": "Top Payment Method",
     "revenue": "Revenue",
+    "revenueOverTime": "Revenue Over Time",
+    "topProductsChart": "Top-Selling Products (Chart)",
+    "paymentMethodBreakdown": "Payment Method Breakdown",
     "sales": "Sales",
     "topProducts": "Top-Selling Products",
     "thisMonth": "This Month",
@@ -201,10 +303,12 @@
     "totalSales": "Total Sales",
     "totalProducts": "Total Products",
     "totalDebts": "Total Debts",
-    "todaySales": "Today Sales",
     "todayRevenue": "Today Revenue",
-    "totalOrders": "Total Orders",
-    "lowStock": "Low Stock Products"
+    "receiptsToday": "Receipts Today",
+    "avgReceiptValue": "Average Receipt Value",
+    "lowStock": "Low Stock Products",
+    "lowStockAlert": "Low stock: \"{{name}}\" — only {{quantity}} {{unit}} left.",
+    "debtDueAlert": "Debt overdue: {{name}} — remaining {{amount}} so'm."
   },
   "table": {
     "saleId": "Sale ID",
@@ -284,6 +388,28 @@
     "previous": "Previous",
     "list": "List",
     "history": "History"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "user": "User",
+    "action": "Action",
+    "entity": "Entity",
+    "before": "Before",
+    "after": "After",
+    "timestamp": "Date/Time",
+    "filterByType": "Entity type",
+    "filterByAction": "Action",
+    "dateRange": "Date range",
+    "noEntriesFound": "No audit log entries found",
+    "actionStockAdjustment": "Stock adjustment",
+    "actionProductUpdate": "Product update",
+    "actionProductDelete": "Product deletion",
+    "actionRoleChange": "Role change",
+    "actionActiveToggle": "Active status change",
+    "entityType": {
+      "product": "Product",
+      "user": "User"
+    }
   },
   "messages": {
     "noSalesYet": "No sales yet",

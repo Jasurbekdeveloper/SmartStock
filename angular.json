@@ -24,7 +24,8 @@
                 "glob": "**/*",
                 "input": "public"
               },
-               "src/assets"
+               "src/assets",
+               "src/manifest.webmanifest"
             ],
             "styles": [
               "node_modules/material-icons/iconfont/material-icons.css",
@@ -49,7 +50,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,

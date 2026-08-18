@@ -1,0 +1,75 @@
+<div class="space-y-6">
+  <h1 class="text-3xl font-bold dark:text-white">{{ 'shifts.shiftHistory' | translate }}</h1>
+
+  <mat-card>
+    <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.cashier' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.openedAt' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.closedAt' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.startingCash' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.expectedCash' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.countedCash' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.variance' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.status' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (shift of pagination.paged(); track shift.id) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ shift.cashierName }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.openedAt | date: 'short' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.closedAt ? (shift.closedAt | date: 'short') : '—' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.startingCash | currencyDisplay }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.expectedCash !== undefined ? (shift.expectedCash | currencyDisplay) : '—' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.countedCash !== undefined ? (shift.countedCash | currencyDisplay) : '—' }}</td>
+          <td
+            class="px-4 py-3 font-semibold"
+            [class.text-green-600]="(shift.variance ?? 0) >= 0"
+            [class.dark:text-green-400]="(shift.variance ?? 0) >= 0"
+            [class.text-red-600]="(shift.variance ?? 0) < 0"
+            [class.dark:text-red-400]="(shift.variance ?? 0) < 0"
+          >
+            {{ shift.variance !== undefined ? (shift.variance | currencyDisplay) : '—' }}
+          </td>
+          <td class="px-4 py-3">
+            <span
+              class="px-2 py-1 text-xs rounded-full"
+              [class.bg-green-100]="shift.status === 'open'"
+              [class.text-green-800]="shift.status === 'open'"
+              [class.dark:bg-green-900]="shift.status === 'open'"
+              [class.dark:text-green-300]="shift.status === 'open'"
+              [class.bg-gray-100]="shift.status === 'closed'"
+              [class.text-gray-800]="shift.status === 'closed'"
+              [class.dark:bg-gray-700]="shift.status === 'closed'"
+              [class.dark:text-gray-300]="shift.status === 'closed'"
+            >
+              {{ (shift.status === 'open' ? 'shifts.statusOpen' : 'shifts.statusClosed') | translate }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            @if (canCloseOwnShift(shift.cashierId, shift.status)) {
+            <a mat-button color="primary" [routerLink]="['/shifts/close', shift.id]">{{ 'shifts.closeShift' | translate }}</a>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+    @if (shifts().length === 0) {
+      <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'shifts.noShiftsFound' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="shifts().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
+    }
+  </mat-card>
+</div>

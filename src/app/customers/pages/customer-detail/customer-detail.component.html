@@ -1,0 +1,92 @@
+<div class="max-w-3xl mx-auto space-y-6">
+  @if (customer(); as c) {
+  <mat-card class="!p-6">
+    <div class="flex justify-between items-start flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ c.name }}</h1>
+        @if (c.phone) {
+        <p class="text-gray-500 dark:text-gray-400">{{ c.phone }}</p>
+        }
+        @if (c.address) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ c.address }}</p>
+        }
+        @if (c.email) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ c.email }}</p>
+        }
+      </div>
+      <div class="flex gap-4">
+        @if (c.creditLimit) {
+        <div class="text-right">
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'customers.creditLimit' | translate }}</p>
+          <p class="text-lg font-bold text-gray-900 dark:text-white">{{ c.creditLimit | currencyDisplay:0 }}</p>
+        </div>
+        }
+        <div class="text-right">
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'debts.remainingAmount' | translate }}</p>
+          <p
+            class="text-lg font-bold"
+            [class.text-red-600]="totalRemainingDebt() > 0"
+            [class.dark:text-red-400]="totalRemainingDebt() > 0"
+            [class.text-green-600]="totalRemainingDebt() === 0"
+            [class.dark:text-green-400]="totalRemainingDebt() === 0"
+          >
+            {{ totalRemainingDebt() | currencyDisplay }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 pt-4 border-t dark:border-gray-700">
+      <a mat-button color="primary" [routerLink]="['/customers/edit', c.id]">
+        <mat-icon>edit</mat-icon>
+        {{ 'buttons.edit' | translate }}
+      </a>
+    </div>
+  </mat-card>
+  }
+
+  <div class="space-y-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ 'customers.purchaseHistory' | translate }}</h2>
+      @if (sales().length > 0) {
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        {{ sales().length }} {{ 'sales.title' | translate }} · {{ purchaseTotal() | currencyDisplay }}
+      </p>
+      }
+    </div>
+
+    <mat-card>
+      <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'sales.paymentMethod' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.total' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sale of sales(); track sale.id) {
+          <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'medium' }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ 'pos.' + sale.paymentMethod | translate }}</td>
+            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
+            <td class="px-4 py-3">
+              <a mat-icon-button color="primary" [routerLink]="['/sales', sale.id]" [matTooltip]="'sales.saleDetail' | translate">
+                <mat-icon>visibility</mat-icon>
+              </a>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              {{ 'customers.noPurchases' | translate }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      </div>
+    </mat-card>
+  </div>
+</div>

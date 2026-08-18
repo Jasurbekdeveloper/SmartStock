@@ -47,6 +47,13 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ 'debts.dueDate' | translate }}</mat-label>
+      <input matInput [matDatepicker]="dueDatePicker" [(ngModel)]="dueDate" name="dueDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #dueDatePicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
       <mat-label>{{ 'debts.notes' | translate }}</mat-label>
       <textarea matInput [(ngModel)]="notes" name="notes" rows="3"></textarea>
     </mat-form-field>

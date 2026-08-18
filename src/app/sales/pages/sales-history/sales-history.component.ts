@@ -13,8 +13,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { SalesService, Sale } from '../../../core/services/sales.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { createPagination } from '../../../core/utils/pagination';
+import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 
 type PaymentFilter = 'all' | 'cash' | 'card';
 
@@ -27,7 +28,7 @@ type PaymentFilter = 'all' | 'cash' | 'card';
     RouterModule,
     TranslatePipe,
     TranslateModule,
-    SumPipe,
+    CurrencyDisplayPipe,
     MatCardModule,
     MatButtonModule,
     MatButtonToggleModule,
@@ -82,7 +83,9 @@ export class SalesHistoryComponent implements OnInit {
       }
 
       if (query) {
-        const matchesName = this.itemNames(sale).toLowerCase().includes(query);
+        // Cross-script normalization (13-band) for item names — amount matching
+        // stays a plain numeric substring check, unaffected.
+        const matchesName = normalizeForSearch(this.itemNames(sale)).includes(normalizeForSearch(query));
         const matchesAmount = sale.total.toString().includes(query);
         if (!matchesName && !matchesAmount) return false;
       }

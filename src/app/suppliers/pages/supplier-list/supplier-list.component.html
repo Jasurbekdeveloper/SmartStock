@@ -1,0 +1,70 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'suppliers.title' | translate }}</h1>
+    <a mat-flat-button color="primary" routerLink="/suppliers/create">
+      + {{ 'suppliers.addSupplier' | translate }}
+    </a>
+  </div>
+
+  <mat-card class="!p-4">
+    <div class="flex flex-wrap gap-4 items-start">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[16rem]">
+        <mat-label>{{ 'common.search' | translate }}</mat-label>
+        <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        {{ 'buttons.cancel' | translate }}
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card>
+    <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'suppliers.name' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'suppliers.phone' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'suppliers.contactPerson' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'suppliers.address' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (supplier of pagination.paged(); track supplier.id) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" (click)="viewSupplier(supplier.id)">
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ supplier.name }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.phone }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.contactPerson }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.address }}</td>
+          <td class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
+            <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editSupplier(supplier.id)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteSupplier(supplier.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+    @if (suppliers().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'suppliers.noSuppliersFound' | translate }}</p>
+    } @else if (filteredSuppliers().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'sales.noResults' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="filteredSuppliers().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
+    }
+  </mat-card>
+</div>

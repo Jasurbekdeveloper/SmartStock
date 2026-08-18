@@ -1,0 +1,76 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'customers.title' | translate }}</h1>
+    <a mat-flat-button color="primary" routerLink="/customers/create">
+      + {{ 'customers.addCustomer' | translate }}
+    </a>
+  </div>
+
+  <mat-card class="!p-4">
+    <div class="flex flex-wrap gap-4 items-start">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[16rem]">
+        <mat-label>{{ 'common.search' | translate }}</mat-label>
+        <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        {{ 'buttons.cancel' | translate }}
+      </button>
+    </div>
+  </mat-card>
+
+  <mat-card>
+    <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'customers.name' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'customers.phone' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'customers.address' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'customers.creditLimit' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (customer of pagination.paged(); track customer.id) {
+        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" (click)="viewCustomer(customer.id)">
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ customer.name }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.phone }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.address }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">
+            @if (customer.creditLimit) {
+              {{ customer.creditLimit | currencyDisplay:0 }}
+            } @else {
+              —
+            }
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
+            <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editCustomer(customer.id)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteCustomer(customer.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+    @if (customers().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'customers.noCustomersFound' | translate }}</p>
+    } @else if (filteredCustomers().length === 0) {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'sales.noResults' | translate }}</p>
+    } @else {
+      <mat-paginator
+        [length]="filteredCustomers().length"
+        [pageIndex]="pagination.pageIndex()"
+        [pageSize]="pagination.pageSize()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="pagination.onPage($event)"
+      ></mat-paginator>
+    }
+  </mat-card>
+</div>

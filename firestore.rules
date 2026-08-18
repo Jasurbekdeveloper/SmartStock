@@ -90,8 +90,60 @@ service cloud.firestore {
       allow delete: if isStaff();
     }
 
+    // shifts/{id}: cashier register sessions (open/close, Z-report). Any active user
+    // can read (cashier's own history + admin/manager's cross-cashier view are both
+    // filtered client-side); only the cashier who opened a shift may create/close it,
+    // and closing may only touch the Z-report fields, not the original open data.
+    match /shifts/{id} {
+      allow read: if isSignedIn();
+      allow create: if isActiveUser() && request.resource.data.cashierId == request.auth.uid;
+      allow update: if isActiveUser() && resource.data.cashierId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status','closedAt','countedCash','expectedCash','variance','salesCount','totalRevenue','notes']);
+      allow delete: if isAdmin();
+    }
+
+    // suppliers/{id}: purchasing contacts (name/phone/address/etc.). Any signed-in
+    // user can read (needed for the stock-in supplier picker); only admin/manager
+    // may create/update/delete, matching the stock module's access level.
+    match /suppliers/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isStaff();
+    }
+
+    // settings/general: VAT rate/currency/store info, readable by any signed-in user
+    // (the POS/cashiers need VAT+currency at checkout), writable only by admin.
+    // settings/integrations: Telegram bot token/chat ID — admin-only read AND write,
+    // kept as a separate doc from `general` so non-admin roles never see the token.
+    match /settings/general {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /settings/integrations {
+      allow read, write: if isAdmin();
+    }
+
+    // auditLog/{id}: sensitive-action history (price/stock/role changes, deletes).
+    // Any admin/manager may read it; a writer may only create an entry attributed
+    // to themselves (userId must match their own uid); it's an immutable record,
+    // so no update/delete, ever — not even by admin.
+    match /auditLog/{id} {
+      allow read: if isStaff();
+      allow create: if isActiveUser() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // notificationState/{id}: one-shot dedup bookkeeping for the low-stock/debt-due
+    // Telegram alert check (11-band) — a single doc (`telegram`) mapping
+    // productId/debtId to the ISO timestamp it was last alerted on, read+written
+    // imperatively via getDoc/setDoc (not a live subscription). Any active user may
+    // read/write since any cashier's dashboard load can trigger the check.
+    match /notificationState/{id} {
+      allow read, write: if isActiveUser();
+    }
+
     // Everything else is default-denied until its module is built and
-    // gets its own explicit rules (Suppliers, Orders, Settings...).
+    // gets its own explicit rules (Orders...).
     match /{document=**} {
       allow read, write: if false;
     }

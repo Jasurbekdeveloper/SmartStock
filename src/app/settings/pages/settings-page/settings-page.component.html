@@ -1,0 +1,94 @@
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'settings.title' | translate }}</h1>
+
+  <mat-card class="!p-0 overflow-hidden">
+    <mat-tab-group>
+      <!-- General -->
+      <mat-tab [label]="'settings.generalSettings' | translate">
+        @let g = general();
+        <form (ngSubmit)="saveGeneral()" class="p-6 space-y-2">
+          @if (loadingGeneral()) {
+          <p class="text-gray-500 dark:text-gray-400 text-center py-4">{{ 'messages.loading' | translate }}</p>
+          } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.vatRate' | translate }}</mat-label>
+              <input matInput type="number" min="0" max="100" step="0.01" [(ngModel)]="g.vatRatePercent" name="vatRatePercent" />
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.currencySymbol' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.currencySymbol" name="currencySymbol" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.storeName' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.storeName" name="storeName" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.storePhone' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.storePhone" name="storePhone" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full md:col-span-2">
+              <mat-label>{{ 'settings.storeAddress' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.storeAddress" name="storeAddress" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.storeTaxId' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.storeTaxId" name="storeTaxId" />
+            </mat-form-field>
+          </div>
+
+          <div>
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">{{ 'settings.receiptPaperWidth' | translate }}:</label>
+            <mat-button-toggle-group [value]="g.receiptPaperWidth" (change)="setPaperWidth($event.value)">
+              <mat-button-toggle value="58">58mm</mat-button-toggle>
+              <mat-button-toggle value="80">80mm</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="pt-2">
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingGeneral()">
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+          }
+        </form>
+      </mat-tab>
+
+      <!-- Integrations (admin-only page, so no extra role gating needed here) -->
+      <mat-tab [label]="'settings.integrations' | translate">
+        @let it = integrations();
+        <form (ngSubmit)="saveIntegrations()" class="p-6 space-y-2">
+          @if (loadingIntegrations()) {
+          <p class="text-gray-500 dark:text-gray-400 text-center py-4">{{ 'messages.loading' | translate }}</p>
+          } @else {
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ 'settings.telegramHint' | translate }}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <mat-form-field appearance="outline" class="w-full md:col-span-2">
+              <mat-label>{{ 'settings.telegramBotToken' | translate }}</mat-label>
+              <input matInput [(ngModel)]="it.telegramBotToken" name="telegramBotToken" autocomplete="off" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.telegramChatId' | translate }}</mat-label>
+              <input matInput [(ngModel)]="it.telegramChatId" name="telegramChatId" autocomplete="off" />
+            </mat-form-field>
+          </div>
+
+          <div class="pt-2">
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingIntegrations()">
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+          }
+        </form>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</div>

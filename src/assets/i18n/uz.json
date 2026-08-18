@@ -19,9 +19,13 @@
     "sales": "Sotuvlar",
     "stock": "Qoldiq",
     "debts": "Qarzlar",
+    "customers": "Mijozlar",
+    "suppliers": "Ta'minotchilar",
     "statistics": "Statistika",
     "users": "Foydalanuvchilar",
-    "menu": "Menu"
+    "settings": "Sozlamalar",
+    "menu": "Menu",
+    "auditLog": "Amallar jurnali"
   },
   "products": {
     "title": "Mahsulotlar",
@@ -38,7 +42,12 @@
     "unit": "O'lchov birligi",
     "minQuantity": "Minimal qoldiq (ogohlantirish uchun)",
     "lowStock": "Kam qoldiq",
-    "createdAt": "Yaratilgan sana"
+    "createdAt": "Yaratilgan sana",
+    "scanBarcode": "Shtrix kodni skanerlash",
+    "printBarcode": "Shtrix-kod yorlig'ini chop etish",
+    "altUnit": "Muqobil birlik",
+    "altUnitFactor": "Muqobil birlik koeffitsiyenti",
+    "altUnitFactorHint": "1 muqobil birlik nechta asosiy birlikka teng"
   },
   "units": {
     "dona": "dona",
@@ -74,6 +83,7 @@
     "tax": "Soliq",
     "total": "Umumiy jami",
     "clearCart": "Savdoni tozalash",
+    "clearCartConfirm": "Savatni tozalashga ishonchingiz komilmi?",
     "proceedToPay": "TO'LASHGA O'TISH",
     "cash": "Naqd",
     "card": "Karta",
@@ -84,7 +94,20 @@
     "saleError": "Sotuvni saqlashda xatolik yuz berdi",
     "enterAmount": "Miqdorni kiriting",
     "allOnCredit": "Hammasi qarzga",
-    "discount": "Chegirma"
+    "discount": "Chegirma",
+    "itemDiscount": "Mahsulot chegirmasi",
+    "scanBarcode": "Shtrix kodni skanerlash",
+    "scanNotFound": "Bu shtrix kodga mos mahsulot topilmadi",
+    "cameraError": "Kameraga ruxsat berilmadi yoki kamera topilmadi",
+    "holdCart": "Ushlab turish",
+    "heldCarts": "Ushlab turilganlar",
+    "resumeCart": "Davom ettirish",
+    "discardHeldCart": "O'chirish",
+    "resumeCartConfirm": "Joriy savat bo'sh emas. Ushbu ushlab turilgan savatni tiklash uni almashtiradi. Davom etilsinmi?",
+    "discardHeldCartConfirm": "Ushbu ushlab turilgan savatni o'chirishga ishonchingiz komilmi? Bu amalni bekor qilib bo'lmaydi.",
+    "holdCartLabelPrompt": "Ushbu savat uchun ixtiyoriy yorliq (masalan, mijoz ismi):",
+    "enterInAltUnit": "Birlikda kiritish",
+    "creditLimitExceeded": "Mijozning qarz limiti {{limit}} so'm, joriy qarzi {{current}} so'm — bu xarid limitdan oshib ketadi"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -120,7 +143,9 @@
     "previousNew": "Oldin → Keyin",
     "detail": "Tafsilot",
     "selectProductAndQuantity": "Mahsulot va miqdorni to'g'ri kiriting",
-    "insufficientQuantity": "Qoldiqda yetarli miqdor yo'q"
+    "insufficientQuantity": "Qoldiqda yetarli miqdor yo'q",
+    "selectSupplier": "Ta'minotchi",
+    "supplierOther": "Boshqa (qo'lda kiritish)"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -140,6 +165,35 @@
     "fromDate": "Sanadan",
     "toDate": "Sanagacha",
     "noResults": "Filtrga mos sotuvlar topilmadi"
+  },
+  "shifts": {
+    "title": "Smena boshqaruvi",
+    "openShift": "Smena ochish",
+    "closeShift": "Smena yopish",
+    "shiftHistory": "Smenalar tarixi",
+    "startingCash": "Boshlang'ich naqd",
+    "countedCash": "Sanalgan naqd",
+    "expectedCash": "Kutilgan naqd",
+    "variance": "Farq",
+    "variancePositive": "Ortiqcha",
+    "varianceNegative": "Kamomad",
+    "salesCount": "Cheklar soni",
+    "totalRevenue": "Jami tushum",
+    "cashier": "Kassir",
+    "openedAt": "Ochilgan vaqti",
+    "closedAt": "Yopilgan vaqti",
+    "statusOpen": "Ochiq",
+    "statusClosed": "Yopiq",
+    "byPaymentMethod": "To'lov turi bo'yicha",
+    "noActiveShift": "Faol smena yo'q",
+    "openShiftPrompt": "Savdoni boshlashdan oldin smena oching",
+    "shiftOpened": "Smena muvaffaqiyatli ochildi",
+    "shiftOpenError": "Smenani ochishda xatolik yuz berdi",
+    "shiftClosed": "Smena muvaffaqiyatli yopildi",
+    "confirmClose": "Tasdiqlash va yopish",
+    "alreadyClosed": "Bu smena allaqachon yopilgan",
+    "noShiftsFound": "Smenalar topilmadi",
+    "notes": "Izoh"
   },
   "debts": {
     "title": "Qarzlarni boshqarish",
@@ -171,6 +225,51 @@
     "debtHistory": "Qarzlar tarixi",
     "itemsPurchased": "Olingan mahsulotlar"
   },
+  "customers": {
+    "title": "Mijozlar",
+    "addCustomer": "Mijoz qo'shish",
+    "editCustomer": "Mijozni tahrirlash",
+    "name": "Ismi",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "email": "Elektron pochta",
+    "creditLimit": "Qarz limiti",
+    "creditLimitHint": "Mijoz bir vaqtda ko'tarishi mumkin bo'lgan maksimal qarz. Cheklovsiz uchun bo'sh qoldiring.",
+    "purchaseHistory": "Xarid tarixi",
+    "noPurchases": "Hali xaridlar yo'q",
+    "deleteConfirm": "Ushbu mijozni o'chirishga ishonchingiz komilmi?",
+    "noCustomersFound": "Mijozlar topilmadi"
+  },
+  "suppliers": {
+    "title": "Ta'minotchilar",
+    "addSupplier": "Ta'minotchi qo'shish",
+    "editSupplier": "Ta'minotchini tahrirlash",
+    "name": "Nomi",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "contactPerson": "Aloqa shaxsi",
+    "notes": "Izoh",
+    "purchaseHistory": "Xarid tarixi",
+    "noPurchases": "Hali xaridlar yo'q",
+    "totalPurchased": "Jami xarid",
+    "deleteConfirm": "Ushbu ta'minotchini o'chirishga ishonchingiz komilmi?",
+    "noSuppliersFound": "Ta'minotchilar topilmadi"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "generalSettings": "Umumiy",
+    "integrations": "Integratsiyalar",
+    "vatRate": "QQS stavkasi",
+    "currencySymbol": "Valyuta belgisi",
+    "storeName": "Do'kon nomi",
+    "storeAddress": "Do'kon manzili",
+    "storePhone": "Do'kon telefoni",
+    "storeTaxId": "STIR",
+    "receiptPaperWidth": "Chek qog'ozi kengligi",
+    "telegramBotToken": "Telegram bot tokeni",
+    "telegramChatId": "Telegram chat ID",
+    "telegramHint": "Kam qolgan tovar va qarz muddati ogohlantirishlari uchun ishlatiladi (keyingi yangilanishda)."
+  },
   "statistics": {
     "title": "Statistika",
     "totalSales": "Jami sotuvlar",
@@ -178,6 +277,9 @@
     "averageOrderValue": "O'rtacha buyurtma narxi",
     "topPaymentMethod": "Mashhur to'lash usuli",
     "revenue": "Daromad",
+    "revenueOverTime": "Daromad dinamikasi",
+    "topProductsChart": "Eng ko'p sotilgan mahsulotlar (grafik)",
+    "paymentMethodBreakdown": "To'lov usullari taqsimoti",
     "sales": "Sotuvlar",
     "topProducts": "Eng ko'p sotilgan mahsulotlar",
     "thisMonth": "Shu oyda",
@@ -201,10 +303,12 @@
     "totalSales": "Jami sotuvlar",
     "totalProducts": "Jami mahsulotlar",
     "totalDebts": "Jami qarzlar",
-    "todaySales": "Bugun sotuvlar",
     "todayRevenue": "Bugun daromad",
-    "totalOrders": "Jami buyurtmalar",
-    "lowStock": "Kam qolgan mahsulotlar"
+    "receiptsToday": "Bugungi cheklar soni",
+    "avgReceiptValue": "O'rtacha chek summasi",
+    "lowStock": "Kam qolgan mahsulotlar",
+    "lowStockAlert": "Kam qoldi: \"{{name}}\" — {{quantity}} {{unit}} qoldi.",
+    "debtDueAlert": "Qarz muddati o'tdi: {{name}} — qoldiq {{amount}} so'm."
   },
   "table": {
     "saleId": "Sotuv ID",
@@ -284,6 +388,28 @@
     "previous": "Oldingi",
     "list": "Ro'yhat",
     "history": "Tarix"
+  },
+  "auditLog": {
+    "title": "Amallar jurnali",
+    "user": "Foydalanuvchi",
+    "action": "Amal",
+    "entity": "Obyekt",
+    "before": "Oldin",
+    "after": "Keyin",
+    "timestamp": "Sana/vaqt",
+    "filterByType": "Obyekt turi",
+    "filterByAction": "Amal",
+    "dateRange": "Sana oralig'i",
+    "noEntriesFound": "Jurnal yozuvlari topilmadi",
+    "actionStockAdjustment": "Inventarizatsiya",
+    "actionProductUpdate": "Mahsulot o'zgartirildi",
+    "actionProductDelete": "Mahsulot o'chirildi",
+    "actionRoleChange": "Rol o'zgartirildi",
+    "actionActiveToggle": "Faollik holati o'zgartirildi",
+    "entityType": {
+      "product": "Mahsulot",
+      "user": "Foydalanuvchi"
+    }
   },
   "messages": {
     "noSalesYet": "Sotuvlar yo'q",

@@ -1,15 +1,17 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { of, switchMap } from 'rxjs';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Customer } from '../../core/services/debt.service';
-import { SumPipe } from '../../core/pipes/sum.pipe';
+import { Customer, DebtService } from '../../core/services/debt.service';
+import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 
 export interface PosPaymentDialogData {
   total: number;
@@ -33,7 +35,7 @@ export interface PosPaymentDialogResult {
     CommonModule,
     FormsModule,
     TranslateModule,
-    SumPipe,
+    CurrencyDisplayPipe,
     MatDialogModule,
     MatButtonModule,
     MatButtonToggleModule,
@@ -46,6 +48,8 @@ export interface PosPaymentDialogResult {
 export class PosPaymentDialogComponent {
   dialogRef = inject(MatDialogRef<PosPaymentDialogComponent, PosPaymentDialogResult>);
   data = inject<PosPaymentDialogData>(MAT_DIALOG_DATA);
+  private debtService = inject(DebtService);
+  private translateService = inject(TranslateService);
 
   paymentMethod = signal<'cash' | 'card'>('cash');
   paidAmount = signal(Math.ceil(this.data.total));
@@ -62,9 +66,45 @@ export class PosPaymentDialogComponent {
   debtAmount = computed(() => Math.max(0, this.discountedTotal() - this.paidAmount()));
   hasDebtPortion = computed(() => this.debtAmount() > 0);
 
+  selectedCustomer = computed(() => this.data.customers.find((c) => c.id === this.selectedCustomerId()));
+
+  /** Only queried for an *existing* selected customer — a brand-new customer has no
+   *  id (and thus no creditLimit/debt history) yet at this point in the flow. */
+  private selectedCustomerDebts = toSignal(
+    toObservable(this.selectedCustomerId).pipe(
+      switchMap((id) => (id ? this.debtService.getCustomerDebts(id) : of([])))
+    ),
+    { initialValue: [] }
+  );
+
+  /** Sum of this customer's outstanding debt across all prior sales, excluding the
+   *  new debt about to be created by this checkout. */
+  currentDebtTotal = computed(() => this.selectedCustomerDebts().reduce((sum, d) => sum + d.remainingAmount, 0));
+
+  /** True only when the selected existing customer has a creditLimit set and this
+   *  checkout's new debt would push their total outstanding debt past it. New
+   *  customers and customers without a creditLimit (unlimited) are never blocked. */
+  creditLimitExceeded = computed(() => {
+    if (this.isNewCustomer() || !this.hasDebtPortion()) return false;
+    const customer = this.selectedCustomer();
+    if (!customer?.creditLimit) return false;
+    return this.currentDebtTotal() + this.debtAmount() > customer.creditLimit;
+  });
+
+  creditLimitWarning = computed(() => {
+    if (!this.creditLimitExceeded()) return '';
+    const customer = this.selectedCustomer();
+    if (!customer?.creditLimit) return '';
+    return this.translateService.instant('pos.creditLimitExceeded', {
+      limit: customer.creditLimit,
+      current: this.currentDebtTotal()
+    });
+  });
+
   canSubmit = computed(() => {
     if (this.discount() > this.data.total) return false;
     if (!this.hasDebtPortion()) return true;
+    if (this.creditLimitExceeded()) return false;
     return this.isNewCustomer() ? this.customerName().trim().length > 0 : !!this.selectedCustomerId();
   });
 

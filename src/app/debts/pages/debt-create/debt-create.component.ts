@@ -11,6 +11,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
@@ -27,7 +28,8 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
     MatButtonToggleModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatDatepickerModule
   ],
   templateUrl: './debt-create.component.html',
   styleUrl: './debt-create.component.css'
@@ -47,6 +49,9 @@ export class DebtCreateComponent {
 
   totalAmount: number | null = null;
   notes = '';
+  /** Optional "pay by" date — used later by the dashboard low-stock/debt-due alert
+   *  check to flag this debt once it's overdue. */
+  dueDate: Date | null = null;
 
   submitting = signal(false);
   errorKey = signal<string | null>(null);
@@ -82,7 +87,8 @@ export class DebtCreateComponent {
           this.debtService.createDebt({
             customerId,
             totalAmount: this.totalAmount!,
-            notes: this.notes.trim() || undefined
+            notes: this.notes.trim() || undefined,
+            dueDate: this.dueDate || undefined
           })
         )
       )

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,6 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -26,7 +29,9 @@ import { PRODUCT_UNITS } from '../../../core/constants/units';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './product-create.component.html',
   styleUrl: './product-create.component.css'
@@ -36,6 +41,8 @@ export class ProductCreateComponent {
   private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
   readonly units = PRODUCT_UNITS;
@@ -57,6 +64,32 @@ export class ProductCreateComponent {
     minQuantity: 0,
     categoryId: ''
   };
+
+  /** Persists only when an alt unit is actually chosen — an empty selection clears
+   *  both fields so we don't write a stray factor without a unit. */
+  onAltUnitChange(altUnit: string | null) {
+    if (altUnit) {
+      this.product.altUnit = altUnit;
+    } else {
+      delete this.product.altUnit;
+      delete this.product.altUnitFactor;
+    }
+  }
+
+  async scanBarcode() {
+    const { BarcodeScannerDialogComponent } = await import(
+      '../../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog.component'
+    );
+    this.dialog
+      .open(BarcodeScannerDialogComponent, { width: '420px' })
+      .afterClosed()
+      .subscribe((code: string | undefined) => {
+        if (code) {
+          this.product.barcode = code;
+          this.cdr.markForCheck();
+        }
+      });
+  }
 
   createProduct() {
     this.submitting.set(true);

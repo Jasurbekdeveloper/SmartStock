@@ -11,7 +11,7 @@ import { Customer, Debt, DebtService } from '../../../core/services/debt.service
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 
 @Component({
   selector: 'app-debt-detail',
@@ -21,7 +21,7 @@ import { SumPipe } from '../../../core/pipes/sum.pipe';
     RouterModule,
     FormsModule,
     TranslatePipe,
-    SumPipe,
+    CurrencyDisplayPipe,
     MatCardModule,
     MatButtonModule,
     MatIconModule,

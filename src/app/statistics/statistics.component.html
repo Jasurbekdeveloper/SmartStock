@@ -1,6 +1,30 @@
 <div class="space-y-8">
   <h1 class="text-3xl font-bold dark:text-white">{{ 'statistics.title' | translate }}</h1>
 
+  <!-- Date range filter -->
+  <mat-card class="!p-4">
+    <div class="flex flex-wrap gap-4 items-start">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.fromDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [ngModel]="fromDate()" (ngModelChange)="onFromDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ 'sales.toDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="toPicker" [ngModel]="toDate()" (ngModelChange)="onToDateChange($event)" />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-button (click)="clearDateRange()">
+        <mat-icon>clear</mat-icon>
+        {{ 'buttons.cancel' | translate }}
+      </button>
+    </div>
+  </mat-card>
+
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <mat-card class="!p-6 border-l-4 border-blue-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.totalSales' | translate }}</p>
@@ -9,17 +33,55 @@
 
     <mat-card class="!p-6 border-l-4 border-green-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.totalRevenue' | translate }}</p>
-      <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ totalRevenue() | sum }} so'm</p>
+      <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ totalRevenue() | currencyDisplay }}</p>
     </mat-card>
 
     <mat-card class="!p-6 border-l-4 border-purple-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.averageOrderValue' | translate }}</p>
-      <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ averageOrderValue() | sum }} so'm</p>
+      <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ averageOrderValue() | currencyDisplay }}</p>
     </mat-card>
 
     <mat-card class="!p-6 border-l-4 border-orange-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.topPaymentMethod' | translate }}</p>
       <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">{{ topPaymentMethod() }}</p>
+    </mat-card>
+  </div>
+
+  <!-- Revenue over time -->
+  <mat-card class="!p-6">
+    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ 'statistics.revenueOverTime' | translate }}</h2>
+    @if (filteredSales().length > 0) {
+    <div class="h-80">
+      <canvas baseChart [type]="'line'" [data]="revenueChartData()" [options]="revenueChartOptions"></canvas>
+    </div>
+    } @else {
+    <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'statistics.noData' | translate }}</p>
+    }
+  </mat-card>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Top products chart -->
+    <mat-card class="!p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ 'statistics.topProductsChart' | translate }}</h2>
+      @if (topProducts().length > 0) {
+      <div class="h-80">
+        <canvas baseChart [type]="'bar'" [data]="topProductsChartData()" [options]="topProductsChartOptions"></canvas>
+      </div>
+      } @else {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'statistics.noData' | translate }}</p>
+      }
+    </mat-card>
+
+    <!-- Payment method breakdown chart -->
+    <mat-card class="!p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ 'statistics.paymentMethodBreakdown' | translate }}</h2>
+      @if (paymentMethodBreakdown().length > 0) {
+      <div class="h-80">
+        <canvas baseChart [type]="'doughnut'" [data]="paymentMethodChartData()" [options]="paymentMethodChartOptions"></canvas>
+      </div>
+      } @else {
+      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'statistics.noData' | translate }}</p>
+      }
     </mat-card>
   </div>
 
@@ -47,7 +109,7 @@
           <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ row.month }}</td>
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ row.ordersCount | sum:0 }}</td>
-            <td class="px-4 py-2 font-semibold text-green-600 dark:text-green-400">{{ row.revenue | sum }} so'm</td>
+            <td class="px-4 py-2 font-semibold text-green-600 dark:text-green-400">{{ row.revenue | currencyDisplay }}</td>
           </tr>
           }
         </tbody>
@@ -82,7 +144,7 @@
             @for (sale of recentSales(); track sale.id) {
             <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.id }}</td>
-              <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | sum }} so'm</td>
+              <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
               <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
             </tr>
             }
@@ -118,7 +180,7 @@
             <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ row.productName }}</td>
               <td class="px-4 py-2 text-gray-900 dark:text-white">{{ row.quantity | sum:0 }}</td>
-              <td class="px-4 py-2 font-semibold text-green-600 dark:text-green-400">{{ row.revenue | sum }} so'm</td>
+              <td class="px-4 py-2 font-semibold text-green-600 dark:text-green-400">{{ row.revenue | currencyDisplay }}</td>
             </tr>
             }
           </tbody>
@@ -143,11 +205,11 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/30">
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'statistics.totalOutstanding' | translate }}</p>
-        <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ totalOutstanding() | sum }} so'm</p>
+        <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ totalOutstanding() | currencyDisplay }}</p>
       </div>
       <div class="p-4 rounded-lg bg-green-50 dark:bg-green-900/30">
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'statistics.totalCollected' | translate }}</p>
-        <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalCollected() | sum }} so'm</p>
+        <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalCollected() | currencyDisplay }}</p>
       </div>
       <div class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30">
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'statistics.customersWithDebt' | translate }}</p>
@@ -171,7 +233,7 @@
           <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ row.customerName }}</td>
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ row.customerPhone }}</td>
-            <td class="px-4 py-2 font-semibold text-red-600 dark:text-red-400">{{ row.remainingAmount | sum }} so'm</td>
+            <td class="px-4 py-2 font-semibold text-red-600 dark:text-red-400">{{ row.remainingAmount | currencyDisplay }}</td>
           </tr>
           }
         </tbody>

@@ -24,6 +24,7 @@
           <th class="text-left py-2">{{ 'sales.item' | translate }}</th>
           <th class="text-right py-2">{{ 'sales.qty' | translate }}</th>
           <th class="text-right py-2">{{ 'form.price' | translate }}</th>
+          <th class="text-right py-2">{{ 'pos.itemDiscount' | translate }}</th>
           <th class="text-right py-2">{{ 'pos.total' | translate }}</th>
         </tr>
       </thead>
@@ -32,8 +33,9 @@
         <tr class="border-b dark:border-gray-700 text-gray-900 dark:text-white">
           <td class="py-2">{{ item.productName || ('sales.unknownProduct' | translate) }}</td>
           <td class="text-right">{{ item.quantity | sum:0 }}</td>
-          <td class="text-right">{{ item.price | sum }} so'm</td>
-          <td class="text-right font-semibold">{{ item.total | sum }} so'm</td>
+          <td class="text-right">{{ item.price | currencyDisplay }}</td>
+          <td class="text-right text-orange-600 dark:text-orange-400">{{ item.discount && item.discount > 0 ? ('-' + (item.discount | currencyDisplay)) : '—' }}</td>
+          <td class="text-right font-semibold">{{ item.total | currencyDisplay }}</td>
         </tr>
         }
       </tbody>
@@ -42,30 +44,30 @@
     <div class="space-y-2 text-lg mb-8 border-t-2 border-gray-400 dark:border-gray-600 pt-4 text-gray-900 dark:text-white">
       <div class="flex justify-between">
         <span>{{ 'pos.subtotal' | translate }}:</span>
-        <span>{{ sale.subtotal | sum }} so'm</span>
+        <span>{{ sale.subtotal | currencyDisplay }}</span>
       </div>
       <div class="flex justify-between">
         <span>{{ 'pos.tax' | translate }}:</span>
-        <span>{{ sale.tax | sum }} so'm</span>
+        <span>{{ sale.tax | currencyDisplay }}</span>
       </div>
       @if (sale.discount && sale.discount > 0) {
       <div class="flex justify-between text-orange-600 dark:text-orange-400">
         <span>{{ 'pos.discount' | translate }}:</span>
-        <span>-{{ sale.discount | sum }} so'm</span>
+        <span>-{{ sale.discount | currencyDisplay }}</span>
       </div>
       }
       <div class="flex justify-between font-bold text-lg">
         <span>{{ 'pos.total' | translate }}:</span>
-        <span class="text-blue-600 dark:text-blue-400">{{ sale.total | sum }} so'm</span>
+        <span class="text-blue-600 dark:text-blue-400">{{ sale.total | currencyDisplay }}</span>
       </div>
       <div class="flex justify-between">
         <span>{{ 'pos.paidAmount' | translate }}:</span>
-        <span>{{ sale.paidAmount | sum }} so'm</span>
+        <span>{{ sale.paidAmount | currencyDisplay }}</span>
       </div>
       @if (sale.debtAmount && sale.debtAmount > 0) {
       <div class="flex justify-between text-orange-600 dark:text-orange-400 font-bold">
         <span>{{ 'debts.title' | translate }}:</span>
-        <span>{{ sale.debtAmount | sum }} so'm</span>
+        <span>{{ sale.debtAmount | currencyDisplay }}</span>
       </div>
       @if (sale.customerId) {
       <div class="flex justify-between">
@@ -76,7 +78,7 @@
       } @else {
       <div class="flex justify-between text-green-600 dark:text-green-400 font-bold">
         <span>{{ 'pos.change' | translate }}:</span>
-        <span>{{ sale.change | sum }} so'm</span>
+        <span>{{ sale.change | currencyDisplay }}</span>
       </div>
       }
     </div>

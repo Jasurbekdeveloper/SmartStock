@@ -8,12 +8,13 @@ import { StockEntry, StockMovementType, StockService } from '../../../core/servi
 import { ProductService } from '../../../core/services/product.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { createPagination } from '../../../core/utils/pagination';
 
 @Component({
   selector: 'app-stock-history',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe, MatCardModule, MatPaginatorModule],
+  imports: [CommonModule, TranslatePipe, TranslateModule, SumPipe, CurrencyDisplayPipe, MatCardModule, MatPaginatorModule],
   templateUrl: './stock-history.component.html',
   styleUrl: './stock-history.component.css'
 })

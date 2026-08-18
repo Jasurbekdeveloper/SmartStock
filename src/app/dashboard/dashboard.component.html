@@ -48,7 +48,7 @@
           @for (sale of sales().slice(0, 10); track sale.id) {
           <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ itemNames(sale) }}</td>
-            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | sum }} so'm</td>
+            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
             <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
           </tr>
           }

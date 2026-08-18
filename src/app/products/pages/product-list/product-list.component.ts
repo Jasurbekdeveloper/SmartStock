@@ -16,11 +16,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
-import { QrCodeDialogComponent } from '../../../shared/components/qr-code-dialog/qr-code-dialog.component';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
+import { BarcodeLabelDialogComponent } from '../../../shared/components/barcode-label-dialog/barcode-label-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
+import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 
 @Component({
   selector: 'app-product-list',
@@ -32,6 +35,7 @@ import { createPagination } from '../../../core/utils/pagination';
     TranslatePipe,
     TranslateModule,
     SumPipe,
+    CurrencyDisplayPipe,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -48,6 +52,7 @@ export class ProductListComponent {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
+  private auditLogService = inject(AuditLogService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
 
@@ -63,13 +68,18 @@ export class ProductListComponent {
   toDate = signal<Date | null>(null);
 
   filteredProducts = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
+    const rawQuery = this.searchQuery().trim();
+    const query = rawQuery.toLowerCase();
+    // Cross-script normalization (13-band) so a query typed in Cyrillic matches a
+    // Latin product name and vice versa. Barcode matching is unaffected — still a
+    // plain lowercased substring check.
+    const normalizedQuery = normalizeForSearch(rawQuery);
     const from = this.fromDate();
     const to = this.toDate();
 
     return this.products().filter((product) => {
       if (query) {
-        const matchesName = product.name.toLowerCase().includes(query);
+        const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
         const matchesBarcode = product.barcode?.toLowerCase().includes(query);
         if (!matchesName && !matchesBarcode) return false;
       }
@@ -117,8 +127,8 @@ export class ProductListComponent {
     return this.categories().find((c) => c.id === categoryId)?.name ?? '';
   }
 
-  showQr(product: Product) {
-    this.dialog.open(QrCodeDialogComponent, {
+  showBarcode(product: Product) {
+    this.dialog.open(BarcodeLabelDialogComponent, {
       data: { title: product.name, subtitle: product.barcode, value: product.barcode || product.id }
     });
   }
@@ -127,7 +137,7 @@ export class ProductListComponent {
     return !!product.minQuantity && product.quantity <= product.minQuantity;
   }
 
-  deleteProduct(id: string) {
+  deleteProduct(product: Product) {
     this.dialog
       .open(ConfirmDialogComponent, {
         data: { titleKey: 'buttons.delete', messageKey: 'products.deleteConfirm' }
@@ -135,7 +145,19 @@ export class ProductListComponent {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.productService.deleteProduct(id).subscribe();
+          // Log right after the delete actually succeeds — a delete that fails
+          // shouldn't produce a log entry claiming it happened.
+          this.productService.deleteProduct(product.id).subscribe(() => {
+            this.auditLogService
+              .log({
+                action: 'product_delete',
+                entityType: 'product',
+                entityId: product.id,
+                before: product,
+                after: undefined
+              })
+              .subscribe();
+          });
         }
       });
   }

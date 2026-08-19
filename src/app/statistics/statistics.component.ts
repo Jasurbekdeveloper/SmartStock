@@ -7,7 +7,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { Sale, SalesService } from '../core/services/sales.service';
@@ -58,7 +60,9 @@ const CHART_COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#0
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
+    MatInputModule,
     MatDatepickerModule,
+    MatTooltipModule,
     BaseChartDirective
   ],
   // Registered here (component-level) rather than in app.config.ts so that chart.js
@@ -135,6 +139,13 @@ export class StatisticsComponent {
   totalRevenue = computed(() => this.filteredSales().reduce((sum, s) => sum + s.total, 0));
 
   averageOrderValue = computed(() => (this.totalSales() > 0 ? this.totalRevenue() / this.totalSales() : 0));
+
+  /** Sum of every filtered sale's `totalNetProfit`. Older sales made before net-profit
+   *  tracking existed simply omit the field, so `?? 0` treats them as contributing zero
+   *  rather than poisoning the sum with `NaN` — see the `profitCaveat` note in the template. */
+  totalNetProfit = computed(() => this.filteredSales().reduce((sum, s) => sum + (s.totalNetProfit ?? 0), 0));
+
+  profitMargin = computed(() => (this.totalRevenue() > 0 ? (this.totalNetProfit() / this.totalRevenue()) * 100 : 0));
 
   /** Full per-method breakdown (count + amount) — feeds the payment-method pie
    *  chart; `topPaymentMethod` below is just its first (largest) entry. */

@@ -1,5 +1,5 @@
 <div class="space-y-8">
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
     @for (stat of stats(); track $index) {
     <mat-card
       class="!p-6 hover:shadow-lg transition"
@@ -7,7 +7,12 @@
     >
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">{{ stat.label | translate }} </p>
+          <p class="text-gray-500 dark:text-gray-400 text-sm font-medium flex items-center gap-1">
+            {{ stat.label | translate }}
+            @if (stat.caveat) {
+            <mat-icon class="!w-4 !h-4 !text-base text-gray-400 cursor-help" [matTooltip]="stat.caveat | translate">info</mat-icon>
+            }
+          </p>
           <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ stat.value }}</p>
         </div>
         <mat-icon [ngClass]="'text-' + stat.color + '-500'" class="!w-10 !h-10 !text-4xl">{{ stat.icon }}</mat-icon>

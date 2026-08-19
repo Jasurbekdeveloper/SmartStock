@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -17,7 +18,14 @@ import { createPagination } from '../../../core/utils/pagination';
 
 /** Every `action` value written by the call sites wired up in this feature —
  *  keeps the filter dropdown and the `auditLog.action*` i18n keys in sync. */
-const KNOWN_ACTIONS = ['stock_adjustment', 'product_update', 'product_delete', 'role_change', 'active_toggle'] as const;
+const KNOWN_ACTIONS = [
+  'stock_adjustment',
+  'product_update',
+  'product_delete',
+  'product_bulk_import',
+  'role_change',
+  'active_toggle'
+] as const;
 const KNOWN_ENTITY_TYPES = ['product', 'user'] as const;
 
 interface DiffRow {
@@ -39,6 +47,7 @@ interface DiffRow {
     MatIconModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
     MatPaginatorModule

@@ -22,6 +22,7 @@ import { Shift, ShiftService } from '../core/services/shift.service';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
 import { SettingsService } from '../core/services/settings.service';
+import { CartProfitLineInput, CartProfitService } from '../core/services/cart-profit.service';
 import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { formatNumber } from '../core/utils/format-number';
@@ -29,6 +30,7 @@ import { PosPaymentDialogComponent, PosPaymentDialogResult } from './pos-payment
 import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog.component';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
+import { PRODUCT_UNITS } from '../core/constants/units';
 
 @Component({
   selector: 'app-pos',
@@ -76,6 +78,10 @@ export class PosComponent implements OnInit {
   private translation: TranslationService = inject(TranslationService);
   private toast: ToastService = inject(ToastService);
   private settingsService: SettingsService = inject(SettingsService);
+  /** Purely-additive per-item profit reporting (17-band) — enriches the persisted
+   *  `Sale`/`SaleItem` documents at checkout with true post-discount price and net
+   *  profit; never affects what the customer is charged (see `completeSale()`). */
+  private cartProfitService: CartProfitService = inject(CartProfitService);
   private dialog: MatDialog = inject(MatDialog);
 
   private scannerGun = createScannerGunDetector();
@@ -172,7 +178,12 @@ export class PosComponent implements OnInit {
       const normalizedQuery = normalizeForSearch(query);
       const barcodeQuery = query.toLowerCase();
       return this.products().filter(
-        (p) => normalizeForSearch(p.name).includes(normalizedQuery) || p.barcode.includes(barcodeQuery)
+        (p) =>
+          normalizeForSearch(p.name).includes(normalizedQuery) ||
+          p.barcode.includes(barcodeQuery) ||
+          // Optional per-product synonyms/loanwords (e.g. "truba" tagged on a product
+          // actually named "quvur") — same cross-script normalization as the name match.
+          (p.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false)
       );
     }
     if (this.selectedCategoryId()) {
@@ -210,11 +221,11 @@ export class PosComponent implements OnInit {
         quantity: 1,
         price: product.price,
         total: product.price,
+        costPrice: product.cost,
         discount: 0,
         unit: product.unit,
-        altUnit: product.altUnit,
-        altUnitFactor: product.altUnitFactor,
-        useAltUnit: false
+        altUnits: product.altUnits,
+        selectedUnit: product.unit
       }]);
       return;
     }
@@ -226,13 +237,30 @@ export class PosComponent implements OnInit {
     this.cart.set(this.cart().filter(item => item.productId !== productId));
   }
 
+  /** Factor to convert a quantity entered in `unit` back into the product's primary
+   *  unit — 1 for the primary unit itself, otherwise looked up from `altUnits`.
+   *  Falls back to 1 (i.e. treats it as the primary unit) if the unit isn't found. */
+  private unitFactor(item: CartItem, unit: string | undefined): number {
+    if (!unit || unit === item.unit) return 1;
+    return item.altUnits?.find((a) => a.unit === unit)?.factor ?? 1;
+  }
+
+  /** All units selectable for this cart line: the primary unit (factor 1) plus
+   *  every configured alt unit. */
+  cartLineUnitOptions(item: CartItem): { unit: string; factor: number }[] {
+    const options: { unit: string; factor: number }[] = [];
+    if (item.unit) options.push({ unit: item.unit, factor: 1 });
+    if (item.altUnits) options.push(...item.altUnits);
+    return options;
+  }
+
   /** `enteredQty` is in whichever unit the line is currently displayed in (see
-   *  `useAltUnit`) — converted back to the primary unit here so `CartItem.quantity`
+   *  `selectedUnit`) — converted back to the primary unit here so `CartItem.quantity`
    *  (used for pricing/stock-reduction everywhere else) always stays canonical. */
   updateQuantity(productId: string, enteredQty: number) {
     const item = this.cart().find(i => i.productId === productId);
     if (item && enteredQty > 0) {
-      const factor = item.useAltUnit ? (item.altUnitFactor || 1) : 1;
+      const factor = this.unitFactor(item, item.selectedUnit);
       const quantity = enteredQty * factor;
       item.quantity = quantity;
       item.total = this.computeLineTotal(quantity, item.price, item.discount);
@@ -241,25 +269,31 @@ export class PosComponent implements OnInit {
   }
 
   /** The quantity value to show in the line's input box, in whichever unit
-   *  (`unit` or `altUnit`) is currently toggled on for that line. */
+   *  (`selectedUnit`) is currently chosen for that line. */
   cartLineDisplayQty(item: CartItem): number {
-    if (item.useAltUnit && item.altUnitFactor) {
-      return item.quantity / item.altUnitFactor;
-    }
-    return item.quantity;
+    const factor = this.unitFactor(item, item.selectedUnit);
+    return factor !== 1 ? item.quantity / factor : item.quantity;
   }
 
   cartLineUnitLabel(item: CartItem): string {
-    return (item.useAltUnit ? item.altUnit : item.unit) ?? '';
+    return item.selectedUnit ?? item.unit ?? '';
   }
 
-  /** Switches a cart line between entering quantity in the primary vs. alt unit.
-   *  The canonical (primary-unit) `quantity` itself never changes here — only how
-   *  it's displayed/edited — so the toggle round-trips without losing precision. */
-  toggleCartLineUnit(productId: string) {
+  /** Translates a unit for display when it's one of the fixed `PRODUCT_UNITS` (e.g.
+   *  "dona" → "pcs"); alt units are free-text admin input (e.g. "karobka") and may
+   *  have no translation key, so those are shown exactly as typed. */
+  unitDisplayLabel(unit: string | undefined): string {
+    if (!unit) return '';
+    return (PRODUCT_UNITS as readonly string[]).includes(unit) ? this.translation.translate('units.' + unit) : unit;
+  }
+
+  /** Sets which unit a cart line's quantity input is currently displaying/accepting
+   *  values in. The canonical (primary-unit) `quantity` itself never changes here —
+   *  only how it's displayed/edited — so switching round-trips without losing precision. */
+  setCartLineUnit(productId: string, unit: string) {
     const item = this.cart().find(i => i.productId === productId);
-    if (!item || !item.altUnit || !item.altUnitFactor) return;
-    item.useAltUnit = !item.useAltUnit;
+    if (!item) return;
+    item.selectedUnit = unit;
     this.cart.set([...this.cart()]);
   }
 
@@ -302,12 +336,17 @@ export class PosComponent implements OnInit {
 
   taxRate = computed(() => this.generalSettings()?.vatRate ?? 0.12);
 
-  tax = computed(() => this.subtotal() * this.taxRate());
+  /** The cashier's cart-level discount reduces the taxable base -- QQS (VAT) is owed
+   *  only on what the customer actually ends up paying, not on the pre-discount
+   *  subtotal. This must stay in lock-step with `CartProfitService`'s
+   *  `vatAmount12`/`finalTotalWithTax` formula (also discount-before-tax), which is
+   *  cross-checked against this exact computed chain in `completeSale()`. */
+  discountedSubtotal = computed(() => Math.max(0, this.subtotal() - this.discount()));
 
-  total = computed(() => this.subtotal() + this.tax());
+  tax = computed(() => this.discountedSubtotal() * this.taxRate());
 
-  /** What's actually owed once the cashier's discount is applied at checkout. */
-  finalTotal = computed(() => Math.max(0, this.total() - this.discount()));
+  /** What's actually owed: the discounted subtotal plus tax on that discounted amount. */
+  finalTotal = computed(() => this.discountedSubtotal() + this.tax());
 
   change = computed(() =>
     Math.max(0, this.paidAmount() - this.finalTotal())
@@ -325,7 +364,7 @@ export class PosComponent implements OnInit {
     this.dialog
       .open(PosPaymentDialogComponent, {
         width: '420px',
-        data: { total: this.total(), customers: this.customers() }
+        data: { subtotal: this.subtotal(), taxRate: this.taxRate(), customers: this.customers() }
       })
       .afterClosed()
       .subscribe((result: PosPaymentDialogResult | undefined) => {
@@ -351,14 +390,38 @@ export class PosComponent implements OnInit {
 
     this.submitting.set(true);
 
-    const items: SaleItem[] = this.cart().map((item) => ({
+    const cart = this.cart();
+
+    // Purely-additive per-item profit reporting (17-band). This does NOT change what
+    // the customer is charged -- `subtotal`/`tax`/`finalTotal` above are untouched and
+    // remain the sole source of truth for checkout math. This just enriches the
+    // persisted sale with true post-discount price/profit per line, so it must prorate
+    // the FULL discount actually given: every line's own manual per-line discount
+    // (12-band) PLUS the cart-level discount entered in the payment dialog, combined
+    // into one total and distributed proportionally across each line's RAW
+    // (pre-any-discount) subtotal share -- unifying both discount mechanisms into one
+    // coherent per-item profit figure instead of two nested proration passes.
+    const profitLines: CartProfitLineInput[] = cart.map((item) => ({
+      productId: item.productId,
+      name: item.productName,
+      quantity: item.quantity,
+      originalPrice: item.price,
+      costPrice: item.costPrice ?? 0
+    }));
+    const combinedDiscount =
+      cart.reduce((sum, item) => sum + (item.discount ?? 0), 0) + this.discount();
+    const profit = this.cartProfitService.calculateCartProfit(profitLines, combinedDiscount, this.taxRate());
+
+    const items: SaleItem[] = cart.map((item, index) => ({
       productId: item.productId,
       productName: item.productName,
       categoryId: item.categoryId,
       quantity: item.quantity,
       price: item.price,
       total: item.total,
-      ...(item.discount && item.discount > 0 ? { discount: item.discount } : {})
+      ...(item.discount && item.discount > 0 ? { discount: item.discount } : {}),
+      itemCostPrice: profit.items[index].itemCostPrice,
+      netProfit: profit.items[index].netProfit
     }));
 
     const debtPortion = this.debtAmount();
@@ -377,7 +440,8 @@ export class PosComponent implements OnInit {
       paidAmount: this.paidAmount(),
       change,
       ...(discount > 0 ? { discount } : {}),
-      ...(shift ? { shiftId: shift.id } : {})
+      ...(shift ? { shiftId: shift.id } : {}),
+      totalNetProfit: profit.totalNetProfit
     };
 
     let debt: SaleDebtInput | undefined;
@@ -432,19 +496,22 @@ export class PosComponent implements OnInit {
     if (code) {
       this.cleanupLeakedCharacter(code);
       this.addProductByBarcode(code);
+      return;
     }
 
     // Quick keyboard shortcuts (4-band). Escape works even while a text field has
-    // focus (e.g. to clear the search box); the rest are suppressed while typing so
-    // they don't fire off F-keys/Delete that a form field might otherwise want.
+    // focus (e.g. to clear the search box).
     if (event.key === 'Escape') {
       event.preventDefault();
       this.searchQuery.set('');
       return;
     }
 
-    if (this.isTypingTarget(event)) return;
-
+    // F2/F4/F8 are function keys -- they never collide with normal text typing,
+    // so they work regardless of where focus currently is, INCLUDING the search
+    // box (which is where focus naturally rests right after searching for or
+    // adding an item -- gating these behind isTypingTarget meant F4 silently
+    // did nothing in the most common real flow).
     if (event.key === 'F2') {
       event.preventDefault();
       this.searchInputRef?.nativeElement.focus();
@@ -459,10 +526,30 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    if (event.key === 'F8' || event.key === 'Delete') {
+    if (event.key === 'F8') {
       event.preventDefault();
       this.confirmClearCart();
       return;
+    }
+
+    // Enter also opens payment (same action as F4), except when it's doing its
+    // normal job of committing a cart-line edit (quantity/price/discount inputs)
+    // -- the search box is exempted from that guard for the same reason as the
+    // function keys above.
+    if (event.key === 'Enter') {
+      const inSearchBox = document.activeElement === this.searchInputRef?.nativeElement;
+      if ((!this.isTypingTarget(event) || inSearchBox) && this.cart().length > 0) {
+        event.preventDefault();
+        this.openPaymentDialog();
+      }
+      return;
+    }
+
+    if (this.isTypingTarget(event)) return;
+
+    if (event.key === 'Delete') {
+      event.preventDefault();
+      this.confirmClearCart();
     }
   }
 
@@ -635,21 +722,25 @@ interface CartItem {
   categoryId: string;
   /** Always in the product's PRIMARY unit — the canonical value used for pricing
    *  and stock-reduction math, regardless of which unit the cashier is currently
-   *  entering quantity in (see `useAltUnit`). */
+   *  entering quantity in (see `selectedUnit`). */
   quantity: number;
   price: number;
   total: number;
+  /** Per-unit cost price, snapshotted from the product at add-to-cart time (17-band).
+   *  Used only for the post-sale profit calculation (`CartProfitService`) — never
+   *  shown to the customer, never part of the checkout total math. */
+  costPrice: number;
   /** Per-line discount (12-band), absolute currency amount, default 0. Stacks
    *  additively with the cart-level `discount` signal applied at checkout —
    *  this reduces the line's own `total` (and thus `subtotal`) first. */
   discount?: number;
   unit?: string;
-  altUnit?: string;
-  altUnitFactor?: number;
-  /** Whether this line's quantity input is currently showing/accepting values in
-   *  `altUnit` (true) or the primary `unit` (false/undefined). Display-only toggle —
-   *  `quantity` itself always stays in the primary unit. */
-  useAltUnit?: boolean;
+  /** Every alternate unit configured on the product, copied in at add-to-cart time. */
+  altUnits?: { unit: string; factor: number }[];
+  /** Which unit (`unit` or one of `altUnits`) this line's quantity input is currently
+   *  showing/accepting values in. Display-only — `quantity` itself always stays in
+   *  the primary unit. Defaults to the product's primary `unit` on add-to-cart. */
+  selectedUnit?: string;
 }
 
 interface HeldCart {

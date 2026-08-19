@@ -1,0 +1,156 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.import.title' | translate }}</h1>
+    <a mat-button routerLink="/products/list">
+      <mat-icon>arrow_back</mat-icon>
+      {{ 'buttons.back' | translate }}
+    </a>
+  </div>
+
+  <mat-card class="!p-4">
+    <p class="text-gray-700 dark:text-gray-300 mb-3">{{ 'products.import.hint' | translate }}</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      {{ headers.name }}, {{ headers.barcode }}, {{ headers.price }}, {{ headers.cost }}, {{ headers.quantity }},
+      {{ headers.unit }}, {{ headers.minQuantity }}, {{ headers.category }}, {{ headers.altUnits }},
+      {{ headers.searchKeywords }}, {{ headers.description }}
+    </p>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <button mat-stroked-button type="button" (click)="downloadTemplate()">
+        <mat-icon>download</mat-icon>
+        {{ 'products.import.downloadTemplate' | translate }}
+      </button>
+
+      <button mat-flat-button color="primary" type="button" (click)="fileInput.click()" [disabled]="parsing() || importing()">
+        <mat-icon>upload_file</mat-icon>
+        {{ 'products.import.chooseFile' | translate }}
+      </button>
+      <input #fileInput type="file" accept=".xlsx,.xls" hidden (change)="onFileSelected($event)" />
+
+      <span class="text-gray-600 dark:text-gray-400">
+        {{ fileName() || ('products.import.noFileSelected' | translate) }}
+      </span>
+    </div>
+
+    @if (parsing()) {
+    <mat-progress-bar mode="indeterminate" class="mt-4"></mat-progress-bar>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ 'products.import.parsing' | translate }}</p>
+    }
+  </mat-card>
+
+  @if (fileErrors().length > 0) {
+  <mat-card class="!p-4 border border-red-300 dark:border-red-700">
+    <h2 class="font-semibold text-red-700 dark:text-red-300 mb-2">{{ 'products.import.fileErrors' | translate }}</h2>
+    <ul class="list-disc pl-5 text-sm text-red-600 dark:text-red-400 space-y-1">
+      @for (error of fileErrors(); track error) {
+      <li>{{ error }}</li>
+      }
+    </ul>
+  </mat-card>
+  }
+
+  @if (previewRows().length > 0) {
+  <mat-card>
+    <div class="p-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-semibold text-gray-900 dark:text-white">{{ 'products.import.preview' | translate }}</h2>
+      <div class="text-sm text-gray-700 dark:text-gray-300 flex flex-wrap gap-4">
+        <span>{{ summary().create }} {{ 'products.import.summaryCreate' | translate }}</span>
+        <span>{{ summary().update }} {{ 'products.import.summaryUpdate' | translate }}</span>
+        @if (summary().error > 0) {
+        <span class="text-red-600 dark:text-red-400">{{ summary().error }} {{ 'products.import.summaryError' | translate }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.import.rowNumber' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.import.action' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.name' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.barcode' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.price' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.quantity' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.unit' | translate }}</th>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.category' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of previewRows(); track row.parsed.rowNumber) {
+          <tr class="border-b dark:border-gray-700">
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.rowNumber }}</td>
+            <td class="px-4 py-3">
+              @if (row.action === 'create') {
+              <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                {{ 'products.import.willCreate' | translate }}
+              </span>
+              } @else {
+              <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                {{ 'products.import.willUpdate' | translate }}
+              </span>
+              }
+            </td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.name }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.barcode }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.price }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.quantity }} {{ 'units.' + row.parsed.unit | translate }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">
+              @if (row.categoryId) {
+                {{ row.parsed.categoryName }}
+              } @else if (row.categoryWarning) {
+                <span class="text-amber-600 dark:text-amber-400" [matTooltip]="'products.import.categoryNotFound' | translate">
+                  {{ row.parsed.categoryName }}
+                  <mat-icon class="!w-4 !h-4 !text-base align-middle">warning</mat-icon>
+                </span>
+              } @else {
+                -
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (importing()) {
+    <mat-progress-bar mode="indeterminate" class="mt-2"></mat-progress-bar>
+    <p class="text-sm text-gray-500 dark:text-gray-400 p-4">{{ 'products.import.importing' | translate }}</p>
+    }
+
+    <div class="p-4">
+      <button mat-flat-button color="primary" type="button" (click)="confirmImport()" [disabled]="!canConfirm()">
+        {{ 'products.import.confirmImport' | translate }}
+      </button>
+    </div>
+  </mat-card>
+  }
+
+  @if (importResult(); as result) {
+  <mat-card class="!p-4">
+    <h2 class="font-semibold text-gray-900 dark:text-white mb-3">{{ 'products.import.importComplete' | translate }}</h2>
+    <div class="flex flex-wrap gap-6 mb-3">
+      <span class="text-green-700 dark:text-green-300">{{ 'products.import.createdCount' | translate }}: {{ result.created }}</span>
+      <span class="text-blue-700 dark:text-blue-300">{{ 'products.import.updatedCount' | translate }}: {{ result.updated }}</span>
+      @if (result.failed > 0) {
+      <span class="text-red-700 dark:text-red-300">{{ 'products.import.failedCount' | translate }}: {{ result.failed }}</span>
+      }
+    </div>
+
+    @if (result.failures.length > 0) {
+    <div class="mb-3">
+      <h3 class="font-medium text-red-700 dark:text-red-300 mb-1">{{ 'products.import.failedRows' | translate }}</h3>
+      <ul class="list-disc pl-5 text-sm text-red-600 dark:text-red-400 space-y-1">
+        @for (failure of result.failures; track failure) {
+        <li>{{ failure }}</li>
+        }
+      </ul>
+    </div>
+    }
+
+    <button mat-flat-button color="primary" type="button" (click)="goToList()">
+      {{ 'buttons.list' | translate }}
+    </button>
+  </mat-card>
+  }
+</div>

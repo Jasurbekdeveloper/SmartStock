@@ -1,9 +1,17 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
-    <a mat-flat-button color="primary" routerLink="/products/create">
-      + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
-    </a>
+    <div class="flex gap-2">
+      @if (canImport()) {
+      <a mat-stroked-button color="primary" routerLink="/products/import">
+        <mat-icon>upload_file</mat-icon>
+        {{ 'buttons.import' | translate }}
+      </a>
+      }
+      <a mat-flat-button color="primary" routerLink="/products/create">
+        + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
+      </a>
+    </div>
   </div>
 
   <mat-card class="!p-4">

@@ -62,6 +62,13 @@ export class ProductListComponent {
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   /** Cost price is purchasing/margin data — cashiers only need the selling price. */
   canSeeCost = computed(() => this.currentUser()?.role !== 'cashier');
+  /** Bulk import creates/edits products in full (name/price/etc.), which
+   *  `firestore.rules`' isStaff() restricts to admin/manager — same gating as
+   *  the /products/import route's roleGuard. */
+  canImport = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === 'admin' || role === 'manager';
+  });
 
   searchQuery = signal('');
   fromDate = signal<Date | null>(null);
@@ -81,7 +88,11 @@ export class ProductListComponent {
       if (query) {
         const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
         const matchesBarcode = product.barcode?.toLowerCase().includes(query);
-        if (!matchesName && !matchesBarcode) return false;
+        // Optional per-product synonyms/loanwords (e.g. "truba" tagged on a product
+        // actually named "quvur") — same cross-script normalization as the name match.
+        const matchesKeyword =
+          product.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false;
+        if (!matchesName && !matchesBarcode && !matchesKeyword) return false;
       }
 
       if (from || to) {

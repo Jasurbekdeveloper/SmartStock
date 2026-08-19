@@ -177,7 +177,7 @@
         <div class="grid grid-cols-3 gap-2 text-sm mb-2">
           <div>
             <label class="block text-gray-700 dark:text-gray-300 font-medium">
-              {{ 'form.quantity' | translate }} @if (item.unit) { ({{ 'units.' + cartLineUnitLabel(item) | translate }}) }:
+              {{ 'form.quantity' | translate }} @if (cartLineUnitLabel(item)) { ({{ unitDisplayLabel(cartLineUnitLabel(item)) }}) }:
             </label>
             <input
               type="number"
@@ -211,18 +211,18 @@
           </div>
         </div>
 
-        @if (item.altUnit && item.altUnitFactor) {
+        @if (item.altUnits && item.altUnits.length > 0) {
         <div class="flex items-center gap-2 mb-2">
-          <button
-            mat-stroked-button
-            type="button"
-            class="!text-xs !py-0 !px-2 !min-w-0 !h-7"
-            [matTooltip]="'pos.enterInAltUnit' | translate"
-            (click)="toggleCartLineUnit(item.productId)"
+          <label class="text-xs text-gray-700 dark:text-gray-300 font-medium">{{ 'pos.enterInAltUnit' | translate }}:</label>
+          <select
+            [value]="cartLineUnitLabel(item)"
+            (change)="setCartLineUnit(item.productId, $any($event.target).value)"
+            class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
           >
-            <mat-icon class="!text-sm !w-4 !h-4 !align-middle">swap_horiz</mat-icon>
-            {{ 'units.' + cartLineUnitLabel(item) | translate }}
-          </button>
+            @for (opt of cartLineUnitOptions(item); track opt.unit) {
+            <option [value]="opt.unit">{{ unitDisplayLabel(opt.unit) }}</option>
+            }
+          </select>
         </div>
         }
 
@@ -246,7 +246,7 @@
       </div>
       <div class="flex justify-between text-lg border-t border-gray-300 dark:border-gray-700 pt-2">
         <span>{{ 'pos.total' | translate }}:</span>
-        <span class="text-blue-600 dark:text-blue-400">{{ total() | currencyDisplay }}</span>
+        <span class="text-blue-600 dark:text-blue-400">{{ finalTotal() | currencyDisplay }}</span>
       </div>
     </div>
 

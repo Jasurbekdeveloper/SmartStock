@@ -50,6 +50,12 @@ export const routes: Routes = [
           { path: 'create', component: ProductCreateComponent },
           { path: 'edit/:id', component: ProductEditComponent },
           {
+            path: 'import',
+            loadComponent: () =>
+              import('./products/pages/product-import/product-import.component').then((m) => m.ProductImportComponent),
+            canActivate: [roleGuard('admin', 'manager')]
+          },
+          {
             path: 'categories',
             component: CategoryListComponent,
             canActivate: [roleGuard('admin', 'manager')]

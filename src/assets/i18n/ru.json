@@ -45,9 +45,35 @@
     "deleteConfirm": "Вы уверены, что хотите удалить этот товар?",
     "scanBarcode": "Сканировать штрихкод",
     "printBarcode": "Печать этикетки со штрихкодом",
-    "altUnit": "Альтернативная единица",
-    "altUnitFactor": "Коэффициент альт. единицы",
-    "altUnitFactorHint": "Сколько основных единиц равно 1 альтернативной единице"
+    "altUnits": "Альтернативные единицы",
+    "altUnitsHint": "Пары единица:коэффициент через запятую, напр. quti:20,karobka:100 (1 quti = 20 основных единиц)",
+    "searchKeywords": "Ключевые слова для поиска",
+    "searchKeywordsHint": "Дополнительные слова-синонимы через запятую, напр. truba, quvur shlangi — чтобы товар находился и по этим словам",
+    "import": {
+      "title": "Импорт товаров из Excel",
+      "hint": "Загрузите файл .xlsx, чтобы создать или обновить сразу много товаров. Если штрихкод строки совпадает с существующим товаром — он обновляется; новый штрихкод создаёт товар. Ожидаемые столбцы:",
+      "downloadTemplate": "Скачать шаблон",
+      "chooseFile": "Выбрать файл",
+      "noFileSelected": "Файл не выбран",
+      "parsing": "Чтение файла...",
+      "fileErrors": "Строки, пропущенные из-за ошибок",
+      "preview": "Предпросмотр",
+      "rowNumber": "Строка",
+      "action": "Действие",
+      "willCreate": "Создать",
+      "willUpdate": "Обновить",
+      "categoryNotFound": "Категория не найдена — будет сохранено без категории",
+      "summaryCreate": "будет создано",
+      "summaryUpdate": "будет обновлено",
+      "summaryError": "строк с ошибками",
+      "confirmImport": "Подтвердить импорт",
+      "importing": "Импорт...",
+      "importComplete": "Импорт завершён",
+      "createdCount": "Создано",
+      "updatedCount": "Обновлено",
+      "failedCount": "Ошибок",
+      "failedRows": "Строки с ошибками"
+    }
   },
   "units": {
     "dona": "шт",
@@ -295,7 +321,10 @@
     "customersWithDebt": "Клиентов с долгом",
     "topDebtors": "Крупнейшие должники",
     "noData": "Нет данных",
-    "exportExcel": "Экспорт в Excel"
+    "exportExcel": "Экспорт в Excel",
+    "netProfit": "Чистая прибыль",
+    "profitMargin": "Маржа прибыли",
+    "profitCaveat": "Рассчитывается только для продаж, оформленных после добавления этой функции"
   },
   "dashboard": {
     "recentSales": "Недавние продажи",
@@ -306,6 +335,8 @@
     "todayRevenue": "Выручка сегодня",
     "receiptsToday": "Чеков сегодня",
     "avgReceiptValue": "Средний чек",
+    "todayNetProfit": "Прибыль за сегодня",
+    "profitCaveat": "Рассчитывается только для продаж, оформленных после добавления этой функции",
     "lowStock": "Товары с низким остатком",
     "lowStockAlert": "Низкий остаток: «{{name}}» — осталось {{quantity}} {{unit}}.",
     "debtDueAlert": "Просрочен долг: {{name}} — остаток {{amount}} сум."
@@ -404,6 +435,7 @@
     "actionStockAdjustment": "Инвентаризация",
     "actionProductUpdate": "Изменение товара",
     "actionProductDelete": "Удаление товара",
+    "actionProductBulkImport": "Массовый импорт товаров",
     "actionRoleChange": "Изменение роли",
     "actionActiveToggle": "Изменение статуса активности",
     "entityType": {

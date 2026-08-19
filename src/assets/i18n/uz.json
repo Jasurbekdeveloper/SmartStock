@@ -45,9 +45,35 @@
     "createdAt": "Yaratilgan sana",
     "scanBarcode": "Shtrix kodni skanerlash",
     "printBarcode": "Shtrix-kod yorlig'ini chop etish",
-    "altUnit": "Muqobil birlik",
-    "altUnitFactor": "Muqobil birlik koeffitsiyenti",
-    "altUnitFactorHint": "1 muqobil birlik nechta asosiy birlikka teng"
+    "altUnits": "Muqobil birliklar",
+    "altUnitsHint": "Vergul bilan ajratilgan birlik:koeffitsiyent juftliklari, masalan: quti:20,karobka:100 (1 quti = 20 asosiy birlik)",
+    "searchKeywords": "Qidiruv kalit so'zlari",
+    "searchKeywordsHint": "Qidiruvda topilishi uchun qo'shimcha kalit so'zlar (sinonimlar), vergul bilan ajrating, masalan: truba, quvur shlangi",
+    "import": {
+      "title": "Excel fayldan mahsulotlar import qilish",
+      "hint": "Bir vaqtda ko'p mahsulot yaratish yoki yangilash uchun .xlsx fayl yuklang. Qatordagi shtrix-kod mavjud mahsulotnikiga mos kelsa — u yangilanadi; yangi shtrix-kod bo'lsa — yangi mahsulot yaratiladi. Kutilayotgan ustunlar:",
+      "downloadTemplate": "Shablonni yuklab olish",
+      "chooseFile": "Fayl tanlash",
+      "noFileSelected": "Fayl tanlanmagan",
+      "parsing": "Fayl o'qilmoqda...",
+      "fileErrors": "Xatolik tufayli o'tkazib yuborilgan qatorlar",
+      "preview": "Ko'rib chiqish",
+      "rowNumber": "Qator",
+      "action": "Amal",
+      "willCreate": "Yaratiladi",
+      "willUpdate": "Yangilanadi",
+      "categoryNotFound": "Kategoriya topilmadi — kategoriyasiz saqlanadi",
+      "summaryCreate": "ta yaratiladi",
+      "summaryUpdate": "ta yangilanadi",
+      "summaryError": "ta qatorda xato bor",
+      "confirmImport": "Importni tasdiqlash",
+      "importing": "Import qilinmoqda...",
+      "importComplete": "Import yakunlandi",
+      "createdCount": "Yaratildi",
+      "updatedCount": "Yangilandi",
+      "failedCount": "Xato",
+      "failedRows": "Xato qatorlar"
+    }
   },
   "units": {
     "dona": "dona",
@@ -295,7 +321,10 @@
     "customersWithDebt": "Qarzdor mijozlar",
     "topDebtors": "Eng ko'p qarzdorlar",
     "noData": "Ma'lumot yo'q",
-    "exportExcel": "Excel'ga yuklab olish"
+    "exportExcel": "Excel'ga yuklab olish",
+    "netProfit": "Sof foyda",
+    "profitMargin": "Foyda marjasi",
+    "profitCaveat": "Faqat ushbu funksiya qo'shilgandan keyingi sotuvlar uchun hisoblanadi"
   },
   "dashboard": {
     "recentSales": "So'nggi sotuvlar",
@@ -306,6 +335,8 @@
     "todayRevenue": "Bugun daromad",
     "receiptsToday": "Bugungi cheklar soni",
     "avgReceiptValue": "O'rtacha chek summasi",
+    "todayNetProfit": "Bugungi sof foyda",
+    "profitCaveat": "Faqat ushbu funksiya qo'shilgandan keyingi sotuvlar uchun hisoblanadi",
     "lowStock": "Kam qolgan mahsulotlar",
     "lowStockAlert": "Kam qoldi: \"{{name}}\" — {{quantity}} {{unit}} qoldi.",
     "debtDueAlert": "Qarz muddati o'tdi: {{name}} — qoldiq {{amount}} so'm."
@@ -404,6 +435,7 @@
     "actionStockAdjustment": "Inventarizatsiya",
     "actionProductUpdate": "Mahsulot o'zgartirildi",
     "actionProductDelete": "Mahsulot o'chirildi",
+    "actionProductBulkImport": "Mahsulotlarni ommaviy import qilish",
     "actionRoleChange": "Rol o'zgartirildi",
     "actionActiveToggle": "Faollik holati o'zgartirildi",
     "entityType": {

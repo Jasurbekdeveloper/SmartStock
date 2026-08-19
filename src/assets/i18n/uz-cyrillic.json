@@ -45,9 +45,35 @@
     "deleteConfirm": "Ушбу маҳсулотни ўчиришга ишончисиз?",
     "scanBarcode": "Штрих кодни сканерлаш",
     "printBarcode": "Штрих-код ёрлиғини чоп этиш",
-    "altUnit": "Муқобил бирлик",
-    "altUnitFactor": "Муқобил бирлик коэффициенти",
-    "altUnitFactorHint": "1 муқобил бирлик нечта асосий бирликка тенг"
+    "altUnits": "Муқобил бирликлар",
+    "altUnitsHint": "Вергул билан ажратилган бирлик:коэффициент жуфтликлари, масалан: quti:20,karobka:100 (1 quti = 20 асосий бирлик)",
+    "searchKeywords": "Қидирув калит сўзлари",
+    "searchKeywordsHint": "Қидирувда топилиши учун қўшимча калит сўзлар (синонимлар), вергул билан ажратинг, масалан: truba, quvur shlangi",
+    "import": {
+      "title": "Excel файлдан маҳсулотлар импорт қилиш",
+      "hint": "Бир вақтда кўп маҳсулот яратиш ёки янгилаш учун .xlsx файл юкланг. Қатордаги штрих-код мавжуд маҳсулотникига мос келса — у янгиланади; янги штрих-код бўлса — янги маҳсулот яратилади. Кутилаётган устунлар:",
+      "downloadTemplate": "Шаблонни юклаб олиш",
+      "chooseFile": "Файл танлаш",
+      "noFileSelected": "Файл танланмаган",
+      "parsing": "Файл ўқилмоқда...",
+      "fileErrors": "Хатолик туфайли ўтказиб юборилган қаторлар",
+      "preview": "Кўриб чиқиш",
+      "rowNumber": "Қатор",
+      "action": "Амал",
+      "willCreate": "Яратилади",
+      "willUpdate": "Янгиланади",
+      "categoryNotFound": "Категория топилмади — категориясиз сақланади",
+      "summaryCreate": "та яратилади",
+      "summaryUpdate": "та янгиланади",
+      "summaryError": "та қаторда хато бор",
+      "confirmImport": "Импортни тасдиқлаш",
+      "importing": "Импорт қилинмоқда...",
+      "importComplete": "Импорт якунланди",
+      "createdCount": "Яратилди",
+      "updatedCount": "Янгиланди",
+      "failedCount": "Хато",
+      "failedRows": "Хато қаторлар"
+    }
   },
   "units": {
     "dona": "дона",
@@ -295,7 +321,10 @@
     "customersWithDebt": "Қарздор мижозлар",
     "topDebtors": "Энг кўп қарздорлар",
     "noData": "Маълумот йўқ",
-    "exportExcel": "Excel'га юклаб олиш"
+    "exportExcel": "Excel'га юклаб олиш",
+    "netProfit": "Соф фойда",
+    "profitMargin": "Фойда маржаси",
+    "profitCaveat": "Фақат ушбу функция қўшилгандан кейинги сотувлар учун ҳисобланади"
   },
   "dashboard": {
     "recentSales": "Сўнгги сотувлар",
@@ -306,6 +335,8 @@
     "todayRevenue": "Бугун даромад",
     "receiptsToday": "Бугунги чеклар сони",
     "avgReceiptValue": "Ўртача чек суммаси",
+    "todayNetProfit": "Бугунги соф фойда",
+    "profitCaveat": "Фақат ушбу функция қўшилгандан кейинги сотувлар учун ҳисобланади",
     "lowStock": "Кам қолган маҳсулотлар",
     "lowStockAlert": "Кам қолди: «{{name}}» — {{quantity}} {{unit}} қолди.",
     "debtDueAlert": "Қарз муддати ўтди: {{name}} — қолдиқ {{amount}} сўм."
@@ -404,6 +435,7 @@
     "actionStockAdjustment": "Инвентаризация",
     "actionProductUpdate": "Маҳсулот ўзгартирилди",
     "actionProductDelete": "Маҳсулот ўчирилди",
+    "actionProductBulkImport": "Маҳсулотларни оммавий импорт қилиш",
     "actionRoleChange": "Роль ўзгартирилди",
     "actionActiveToggle": "Фаоллик ҳолати ўзгартирилди",
     "entityType": {

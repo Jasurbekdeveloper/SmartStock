@@ -17,6 +17,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
+import { formatAltUnitsForInput, parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
 
 @Component({
   selector: 'app-product-edit',
@@ -61,6 +62,18 @@ export class ProductEditComponent implements OnInit {
   submitting = signal(false);
   errorKey = signal<string | null>(null);
 
+  /** Free-text "unit:factor,unit:factor" input, e.g. "quti:20,karobka:100" — pre-filled
+   *  from the loaded product's `altUnits` (see `ngOnInit`) and parsed back via
+   *  `parseAltUnitsInput()` at save time. A signal (not a plain field) so the zoneless
+   *  pre-fill from the async product load actually refreshes the view. */
+  altUnitsInput = signal('');
+
+  /** Free-text comma-separated synonyms/loanwords, e.g. "truba, quvur shlangi" —
+   *  pre-filled from the loaded product's `searchKeywords` (see `ngOnInit`) and
+   *  split/trimmed back at save time. A signal (not a plain field) for the same
+   *  zoneless reason as `altUnitsInput` above. */
+  searchKeywordsInput = signal('');
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -68,6 +81,8 @@ export class ProductEditComponent implements OnInit {
         next: (product) => {
           this.product.set(product ?? null);
           this.originalProduct.set(product ? { ...product } : null);
+          this.altUnitsInput.set(formatAltUnitsForInput(product?.altUnits));
+          this.searchKeywordsInput.set(product?.searchKeywords?.join(', ') ?? '');
         },
         error: (err) => {
           console.error('Load product error:', err);
@@ -75,19 +90,6 @@ export class ProductEditComponent implements OnInit {
         }
       });
     }
-  }
-
-  /** Persists only when an alt unit is actually chosen — an empty selection clears
-   *  both fields (updateProduct() converts the resulting `undefined` into Firestore's
-   *  deleteField() sentinel so the old value is actually removed). */
-  onAltUnitChange(altUnit: string | null) {
-    this.product.update((p) => {
-      if (!p) return p;
-      if (altUnit) {
-        return { ...p, altUnit };
-      }
-      return { ...p, altUnit: undefined, altUnitFactor: undefined };
-    });
   }
 
   async scanBarcode() {
@@ -113,9 +115,20 @@ export class ProductEditComponent implements OnInit {
     this.submitting.set(true);
     this.errorKey.set(null);
 
-    this.productService.updateProduct(product.id, product).subscribe({
+    const altUnits = parseAltUnitsInput(this.altUnitsInput());
+    const searchKeywords = this.searchKeywordsInput()
+      .split(',')
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
+    const payload: Product = {
+      ...product,
+      altUnits: altUnits.length > 0 ? altUnits : undefined,
+      searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined
+    };
+
+    this.productService.updateProduct(product.id, payload).subscribe({
       next: () => {
-        this.logProductChanges(before, product);
+        this.logProductChanges(before, payload);
         this.router.navigate(['/products/list']);
       },
       error: (err) => {
@@ -136,9 +149,18 @@ export class ProductEditComponent implements OnInit {
     const afterDiff: Record<string, unknown> = {};
 
     for (const key of keys) {
-      if (before[key] !== after[key]) {
-        beforeDiff[key as string] = before[key];
-        afterDiff[key as string] = after[key];
+      // Plain !== would flag array/object fields (e.g. altUnits) as "changed" on every
+      // save even when their contents are identical, since the payload is always a
+      // freshly-spread object with new references — so those compare by value instead.
+      const beforeVal = before[key];
+      const afterVal = after[key];
+      const changed =
+        typeof beforeVal === 'object' && beforeVal !== null || typeof afterVal === 'object' && afterVal !== null
+          ? JSON.stringify(beforeVal) !== JSON.stringify(afterVal)
+          : beforeVal !== afterVal;
+      if (changed) {
+        beforeDiff[key as string] = beforeVal;
+        afterDiff[key as string] = afterVal;
       }
     }
 

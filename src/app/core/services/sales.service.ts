@@ -20,6 +20,16 @@ export interface SaleItem {
    *  this reduces the line total first, then the cart-level discount applies on
    *  top of the resulting subtotal, unchanged from existing behavior. */
   discount?: number;
+  /** Per-unit cost price at sale time, snapshotted from `CartProfitService`'s
+   *  proportional-discount profit calculation (see `pos.component.ts`'s
+   *  `completeSale()`). Optional — sales created before this field existed, or
+   *  any future write path that skips the profit calculation, simply omit it. */
+  itemCostPrice?: number;
+  /** True net profit for this line after the FULL combined discount actually
+   *  given (per-line discount + cart-level checkout discount, prorated together)
+   *  — `totalFinal - (itemCostPrice * quantity)`. Can be negative (sold below
+   *  cost). See `CartProfitService.calculateCartProfit` for the full computation. */
+  netProfit?: number;
 }
 
 export interface Sale {
@@ -41,6 +51,11 @@ export interface Sale {
   createdAt: Date;
   /** Links this sale to the cashier's open shift, if one was active at checkout. */
   shiftId?: string;
+  /** Sum of every item's `netProfit` — the receipt's true net profit after the
+   *  full combined discount actually given (per-line + cart-level, prorated
+   *  together by `CartProfitService`). Optional for the same reason as
+   *  `SaleItem.netProfit` above. */
+  totalNetProfit?: number;
 }
 
 export interface SaleDebtInput {

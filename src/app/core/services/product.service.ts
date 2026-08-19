@@ -24,12 +24,17 @@ export interface Product {
   cost: number;
   quantity: number;
   unit: string;
-  /** Optional alternate sale unit (e.g. primary "dona", alt "quti") — stock quantity
-   *  itself always stays in the primary unit; this is only used to let POS/staff
-   *  enter quantities in a more convenient unit and convert on the fly. */
-  altUnit?: string;
-  /** How many primary units make up 1 alt unit (e.g. altUnit "quti", factor 20 → 1 quti = 20 dona). */
-  altUnitFactor?: number;
+  /** Optional alternate sale units (e.g. primary "dona", alts "quti"/"karobka") — stock
+   *  quantity itself always stays in the primary unit; this is only used to let POS/staff
+   *  enter quantities in a more convenient unit and convert on the fly. `factor` is how
+   *  many primary units make up 1 of that alt unit (e.g. unit "quti", factor 20 → 1 quti = 20 dona). */
+  altUnits?: { unit: string; factor: number }[];
+  /** Optional extra search terms (synonyms/loanwords/abbreviations) an admin can tag
+   *  onto a product so it's also found under a name it isn't actually called — e.g. a
+   *  product named "Quvur" tagged with "truba" (both mean "pipe"). Unlike
+   *  `normalizeForSearch()`'s Latin/Cyrillic script matching, this covers genuinely
+   *  different words with the same meaning, which has no deterministic mapping. */
+  searchKeywords?: string[];
   minQuantity?: number;
   categoryId: string;
   description?: string;
@@ -53,7 +58,7 @@ export class ProductService {
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<void> {
-    // Optional fields (e.g. altUnit/altUnitFactor left unset) must not reach Firestore
+    // Optional fields (e.g. altUnits left unset) must not reach Firestore
     // as explicit `undefined` — addDoc rejects that. Simplest for a new doc: drop them.
     const data: Record<string, unknown> = {
       ...product,
@@ -67,7 +72,7 @@ export class ProductService {
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<void> {
-    // Here an explicit `undefined` (e.g. clearing altUnit in the edit form) means
+    // Here an explicit `undefined` (e.g. clearing altUnits in the edit form) means
     // "remove this field" — convert it to Firestore's deleteField() sentinel so the
     // old value actually gets cleared instead of being silently skipped.
     const data: Record<string, unknown> = { ...product, updatedAt: serverTimestamp() };

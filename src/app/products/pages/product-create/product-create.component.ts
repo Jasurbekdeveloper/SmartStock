@@ -16,6 +16,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
+import { parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
 
 @Component({
   selector: 'app-product-create',
@@ -65,16 +66,13 @@ export class ProductCreateComponent {
     categoryId: ''
   };
 
-  /** Persists only when an alt unit is actually chosen — an empty selection clears
-   *  both fields so we don't write a stray factor without a unit. */
-  onAltUnitChange(altUnit: string | null) {
-    if (altUnit) {
-      this.product.altUnit = altUnit;
-    } else {
-      delete this.product.altUnit;
-      delete this.product.altUnitFactor;
-    }
-  }
+  /** Free-text "unit:factor,unit:factor" input, e.g. "quti:20,karobka:100" —
+   *  parsed into `product.altUnits` at submit time via `parseAltUnitsInput()`. */
+  altUnitsInput = '';
+
+  /** Free-text comma-separated synonyms/loanwords, e.g. "truba, quvur shlangi" —
+   *  split/trimmed into `product.searchKeywords` at submit time. */
+  searchKeywordsInput = '';
 
   async scanBarcode() {
     const { BarcodeScannerDialogComponent } = await import(
@@ -95,7 +93,18 @@ export class ProductCreateComponent {
     this.submitting.set(true);
     this.errorKey.set(null);
 
-    this.productService.addProduct(this.product).subscribe({
+    const altUnits = parseAltUnitsInput(this.altUnitsInput);
+    const searchKeywords = this.searchKeywordsInput
+      .split(',')
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
+    const payload: Omit<Product, 'id'> = {
+      ...this.product,
+      altUnits: altUnits.length > 0 ? altUnits : undefined,
+      searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined
+    };
+
+    this.productService.addProduct(payload).subscribe({
       next: () => {
         this.router.navigate(['/products/list']);
       },

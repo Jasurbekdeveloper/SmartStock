@@ -14,7 +14,11 @@ import { Customer, DebtService } from '../../core/services/debt.service';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 
 export interface PosPaymentDialogData {
-  total: number;
+  /** Pre-tax, pre-discount cart subtotal (sum of cart-line totals, each already net of
+   *  any per-line discount). Tax is computed in here, on the discount, so QQS is owed
+   *  only on what the customer actually pays -- see `discountedSubtotal`/`tax` below. */
+  subtotal: number;
+  taxRate: number;
   customers: Customer[];
 }
 
@@ -52,15 +56,27 @@ export class PosPaymentDialogComponent {
   private translateService = inject(TranslateService);
 
   paymentMethod = signal<'cash' | 'card'>('cash');
-  paidAmount = signal(Math.ceil(this.data.total));
   discount = signal(0);
   isNewCustomer = signal(true);
   selectedCustomerId = signal('');
   customerName = signal('');
   customerPhone = signal('');
 
-  /** What's actually payable once the discount is taken off the cart total. */
-  discountedTotal = computed(() => Math.max(0, this.data.total - this.discount()));
+  /** Discount reduces the taxable base -- QQS (VAT) is computed on what the customer
+   *  actually pays, matching `pos.component.ts`'s `discountedSubtotal`/`tax` chain and
+   *  `CartProfitService`'s `vatAmount12` formula exactly. */
+  discountedSubtotal = computed(() => Math.max(0, this.data.subtotal - this.discount()));
+  tax = computed(() => this.discountedSubtotal() * this.data.taxRate);
+
+  /** What's actually payable: the discounted subtotal plus tax on that discounted amount. */
+  discountedTotal = computed(() => this.discountedSubtotal() + this.tax());
+
+  /** Pre-discount total (subtotal + tax on the full subtotal), shown struck through next
+   *  to `discountedTotal` whenever a discount is entered, so the cashier can see the
+   *  saving. Not itself used for any payment/change/debt math. */
+  originalTotal = computed(() => this.data.subtotal + this.data.subtotal * this.data.taxRate);
+
+  paidAmount = signal(Math.ceil(this.discountedTotal()));
 
   change = computed(() => Math.max(0, this.paidAmount() - this.discountedTotal()));
   debtAmount = computed(() => Math.max(0, this.discountedTotal() - this.paidAmount()));
@@ -102,7 +118,7 @@ export class PosPaymentDialogComponent {
   });
 
   canSubmit = computed(() => {
-    if (this.discount() > this.data.total) return false;
+    if (this.discount() > this.data.subtotal) return false;
     if (!this.hasDebtPortion()) return true;
     if (this.creditLimitExceeded()) return false;
     return this.isNewCustomer() ? this.customerName().trim().length > 0 : !!this.selectedCustomerId();

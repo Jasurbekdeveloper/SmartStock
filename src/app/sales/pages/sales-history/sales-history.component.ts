@@ -11,13 +11,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { SalesService, Sale } from '../../../core/services/sales.service';
+import { SalesService, Sale, saleCardIn, saleCashIn } from '../../../core/services/sales.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 
-type PaymentFilter = 'all' | 'cash' | 'card';
+type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed';
 
 @Component({
   selector: 'app-sales-history',
@@ -87,7 +87,8 @@ export class SalesHistoryComponent implements OnInit {
         // stays a plain numeric substring check, unaffected.
         const matchesName = normalizeForSearch(this.itemNames(sale)).includes(normalizeForSearch(query));
         const matchesAmount = sale.total.toString().includes(query);
-        if (!matchesName && !matchesAmount) return false;
+        const matchesReceipt = (sale.receiptNo ?? sale.id).toLowerCase().includes(query);
+        if (!matchesName && !matchesAmount && !matchesReceipt) return false;
       }
 
       return true;
@@ -125,15 +126,26 @@ export class SalesHistoryComponent implements OnInit {
   }
 
   exportToCSV() {
-    const csv = ['Date,Items,Payment,Total'].concat(
+    const csv = ['Receipt,Date,Items,Payment,Cash,Card,Debt,Refunded,Total'].concat(
       this.filteredSales().map(s => {
-        const items = s.items.map((item) => `${item.productName} x${item.quantity}`).join('; ');
-        return `${new Date(s.createdAt).toLocaleDateString()},"${items}",${s.paymentMethod},${s.total.toFixed(2)}`;
+        const items = s.items.map((item) => `${item.productName} x${item.quantity}`).join('; ').replace(/"/g, '""');
+        return [
+          s.receiptNo ?? s.id,
+          new Date(s.createdAt).toLocaleString(),
+          `"${items}"`,
+          s.paymentMethod,
+          saleCashIn(s).toFixed(2),
+          saleCardIn(s).toFixed(2),
+          (s.debtAmount ?? 0).toFixed(2),
+          (s.refundedAmount ?? 0).toFixed(2),
+          s.total.toFixed(2)
+        ].join(',');
       })
     ).join('\n');
 
     const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    // BOM so Excel reads UTF-8 (Uzbek/Cyrillic product names) correctly.
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('﻿' + csv);
     link.download = 'sales-history.csv';
     link.click();
   }

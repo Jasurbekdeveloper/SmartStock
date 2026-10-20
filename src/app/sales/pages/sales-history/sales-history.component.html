@@ -1,6 +1,6 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-3xl font-bold dark:text-white">{{ 'sales.salesHistory' | translate }}</h1>
+    <h1 class="page-title">{{ 'sales.salesHistory' | translate }}</h1>
     <button mat-flat-button color="primary" (click)="exportToCSV()">
       <mat-icon>download</mat-icon>
       {{ 'sales.exportCSV' | translate }}
@@ -33,6 +33,7 @@
         <mat-button-toggle value="all">{{ 'sales.allPaymentMethods' | translate }}</mat-button-toggle>
         <mat-button-toggle value="cash">{{ 'pos.cash' | translate }}</mat-button-toggle>
         <mat-button-toggle value="card">{{ 'pos.card' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="mixed">{{ 'pos.mixed' | translate }}</mat-button-toggle>
       </mat-button-toggle-group>
 
       <button mat-button (click)="clearFilters()">
@@ -42,36 +43,36 @@
     </div>
   </mat-card>
 
-  <mat-card>
+  <mat-card class="!p-0 overflow-hidden">
     <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead class="bg-gray-100 dark:bg-gray-700">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.saleId' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.items' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.total' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'sales.paymentMethod' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+          <th>{{ 'sales.receiptNo' | translate }}</th>
+          <th>{{ 'table.items' | translate }}</th>
+          <th>{{ 'sales.paymentMethod' | translate }}</th>
+          <th>{{ 'sales.cashier' | translate }}</th>
+          <th class="text-right">{{ 'table.total' | translate }}</th>
+          <th class="text-right">{{ 'table.date' | translate }}</th>
         </tr>
       </thead>
       <tbody>
         @for (sale of pagination.paged(); track sale.id) {
-        <tr
-          [routerLink]="['/sales', sale.id]"
-          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-        >
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.id }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white max-w-xs truncate" [title]="itemNames(sale)">{{ itemNames(sale) }}</td>
-          <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{{ sale.total | currencyDisplay }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">
-            {{ 'pos.' + sale.paymentMethod | translate }}
+        <tr [routerLink]="['/sales', sale.id]" class="cursor-pointer">
+          <td class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
+          <td class="max-w-xs truncate" [title]="itemNames(sale)">{{ itemNames(sale) }}</td>
+          <td class="whitespace-nowrap">
+            <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
             @if (sale.debtAmount && sale.debtAmount > 0) {
-            <span class="ml-1 px-2 py-0.5 text-xs rounded-full bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300">
-              {{ 'debts.title' | translate }}
-            </span>
+            <span class="badge badge--amber ml-1">{{ 'pos.debit' | translate }}</span>
+            }
+            @if (sale.refundedAmount) {
+            <span class="badge badge--red ml-1">{{ 'returns.short' | translate }}</span>
             }
           </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
+          <td class="text-gray-500 dark:text-gray-400">{{ sale.cashierName || '—' }}</td>
+          <td class="text-right font-bold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
+          <td class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
         </tr>
         }
       </tbody>

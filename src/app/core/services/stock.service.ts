@@ -3,6 +3,7 @@ import { Observable, from } from 'rxjs';
 import {
   collection,
   doc,
+  increment,
   orderBy,
   query,
   serverTimestamp,
@@ -12,6 +13,9 @@ import {
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
 import { AuditLogService } from './audit-log.service';
+import { roundMoney } from '../utils/pos-math';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export type StockMovementType = 'in' | 'out' | 'adjustment';
 
@@ -44,6 +48,8 @@ export interface StockInInput {
   supplier: string;
   supplierId?: string;
   costPrice: number;
+  /** Product's cost before this delivery — for the weighted average. */
+  currentCost?: number;
   sellingPrice: number;
 }
 
@@ -67,16 +73,18 @@ export interface StockAdjustmentInput {
 })
 export class StockService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
   private auditLogService = inject(AuditLogService);
 
   getStockEntries(): Observable<StockEntry[]> {
-    const entriesQuery = query(collection(this.firestore, 'stockEntries'), orderBy('createdAt', 'desc'));
+    const entriesQuery = tenantQuery(this.firestore, 'stockEntries', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
     return fromCollectionQuery<StockEntry>(entriesQuery);
   }
 
   getStockByProductId(productId: string): Observable<StockEntry[]> {
     const entriesQuery = query(
       collection(this.firestore, 'stockEntries'),
+      where('tenantId', '==', requireTenantId(this.authService)),
       where('productId', '==', productId),
       orderBy('createdAt', 'desc')
     );
@@ -86,14 +94,28 @@ export class StockService {
   getStockEntriesBySupplierId(supplierId: string): Observable<StockEntry[]> {
     const entriesQuery = query(
       collection(this.firestore, 'stockEntries'),
+      where('tenantId', '==', requireTenantId(this.authService)),
       where('supplierId', '==', supplierId),
       orderBy('createdAt', 'desc')
     );
     return fromCollectionQuery<StockEntry>(entriesQuery);
   }
 
+  /**
+   * Weighted average cost (AVCO): the product's cost becomes the average of what's
+   * already on the shelf and what just arrived, so profit on old stock isn't
+   * restated at the newest purchase price.
+   */
+  static averageCost(currentQty: number, currentCost: number, inQty: number, inCost: number): number {
+    const onHand = Math.max(0, currentQty);
+    const total = onHand + inQty;
+    if (total <= 0) return inCost;
+    return roundMoney((onHand * (currentCost || 0) + inQty * inCost) / total);
+  }
+
   stockIn(input: StockInInput): Observable<void> {
     const newQuantity = input.currentQuantity + input.quantity;
+    const cost = StockService.averageCost(input.currentQuantity, input.currentCost ?? input.costPrice, input.quantity, input.costPrice);
     return this.recordMovement(
       {
         productId: input.productId,
@@ -108,12 +130,12 @@ export class StockService {
       },
       // Restocking is when cost/selling prices actually change in this business,
       // so keep the product record in sync instead of only logging it here.
-      { cost: input.costPrice, price: input.sellingPrice }
+      { cost, price: input.sellingPrice }
     );
   }
 
   stockOut(input: StockOutInput): Observable<void> {
-    const newQuantity = Math.max(0, input.currentQuantity - input.quantity);
+    const newQuantity = input.currentQuantity - input.quantity;
     return this.recordMovement({
       productId: input.productId,
       type: 'out',
@@ -143,14 +165,18 @@ export class StockService {
     const batch = writeBatch(this.firestore);
     const entryRef = doc(collection(this.firestore, 'stockEntries'));
 
-    const data: Record<string, unknown> = { ...entry, createdAt: serverTimestamp() };
+    const data: Record<string, unknown> = withTenant({ ...entry, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     for (const key of Object.keys(data)) {
       if (data[key] === undefined) delete data[key];
     }
 
     batch.set(entryRef, data);
+    // In/out move stock by a delta (increment), so a POS sale committed between
+    // reading the product and saving this movement isn't overwritten. Only an
+    // inventory count sets an absolute value — that's the point of a count.
+    const delta = entry.type === 'in' ? entry.quantity : -entry.quantity;
     batch.update(doc(this.firestore, 'products', entry.productId), {
-      quantity: entry.newQuantity,
+      quantity: entry.type === 'adjustment' ? entry.newQuantity : increment(delta),
       updatedAt: serverTimestamp(),
       ...productUpdates
     });

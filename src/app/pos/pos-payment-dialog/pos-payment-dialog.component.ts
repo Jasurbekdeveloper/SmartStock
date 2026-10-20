@@ -10,27 +10,37 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
 import { Customer, DebtService } from '../../core/services/debt.service';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
+import { formatNumber } from '../../core/utils/format-number';
+import {
+  CheckoutLineInput,
+  DiscountMode,
+  VatOptions,
+  calculateCheckout,
+  resolveDiscount,
+  splitPayment
+} from '../../core/utils/pos-math';
 
 export interface PosPaymentDialogData {
-  /** Pre-tax, pre-discount cart subtotal (sum of cart-line totals, each already net of
-   *  any per-line discount). Tax is computed in here, on the discount, so QQS is owed
-   *  only on what the customer actually pays -- see `discountedSubtotal`/`tax` below. */
-  subtotal: number;
-  taxRate: number;
+  lines: CheckoutLineInput[];
+  vat: VatOptions;
   customers: Customer[];
 }
 
 export interface PosPaymentDialogResult {
-  paymentMethod: 'cash' | 'card';
-  paidAmount: number;
+  /** Absolute cart-level discount. */
   discount: number;
+  cashTendered: number;
+  cardAmount: number;
   isNewCustomer: boolean;
   customerId?: string;
   customerName?: string;
   customerPhone?: string;
 }
+
+type Tender = 'cash' | 'card' | 'mixed' | 'debt';
 
 @Component({
   selector: 'app-pos-payment-dialog',
@@ -45,9 +55,11 @@ export interface PosPaymentDialogResult {
     MatButtonToggleModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatIconModule
   ],
-  templateUrl: './pos-payment-dialog.component.html'
+  templateUrl: './pos-payment-dialog.component.html',
+  styleUrl: './pos-payment-dialog.component.css'
 })
 export class PosPaymentDialogComponent {
   dialogRef = inject(MatDialogRef<PosPaymentDialogComponent, PosPaymentDialogResult>);
@@ -55,37 +67,44 @@ export class PosPaymentDialogComponent {
   private debtService = inject(DebtService);
   private translateService = inject(TranslateService);
 
-  paymentMethod = signal<'cash' | 'card'>('cash');
-  discount = signal(0);
-  isNewCustomer = signal(true);
+  tender = signal<Tender>('cash');
+  discountMode = signal<DiscountMode>('amount');
+  discountInput = signal(0);
+  cashInput = signal(0);
+  cardInput = signal(0);
+
+  isNewCustomer = signal(false);
   selectedCustomerId = signal('');
   customerName = signal('');
   customerPhone = signal('');
 
-  /** Discount reduces the taxable base -- QQS (VAT) is computed on what the customer
-   *  actually pays, matching `pos.component.ts`'s `discountedSubtotal`/`tax` chain and
-   *  `CartProfitService`'s `vatAmount12` formula exactly. */
-  discountedSubtotal = computed(() => Math.max(0, this.data.subtotal - this.discount()));
-  tax = computed(() => this.discountedSubtotal() * this.data.taxRate);
+  /** Subtotal before the cart-level discount — what a percentage applies to. */
+  private baseSubtotal = calculateCheckout(this.data.lines, 0, this.data.vat).subtotal;
 
-  /** What's actually payable: the discounted subtotal plus tax on that discounted amount. */
-  discountedTotal = computed(() => this.discountedSubtotal() + this.tax());
+  discount = computed(() => resolveDiscount(this.baseSubtotal, this.discountInput(), this.discountMode()));
 
-  /** Pre-discount total (subtotal + tax on the full subtotal), shown struck through next
-   *  to `discountedTotal` whenever a discount is entered, so the cashier can see the
-   *  saving. Not itself used for any payment/change/debt math. */
-  originalTotal = computed(() => this.data.subtotal + this.data.subtotal * this.data.taxRate);
+  checkout = computed(() => calculateCheckout(this.data.lines, this.discount(), this.data.vat));
+  total = computed(() => this.checkout().total);
 
-  paidAmount = signal(Math.ceil(this.discountedTotal()));
+  /** Total without the cart discount, shown struck through while one is applied. */
+  originalTotal = calculateCheckout(this.data.lines, 0, this.data.vat).total;
 
-  change = computed(() => Math.max(0, this.paidAmount() - this.discountedTotal()));
-  debtAmount = computed(() => Math.max(0, this.discountedTotal() - this.paidAmount()));
-  hasDebtPortion = computed(() => this.debtAmount() > 0);
+  split = computed(() => {
+    const total = this.total();
+    switch (this.tender()) {
+      case 'card':
+        return splitPayment(total, 0, total);
+      case 'mixed':
+        return splitPayment(total, this.cashInput(), this.cardInput());
+      default:
+        return splitPayment(total, this.cashInput(), 0);
+    }
+  });
+
+  hasDebtPortion = computed(() => this.split().debt > 0);
 
   selectedCustomer = computed(() => this.data.customers.find((c) => c.id === this.selectedCustomerId()));
 
-  /** Only queried for an *existing* selected customer — a brand-new customer has no
-   *  id (and thus no creditLimit/debt history) yet at this point in the flow. */
   private selectedCustomerDebts = toSignal(
     toObservable(this.selectedCustomerId).pipe(
       switchMap((id) => (id ? this.debtService.getCustomerDebts(id) : of([])))
@@ -93,56 +112,93 @@ export class PosPaymentDialogComponent {
     { initialValue: [] }
   );
 
-  /** Sum of this customer's outstanding debt across all prior sales, excluding the
-   *  new debt about to be created by this checkout. */
   currentDebtTotal = computed(() => this.selectedCustomerDebts().reduce((sum, d) => sum + d.remainingAmount, 0));
 
-  /** True only when the selected existing customer has a creditLimit set and this
-   *  checkout's new debt would push their total outstanding debt past it. New
-   *  customers and customers without a creditLimit (unlimited) are never blocked. */
   creditLimitExceeded = computed(() => {
     if (this.isNewCustomer() || !this.hasDebtPortion()) return false;
-    const customer = this.selectedCustomer();
-    if (!customer?.creditLimit) return false;
-    return this.currentDebtTotal() + this.debtAmount() > customer.creditLimit;
+    const limit = this.selectedCustomer()?.creditLimit;
+    if (!limit) return false;
+    return this.currentDebtTotal() + this.split().debt > limit;
   });
 
   creditLimitWarning = computed(() => {
-    if (!this.creditLimitExceeded()) return '';
-    const customer = this.selectedCustomer();
-    if (!customer?.creditLimit) return '';
+    const limit = this.selectedCustomer()?.creditLimit;
+    if (!this.creditLimitExceeded() || !limit) return '';
     return this.translateService.instant('pos.creditLimitExceeded', {
-      limit: customer.creditLimit,
-      current: this.currentDebtTotal()
+      limit: formatNumber(limit, 0),
+      current: formatNumber(this.currentDebtTotal(), 0)
     });
   });
 
   canSubmit = computed(() => {
-    if (this.discount() > this.data.subtotal) return false;
+    if (this.total() < 0) return false;
     if (!this.hasDebtPortion()) return true;
     if (this.creditLimitExceeded()) return false;
     return this.isNewCustomer() ? this.customerName().trim().length > 0 : !!this.selectedCustomerId();
   });
 
+  /** Common banknote-rounded amounts above the total, for one-tap cash entry. */
   quickAmounts = computed(() => {
-    const total = this.discountedTotal();
-    if (total <= 0) return [];
+    const due = this.tender() === 'mixed' ? Math.max(0, this.total() - this.cardInput()) : this.total();
+    if (due <= 0) return [];
     const roundUp = (value: number, step: number) => Math.ceil(value / step) * step;
-    const amounts = [total, roundUp(total, 10000), roundUp(total, 50000), roundUp(total, 100000)];
-    return Array.from(new Set(amounts.map((a) => Math.round(a)))).sort((a, b) => a - b);
+    const amounts = [due, roundUp(due, 1000), roundUp(due, 5000), roundUp(due, 10000), roundUp(due, 50000), roundUp(due, 100000)];
+    return Array.from(new Set(amounts.map((a) => Math.round(a)))).sort((a, b) => a - b).slice(0, 5);
   });
 
-  setPaidAmount(amount: number) {
-    this.paidAmount.set(amount);
+  constructor() {
+    this.cashInput.set(Math.ceil(this.total()));
+  }
+
+  setTender(tender: Tender) {
+    this.tender.set(tender);
+    const total = Math.ceil(this.total());
+    if (tender === 'cash') this.cashInput.set(total);
+    if (tender === 'debt') {
+      this.cashInput.set(0);
+    }
+    if (tender === 'mixed') {
+      this.cardInput.set(0);
+      this.cashInput.set(total);
+    }
+  }
+
+  setDiscountMode(mode: DiscountMode) {
+    this.discountMode.set(mode);
+    this.discountInput.set(0);
+    this.syncCashToTotal();
+  }
+
+  setDiscount(value: number) {
+    this.discountInput.set(Math.max(0, +value || 0));
+    this.syncCashToTotal();
+  }
+
+  /** In mixed mode, typing the card part auto-fills cash with the rest. */
+  setCard(value: number) {
+    this.cardInput.set(Math.max(0, +value || 0));
+    this.cashInput.set(Math.max(0, Math.ceil(this.total() - this.cardInput())));
+  }
+
+  setCash(value: number) {
+    this.cashInput.set(Math.max(0, +value || 0));
+  }
+
+  /** Keeps a cash-only payment exactly matching the total after the discount changes. */
+  private syncCashToTotal() {
+    if (this.tender() === 'cash') this.cashInput.set(Math.ceil(this.total()));
+    if (this.tender() === 'mixed') this.cashInput.set(Math.max(0, Math.ceil(this.total() - this.cardInput())));
   }
 
   submit() {
     if (!this.canSubmit()) return;
+    const split = this.split();
 
     this.dialogRef.close({
-      paymentMethod: this.paymentMethod(),
-      paidAmount: this.paidAmount(),
       discount: this.discount(),
+      // Pass what was actually tendered (incl. change), the POS re-splits it.
+      cashTendered: split.cash + split.change,
+      cardAmount: split.card,
       isNewCustomer: this.isNewCustomer(),
       customerId: this.isNewCustomer() ? undefined : this.selectedCustomerId(),
       customerName: this.isNewCustomer() ? this.customerName().trim() : undefined,

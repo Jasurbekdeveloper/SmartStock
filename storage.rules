@@ -2,13 +2,30 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // categories/{fileName}: category images uploaded from Products > Categories.
+    // categories/{tenantId}/{fileName}: category images are isolated by store.
     // Any signed-in staff member can upload; the referencing Firestore
     // category document itself is still gated to admin/manager (see
     // firestore.rules), so this only controls the raw file blob.
-    match /categories/{fileName} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
+    match /categories/{tenantId}/{fileName} {
+      function tenantMember() {
+        return request.auth != null
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.tenantId == tenantId
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.active == true;
+      }
+      allow read: if tenantMember();
+      allow write: if tenantMember()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /products/{tenantId}/{fileName} {
+      function tenantMember() {
+        return request.auth != null
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.tenantId == tenantId
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.active == true;
+      }
+      allow read: if tenantMember();
+      allow write: if tenantMember()
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }

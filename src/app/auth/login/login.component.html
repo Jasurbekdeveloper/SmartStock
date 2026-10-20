@@ -1,41 +1,88 @@
-<!-- Headerni chaqirish -->
-<app-header></app-header>
+<div class="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-gray-950">
+  <!-- Brand panel -->
+  <div class="login-brand hidden lg:flex flex-col justify-between p-12 text-white">
+    <a routerLink="/" class="flex items-center gap-3">
+      <img src="/logo.svg" alt="" class="w-11 h-11" />
+      <span class="text-xl font-extrabold">Original</span>
+    </a>
+    <div>
+      <h2 class="text-4xl font-extrabold leading-tight">{{ 'auth.brandTitle' | translate }}</h2>
+      <p class="mt-3 text-lg text-white/80 max-w-md">{{ 'auth.brandText' | translate }}</p>
+      <ul class="mt-8 space-y-3 text-white/90">
+        <li class="flex items-center gap-3"><mat-icon>bolt</mat-icon>{{ 'auth.brandPoint1' | translate }}</li>
+        <li class="flex items-center gap-3"><mat-icon>inventory_2</mat-icon>{{ 'auth.brandPoint2' | translate }}</li>
+        <li class="flex items-center gap-3"><mat-icon>insights</mat-icon>{{ 'auth.brandPoint3' | translate }}</li>
+      </ul>
+    </div>
+    <p class="text-sm text-white/60">© Original qurilish do'koni</p>
+  </div>
 
-<!-- Asosiy qism -->
-<div class="flex flex-col min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-900 dark:to-blue-800">
-
-  <!-- Formani markazga keltiruvchi konteyner -->
-  <div class="flex-grow flex items-center justify-center p-4">
-    <mat-card class="!p-8 w-full max-w-md">
-      <div class="flex flex-col items-center gap-2 mb-8">
-        <img src="/logo.svg" alt="SmartStock" class="w-14 h-14" />
-        <h1 class="text-3xl font-bold text-center text-gray-800 dark:text-white">SmartStock</h1>
+  <!-- Form -->
+  <div class="relative flex items-center justify-center p-6 pt-20 lg:pt-6">
+    <div class="absolute top-4 right-4 flex items-center gap-1">
+      <div class="flex items-center rounded-full border border-gray-200 dark:border-gray-700 p-0.5 text-xs font-semibold" role="group" aria-label="Language">
+        @for (lang of languages; track lang.code) {
+        <button
+          type="button"
+          class="px-2.5 py-1 rounded-full transition-colors"
+          [class]="currentLanguage() === lang.code ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+          [attr.aria-pressed]="currentLanguage() === lang.code"
+          (click)="setLanguage(lang.code)"
+        >{{ lang.label }}</button>
+        }
       </div>
+      <button mat-icon-button type="button" (click)="themeService.toggleTheme()" aria-label="Theme">
+        <mat-icon>{{ themeService.getTheme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      </button>
+    </div>
 
-      <form (ngSubmit)="login()" class="space-y-2">
+    <div class="w-full max-w-sm">
+      <a routerLink="/" class="lg:hidden flex items-center gap-2 mb-8">
+        <img src="/logo.svg" alt="" class="w-10 h-10" />
+        <span class="text-lg font-extrabold text-gray-900 dark:text-white">Original</span>
+      </a>
+
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{{ 'auth.welcome' | translate }}</h1>
+      <p class="mt-1 mb-8 text-gray-500 dark:text-gray-400">{{ 'auth.loginSubtitle' | translate }}</p>
+      <p class="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+        {{ 'auth.adminProvisionedOnly' | translate }}
+      </p>
+
+      <form (ngSubmit)="login()" class="space-y-1">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'auth.email' | translate }}</mat-label>
-          <input matInput id="email" type="email" [(ngModel)]="email" name="email" [placeholder]="'auth.enterEmail' | translate" />
+          <mat-icon matPrefix class="mx-2 text-gray-400">mail</mat-icon>
+          <input matInput id="email" type="email" autocomplete="username" [(ngModel)]="email" name="email" [placeholder]="'auth.enterEmail' | translate" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'auth.password' | translate }}</mat-label>
-          <input matInput id="password" type="password" [(ngModel)]="password" name="password" [placeholder]="'auth.enterPassword' | translate" />
+          <mat-icon matPrefix class="mx-2 text-gray-400">lock</mat-icon>
+          <input matInput id="password" [type]="showPassword() ? 'text' : 'password'" autocomplete="current-password" [(ngModel)]="password" name="password" [placeholder]="'auth.enterPassword' | translate" />
+          <button mat-icon-button matSuffix type="button" (click)="showPassword.set(!showPassword())" [attr.aria-label]="'auth.password' | translate">
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
         </mat-form-field>
 
         @if (error(); as errorMessage) {
-        <div class="mb-4 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+        <div class="mb-4 p-3 text-sm bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded-lg flex items-center gap-2">
+          <mat-icon class="!text-lg !w-5 !h-5">error</mat-icon>
           {{ errorMessage | translate }}
         </div>
         }
 
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading()" class="w-full !py-2 !mt-4">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()" class="w-full !h-12 !text-base !mt-2">
           @if (loading()) {
           <mat-progress-spinner diameter="20" mode="indeterminate" class="inline-block align-middle mr-2"></mat-progress-spinner>
           }
           {{ loading() ? ('messages.loading' | translate) : ('auth.loginButton' | translate) }}
         </button>
       </form>
-    </mat-card>
+
+      <a routerLink="/" class="mt-8 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 dark:text-gray-400">
+        <mat-icon class="!text-base !w-4 !h-4">arrow_back</mat-icon>
+        {{ 'auth.backToSite' | translate }}
+      </a>
+    </div>
   </div>
 </div>

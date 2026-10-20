@@ -27,7 +27,7 @@ export class TranslationService {
     const savedLanguage = this.getSavedLanguage();
     const defaultLang: Language = (savedLanguage && ['uz', 'uz-cyrillic', 'ru', 'en'].includes(savedLanguage)) 
       ? (savedLanguage as Language)
-      : 'en';
+      : 'uz';
     
     // Set the language
     this.translateService.use(defaultLang).subscribe({

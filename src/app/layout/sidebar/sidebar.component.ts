@@ -1,12 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { AuthService, UserRole } from '../../core/services/auth.service';
 import { SidebarStateService } from './sidebar-state.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 interface MenuItem {
   label: string;
@@ -19,13 +19,28 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatListModule, MatIconModule, TranslatePipe],
+  imports: [CommonModule, RouterModule, MatIconModule, TranslatePipe],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
   private authService = inject(AuthService);
   sidebarState = inject(SidebarStateService);
+  storeName = inject(SettingsService).storeName;
+
+  /** Connection indicator — the POS keeps working offline (Firestore cache), this
+   *  just tells the cashier that sales are queued rather than synced. */
+  online = signal(typeof navigator === 'undefined' ? true : navigator.onLine);
+
+  constructor() {
+    const update = () => this.online.set(navigator.onLine);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    inject(DestroyRef).onDestroy(() => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    });
+  }
 
   expandedMenu = signal<string | null>(null);
 
@@ -42,11 +57,10 @@ export class SidebarComponent {
   menuItems: MenuItem[] = [
     { label: 'navigation.dashboard', path: '/dashboard', icon: 'dashboard' },
     {
-      label: 'navigation.pos',
-      path: '/pos',
-      icon: 'shopping_cart',
+      label: 'sales.title',
+      path: '/sales',
+      icon: 'receipt_long',
       children: [
-        { label: 'navigation.pos', path: '/pos' },
         { label: 'sales.salesHistory', path: '/sales/history' },
         { label: 'shifts.shiftHistory', path: '/shifts/history' }
       ]

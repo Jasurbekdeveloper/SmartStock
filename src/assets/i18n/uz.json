@@ -10,7 +10,22 @@
     "submit": "Yuborish",
     "logout": "Chiqish",
     "settings": "Sozlamalar",
-    "profile": "Profil"
+    "profile": "Profil",
+    "online": "Onlayn",
+    "offline": "Oflayn — sotuvlar navbatda",
+    "theme": "Mavzu"
+  },
+  "tenant": {
+    "backToHome": "Bosh sahifaga qaytish",
+    "createStore": "Do'kon ochish",
+    "createStoreDescription": "Hisob yarating va do'koningizni boshqarishni boshlang.",
+    "storeName": "Do'kon nomi",
+    "ownerName": "Egasi ismi",
+    "passwordHint": "Kamida 6 ta belgi",
+    "existingAccount": "Hisobingiz bormi?",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "invalidRegistration": "Barcha maydonlarni to'ldiring va parolni kamida 6 ta belgidan kiriting.",
+    "registrationFailed": "Ro'yxatdan o'tishda xatolik yuz berdi. Ma'lumotlarni tekshirib, qayta urinib ko'ring."
   },
   "navigation": {
     "dashboard": "Bosh sahifa",
@@ -49,6 +64,21 @@
     "altUnitsHint": "Vergul bilan ajratilgan birlik:koeffitsiyent juftliklari, masalan: quti:20,karobka:100 (1 quti = 20 asosiy birlik)",
     "searchKeywords": "Qidiruv kalit so'zlari",
     "searchKeywordsHint": "Qidiruvda topilishi uchun qo'shimcha kalit so'zlar (sinonimlar), vergul bilan ajrating, masalan: truba, quvur shlangi",
+    "color": "Rang",
+    "size": "O'lcham",
+    "sku": "SKU kodi",
+    "productImage": "Mahsulot rasmi",
+    "imageHint": "Rasm PNG, JPEG yoki WebP bo'lishi va 5 MB dan oshmasligi kerak.",
+    "requiredImageMaxSize": "Rasm ixtiyoriy. Yuklash uchun Firebase Storage sozlangan bo'lishi kerak.",
+    "imageUploadFailed": "Rasm yuklanmadi. Firebase Storage sozlamalarini tekshiring.",
+    "invalidImage": "Rasm PNG, JPEG yoki WebP formatida va 5 MB gacha bo'lishi kerak.",
+    "variants": "Rang va o'lcham variantlari",
+    "baseVariantHint": "Yuqoridagi maydonlar birinchi variant; har bir variantning narxi va qoldig'i alohida hisoblanadi.",
+    "addVariant": "Variant qo'shish",
+    "variantImage": "Variant rasmi (ixtiyoriy)",
+    "invalidProduct": "Mahsulot nomi va narx/qoldiq qiymatlarini tekshiring.",
+    "invalidVariant": "Har variantga rang yoki o'lcham kiriting; narx va qoldiq manfiy bo'lmasin.",
+    "duplicateBarcode": "Shtrix-kod do'konda boshqa mahsulot yoki variantga biriktirilgan.",
     "import": {
       "title": "Excel fayldan mahsulotlar import qilish",
       "hint": "Bir vaqtda ko'p mahsulot yaratish yoki yangilash uchun .xlsx fayl yuklang. Qatordagi shtrix-kod mavjud mahsulotnikiga mos kelsa — u yangilanadi; yangi shtrix-kod bo'lsa — yangi mahsulot yaratiladi. Kutilayotgan ustunlar:",
@@ -113,7 +143,7 @@
     "proceedToPay": "TO'LASHGA O'TISH",
     "cash": "Naqd",
     "card": "Karta",
-    "debit": "Qarz",
+    "debit": "Nasiya",
     "amountDue": "To'lanishi kerak",
     "insufficientAmount": "To'lov miqdori yetarli emas",
     "saleCompleted": "Sotuv muvaffaqiyatli yakunlandi! Qaytim",
@@ -124,6 +154,8 @@
     "itemDiscount": "Mahsulot chegirmasi",
     "scanBarcode": "Shtrix kodni skanerlash",
     "scanNotFound": "Bu shtrix kodga mos mahsulot topilmadi",
+    "decreaseQuantity": "Miqdorini kamaytirish",
+    "increaseQuantity": "Miqdorini oshirish",
     "cameraError": "Kameraga ruxsat berilmadi yoki kamera topilmadi",
     "holdCart": "Ushlab turish",
     "heldCarts": "Ushlab turilganlar",
@@ -133,7 +165,29 @@
     "discardHeldCartConfirm": "Ushbu ushlab turilgan savatni o'chirishga ishonchingiz komilmi? Bu amalni bekor qilib bo'lmaydi.",
     "holdCartLabelPrompt": "Ushbu savat uchun ixtiyoriy yorliq (masalan, mijoz ismi):",
     "enterInAltUnit": "Birlikda kiritish",
-    "creditLimitExceeded": "Mijozning qarz limiti {{limit}} so'm, joriy qarzi {{current}} so'm — bu xarid limitdan oshib ketadi"
+    "creditLimitExceeded": "Mijozning qarz limiti {{limit}} so'm, joriy qarzi {{current}} so'm — bu xarid limitdan oshib ketadi",
+    "notEnoughStock": "omborda yetarli emas",
+    "productRemoved": "mahsulot katalogdan o'chirilgan, savatdan olib tashlang",
+    "popular": "Ommabop",
+    "outOfStock": "Tugagan",
+    "positions": "pozitsiya",
+    "emptyCartHint": "Mahsulotni skanerlang yoki ro'yxatdan tanlang",
+    "inStock": "Omborda",
+    "vatIncluded": "Shu jumladan QQS",
+    "vatAdded": "QQS",
+    "hintSearch": "Qidiruv",
+    "hintClearSearch": "Tozalash",
+    "mixed": "Aralash",
+    "sum": "So'm",
+    "cashReceived": "Olingan naqd pul",
+    "prepayment": "Oldindan to'lov (naqd)",
+    "cardFullHint": "To'liq summa karta orqali to'lanadi",
+    "debtWillBeCreated": "Nasiyaga yoziladi",
+    "currentDebt": "Joriy qarzi",
+    "completeSale": "Sotuvni yakunlash",
+    "saleDone": "Sotuv yakunlandi",
+    "newSale": "Yangi sotuv",
+    "toPay": "TO'LOV UCHUN"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -190,7 +244,10 @@
     "allPaymentMethods": "Barcha to'lov usullari",
     "fromDate": "Sanadan",
     "toDate": "Sanagacha",
-    "noResults": "Filtrga mos sotuvlar topilmadi"
+    "noResults": "Filtrga mos sotuvlar topilmadi",
+    "receiptNo": "Chek №",
+    "cashier": "Kassir",
+    "receiptThanks": "Xaridingiz uchun rahmat!"
   },
   "shifts": {
     "title": "Smena boshqaruvi",
@@ -219,7 +276,8 @@
     "confirmClose": "Tasdiqlash va yopish",
     "alreadyClosed": "Bu smena allaqachon yopilgan",
     "noShiftsFound": "Smenalar topilmadi",
-    "notes": "Izoh"
+    "notes": "Izoh",
+    "shiftOpen": "Smena ochiq"
   },
   "debts": {
     "title": "Qarzlarni boshqarish",
@@ -294,7 +352,14 @@
     "receiptPaperWidth": "Chek qog'ozi kengligi",
     "telegramBotToken": "Telegram bot tokeni",
     "telegramChatId": "Telegram chat ID",
-    "telegramHint": "Kam qolgan tovar va qarz muddati ogohlantirishlari uchun ishlatiladi (keyingi yangilanishda)."
+    "telegramHint": "Kam qolgan tovar va qarz muddati ogohlantirishlari uchun ishlatiladi (keyingi yangilanishda).",
+    "receiptFooter": "Chek ostidagi matn",
+    "vatMode": "QQS hisoblash usuli",
+    "vatIncluded": "Narx ichida",
+    "vatOnTop": "Narx ustiga",
+    "vatModeHint": "Odatda chakana savdoda narxlar QQS bilan ko'rsatiladi (\"Narx ichida\"). QQS to'lovchisi bo'lmasangiz stavkani 0 qiling.",
+    "storeTelegram": "Telegram (username)",
+    "workingHours": "Ish vaqti"
   },
   "statistics": {
     "title": "Statistika",
@@ -322,6 +387,8 @@
     "topDebtors": "Eng ko'p qarzdorlar",
     "noData": "Ma'lumot yo'q",
     "exportExcel": "Excel'ga yuklab olish",
+    "exportFullReport": "To'liq hisobotni Excel'ga yuklash",
+    "inventory": "Ombor qoldig'i",
     "netProfit": "Sof foyda",
     "profitMargin": "Foyda marjasi",
     "profitCaveat": "Faqat ushbu funksiya qo'shilgandan keyingi sotuvlar uchun hisoblanadi"
@@ -339,7 +406,14 @@
     "profitCaveat": "Faqat ushbu funksiya qo'shilgandan keyingi sotuvlar uchun hisoblanadi",
     "lowStock": "Kam qolgan mahsulotlar",
     "lowStockAlert": "Kam qoldi: \"{{name}}\" — {{quantity}} {{unit}} qoldi.",
-    "debtDueAlert": "Qarz muddati o'tdi: {{name}} — qoldiq {{amount}} so'm."
+    "debtDueAlert": "Qarz muddati o'tdi: {{name}} — qoldiq {{amount}} so'm.",
+    "subtitle": "Bugungi savdo ko'rsatkichlari",
+    "newSale": "Yangi sotuv",
+    "vsYesterday": "kechagiga nisbatan",
+    "last7Days": "Oxirgi 7 kun tushumi",
+    "todayPayments": "Bugungi to'lovlar",
+    "outstandingDebt": "Mijozlar qarzi",
+    "viewAll": "Barchasi"
   },
   "table": {
     "saleId": "Sotuv ID",
@@ -369,7 +443,8 @@
     "category": "Bo'lim",
     "enterCategory": "Bo'limni kiriting",
     "description": "Tavsifi",
-    "enterDescription": "Tavsifini kiriting"
+    "enterDescription": "Tavsifini kiriting",
+    "phone": "Telefon"
   },
   "auth": {
     "login": "Tizimga kirish",
@@ -378,7 +453,16 @@
     "enterEmail": "Elektron pochtani kiriting",
     "enterPassword": "Parolni kiriting",
     "loginButton": "Kirish",
-    "invalidCredentials": "Noto'g'ri elektron pochta yoki parol"
+    "invalidCredentials": "Noto'g'ri elektron pochta yoki parol",
+    "brandTitle": "Do'koningiz — bitta oynada",
+    "brandText": "Kassa, ombor, nasiya va hisobotlar — barchasi tez va internet uzilganda ham ishlaydi.",
+    "brandPoint1": "Skaner va tezkor tugmalar bilan tez kassa",
+    "brandPoint2": "Ombor qoldiqlari real vaqtda",
+    "brandPoint3": "Foyda, smena va qarzlar hisoboti",
+    "welcome": "Xush kelibsiz",
+    "loginSubtitle": "Xodim akkauntingiz bilan kiring",
+    "adminProvisionedOnly": "Yangi akkauntlarni faqat administrator yaratadi.",
+    "backToSite": "Saytga qaytish"
   },
   "users": {
     "title": "Foydalanuvchilarni boshqarish",
@@ -456,5 +540,148 @@
     "deleted": "Mahsulot muvaffaqiyatli o'chirildi",
     "saved": "O'zgarishlar muvaffaqiyatli saqlandi",
     "created": "Mahsulot muvaffaqiyatli yaratildi"
+  },
+  "returns": {
+    "title": "Qaytarishlar",
+    "short": "Qaytarilgan",
+    "newReturn": "Tovar qaytarish",
+    "returnable": "Qaytarish mumkin",
+    "refundMethod": "Pul qaytarish usuli",
+    "reason": "Sababi (ixtiyoriy)",
+    "refundAmount": "Qaytariladigan summa",
+    "confirm": "Qaytarishni tasdiqlash",
+    "saved": "Qaytarish saqlandi, tovar omborga qo'shildi",
+    "cashRefunds": "Naqd qaytarilgan",
+    "debtSaleHint": "Bu sotuvning bir qismi nasiyada — faqat to'langan qismigacha pul qaytariladi."
+  },
+  "landing": {
+    "tagline": "Qurilish do'koni",
+    "viewSite": "Do'kon sayti",
+    "staffLogin": "Xodimlar uchun",
+    "toDashboard": "Boshqaruv paneli",
+    "nav": {
+      "catalog": "Mahsulotlar",
+      "why": "Afzalliklar",
+      "order": "Buyurtma",
+      "contact": "Aloqa"
+    },
+    "hero": {
+      "eyebrow": "Ulgurji va chakana savdo",
+      "title1": "Qurilish uchun hamma narsa —",
+      "title2": "original va bir joyda",
+      "subtitle": "Sementdan tortib santexnikagacha: sifatli, sertifikatlangan qurilish mollari, adolatli narxlar va obyektgacha yetkazib berish.",
+      "order": "Buyurtma berish",
+      "browse": "Mahsulotlarni ko'rish",
+      "badgeTitle": "Obyektgacha yetkazamiz",
+      "badgeText": "Shahar bo'ylab, tez va ehtiyotkor"
+    },
+    "stats": {
+      "assortment": "Assortiment",
+      "assortmentValue": "1000+",
+      "delivery": "Yetkazish",
+      "deliveryValue": "1 kun",
+      "quality": "Original"
+    },
+    "catalog": {
+      "title": "Qurilishning har bir bosqichi uchun",
+      "subtitle": "Poydevordan tomgacha — kerakli materiallarni bir joydan oling, vaqt va pulni tejang."
+    },
+    "cat": {
+      "cement": {
+        "title": "Sement va aralashmalar",
+        "text": "Sement, shpaklyovka, gips, plitka yelimi"
+      },
+      "bricks": {
+        "title": "G'isht va bloklar",
+        "text": "Pishgan g'isht, gazoblok, penoblok"
+      },
+      "metal": {
+        "title": "Armatura va metall",
+        "text": "Armatura, profil, truba, sim"
+      },
+      "paint": {
+        "title": "Bo'yoq va laklar",
+        "text": "Ichki va tashqi bo'yoqlar, gruntovka, lak"
+      },
+      "plumbing": {
+        "title": "Santexnika",
+        "text": "Quvurlar, fitinglar, kranlar, aksessuarlar"
+      },
+      "electrical": {
+        "title": "Elektr mollari",
+        "text": "Kabel, rozetka, avtomat, yoritish"
+      },
+      "tools": {
+        "title": "Asbob-uskunalar",
+        "text": "Qo'l va elektr asboblari, sarf materiallari"
+      },
+      "roofing": {
+        "title": "Tom yopish",
+        "text": "Profnastil, shifer, cherepitsa, izolyatsiya"
+      }
+    },
+    "why": {
+      "title": "Nega aynan bizdan xarid qilishadi",
+      "subtitle": "Ustalar va quruvchilar bizni sifat, narx va xizmat uchun tanlashadi."
+    },
+    "feat": {
+      "original": {
+        "title": "Faqat original mahsulot",
+        "text": "To'g'ridan-to'g'ri ishlab chiqaruvchi va rasmiy distribyutorlardan. Soxta tovar yo'q."
+      },
+      "prices": {
+        "title": "Adolatli narxlar",
+        "text": "Ulgurji xaridlarga maxsus narx va chegirmalar. Narx — chekda, yashirin to'lovsiz."
+      },
+      "delivery": {
+        "title": "Tez yetkazib berish",
+        "text": "Buyurtmangizni obyektingizgacha yetkazib, tushirib beramiz."
+      },
+      "advice": {
+        "title": "Mutaxassis maslahati",
+        "text": "Material tanlash va hisob-kitobda tajribali sotuvchilar yordam beradi."
+      },
+      "payment": {
+        "title": "Qulay to'lov",
+        "text": "Naqd, karta yoki aralash to'lov. Har bir xaridga chek."
+      },
+      "wholesale": {
+        "title": "Doimiy mijozlarga",
+        "text": "Quruvchi va ustalar uchun nasiya va individual shartlar."
+      }
+    },
+    "order": {
+      "title": "Buyurtma berish juda oson"
+    },
+    "step": {
+      "call": {
+        "title": "Qo'ng'iroq qiling yoki yozing",
+        "text": "Kerakli materiallar ro'yxatini telefon yoki Telegram orqali yuboring."
+      },
+      "prepare": {
+        "title": "Biz tayyorlaymiz",
+        "text": "Narx va mavjudlikni tasdiqlaymiz, buyurtmani yig'ib qo'yamiz."
+      },
+      "deliver": {
+        "title": "Olib keting yoki yetkazamiz",
+        "text": "Do'kondan olib keting yoki obyektingizga yetkazib beramiz."
+      }
+    },
+    "cta": {
+      "title": "Smeta bormi? Narxini hisoblab beramiz",
+      "text": "Ro'yxatni yuboring — bir necha daqiqada javob beramiz.",
+      "visit": "Do'konga keling"
+    },
+    "contact": {
+      "title": "Do'konimizga tashrif buyuring",
+      "address": "Manzil",
+      "phone": "Telefon",
+      "hours": "Ish vaqti",
+      "askUs": "Telefon orqali so'rang",
+      "defaultHours": "Har kuni 8:00–19:00"
+    },
+    "footer": {
+      "rights": "Barcha huquqlar himoyalangan"
+    }
   }
 }

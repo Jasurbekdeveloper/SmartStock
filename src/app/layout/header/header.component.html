@@ -1,24 +1,20 @@
-<mat-toolbar color="primary" class="shadow-lg gap-2">
+<header class="topbar">
   <button mat-icon-button class="lg:!hidden" (click)="sidebarState.toggleMobile()" aria-label="Menu">
     <mat-icon>{{ sidebarState.mobileOpen() ? 'close' : 'menu' }}</mat-icon>
   </button>
 
-  <a routerLink="/dashboard" (click)="sidebarState.closeMobile()" class="flex items-center gap-2 text-inherit no-underline min-w-0">
-    <img src="/logo.svg" alt="SmartStock" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0" />
-    <span class="text-xl sm:text-2xl font-bold truncate">SmartStock</span>
+  <a routerLink="/dashboard" (click)="sidebarState.closeMobile()" class="flex lg:hidden items-center gap-2 min-w-0">
+    <img src="/logo.svg" alt="" class="w-8 h-8 shrink-0" />
+    <span class="font-bold truncate">{{ storeName() }}</span>
   </a>
+
+  <div class="hidden lg:block text-sm text-gray-500 dark:text-gray-400">{{ today | date: 'EEEE, d MMMM' }}</div>
 
   <span class="flex-1"></span>
 
-  <!-- Language Selector: icon-only on narrow screens, name shown from sm up.
-       mat-button's own CSS sets display, so the responsive hide/show must be !important
-       or Tailwind's utility loses the cascade to Material's component styles. -->
-  <button mat-icon-button [matMenuTriggerFor]="langMenu" class="sm:!hidden" aria-label="Language">
-    <mat-icon>language</mat-icon>
-  </button>
-  <button mat-button [matMenuTriggerFor]="langMenu" class="!hidden sm:!inline-flex whitespace-nowrap">
-    <mat-icon>language</mat-icon>
-    {{ currentLanguageName() }}
+  <button mat-button [matMenuTriggerFor]="langMenu" class="!min-w-0" aria-label="Language">
+    <mat-icon>translate</mat-icon>
+    <span class="hidden sm:inline">{{ currentLanguageShort() }}</span>
   </button>
   <mat-menu #langMenu="matMenu">
     @for (lang of languages; track lang.code) {
@@ -26,24 +22,26 @@
     }
   </mat-menu>
 
-  <!-- Theme Switcher -->
-  <button
-    mat-icon-button
-    (click)="toggleTheme()"
-    [title]="themeService.getTheme() === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'"
-  >
+  <button mat-icon-button (click)="toggleTheme()" [attr.aria-label]="'common.theme' | translate">
     <mat-icon>{{ themeService.getTheme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
   </button>
 
-  <!-- User Menu -->
-  <span class="text-sm hidden sm:inline">{{ userName() }}</span>
-  <button mat-icon-button [matMenuTriggerFor]="userMenu">
-    <mat-icon>more_vert</mat-icon>
+  <button type="button" class="topbar__user" [matMenuTriggerFor]="userMenu">
+    <span class="topbar__avatar">{{ initials() }}</span>
+    <span class="hidden sm:flex flex-col items-start leading-tight">
+      <span class="text-sm font-semibold">{{ userName() }}</span>
+      <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ roleKey() | translate }}</span>
+    </span>
+    <mat-icon class="text-gray-400">expand_more</mat-icon>
   </button>
-  <mat-menu #userMenu="matMenu">
+  <mat-menu #userMenu="matMenu" xPosition="before">
+    <a mat-menu-item routerLink="/">
+      <mat-icon>storefront</mat-icon>
+      {{ 'landing.viewSite' | translate }}
+    </a>
     <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
-      {{ translationService.t('common.logout') }}
+      {{ 'common.logout' | translate }}
     </button>
   </mat-menu>
-</mat-toolbar>
+</header>

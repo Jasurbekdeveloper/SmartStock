@@ -12,6 +12,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import {
   DEFAULT_CURRENCY_SYMBOL,
+  DEFAULT_PRICES_INCLUDE_VAT,
   DEFAULT_RECEIPT_PAPER_WIDTH,
   DEFAULT_STORE_NAME,
   DEFAULT_VAT_RATE,
@@ -27,12 +28,16 @@ import { TranslationService } from '../../../core/services/translation.service';
  *  math) already expects. */
 interface GeneralFormModel {
   vatRatePercent: number;
+  pricesIncludeVat: boolean;
   currencySymbol: string;
   storeName: string;
   storeAddress: string;
   storePhone: string;
   storeTaxId: string;
+  storeTelegram: string;
+  workingHours: string;
   receiptPaperWidth: ReceiptPaperWidth;
+  receiptFooter: string;
 }
 
 interface IntegrationFormModel {
@@ -65,12 +70,16 @@ export class SettingsPageComponent implements OnInit {
 
   general = signal<GeneralFormModel>({
     vatRatePercent: DEFAULT_VAT_RATE * 100,
+    pricesIncludeVat: DEFAULT_PRICES_INCLUDE_VAT,
     currencySymbol: DEFAULT_CURRENCY_SYMBOL,
     storeName: DEFAULT_STORE_NAME,
     storeAddress: '',
     storePhone: '',
     storeTaxId: '',
-    receiptPaperWidth: DEFAULT_RECEIPT_PAPER_WIDTH
+    storeTelegram: '',
+    workingHours: '',
+    receiptPaperWidth: DEFAULT_RECEIPT_PAPER_WIDTH,
+    receiptFooter: ''
   });
 
   integrations = signal<IntegrationFormModel>({
@@ -95,12 +104,16 @@ export class SettingsPageComponent implements OnInit {
           if (doc) {
             this.general.set({
               vatRatePercent: (doc.vatRate ?? DEFAULT_VAT_RATE) * 100,
+              pricesIncludeVat: doc.pricesIncludeVat ?? DEFAULT_PRICES_INCLUDE_VAT,
               currencySymbol: doc.currencySymbol ?? DEFAULT_CURRENCY_SYMBOL,
               storeName: doc.storeName ?? DEFAULT_STORE_NAME,
               storeAddress: doc.storeAddress ?? '',
               storePhone: doc.storePhone ?? '',
               storeTaxId: doc.storeTaxId ?? '',
-              receiptPaperWidth: doc.receiptPaperWidth ?? DEFAULT_RECEIPT_PAPER_WIDTH
+              storeTelegram: doc.storeTelegram ?? '',
+              workingHours: doc.workingHours ?? '',
+              receiptPaperWidth: doc.receiptPaperWidth ?? DEFAULT_RECEIPT_PAPER_WIDTH,
+              receiptFooter: doc.receiptFooter ?? ''
             });
           }
           this.loadingGeneral.set(false);
@@ -131,6 +144,10 @@ export class SettingsPageComponent implements OnInit {
       });
   }
 
+  setPricesIncludeVat(value: boolean) {
+    this.general.update((g) => ({ ...g, pricesIncludeVat: value }));
+  }
+
   setPaperWidth(width: ReceiptPaperWidth) {
     this.general.update((g) => ({ ...g, receiptPaperWidth: width }));
   }
@@ -142,12 +159,16 @@ export class SettingsPageComponent implements OnInit {
     this.settingsService
       .updateGeneralSettings({
         vatRate: f.vatRatePercent / 100,
+        pricesIncludeVat: f.pricesIncludeVat,
         currencySymbol: f.currencySymbol.trim() || DEFAULT_CURRENCY_SYMBOL,
         storeName: f.storeName.trim() || DEFAULT_STORE_NAME,
         storeAddress: f.storeAddress.trim() || undefined,
         storePhone: f.storePhone.trim() || undefined,
         storeTaxId: f.storeTaxId.trim() || undefined,
-        receiptPaperWidth: f.receiptPaperWidth
+        storeTelegram: f.storeTelegram.trim().replace(/^@/, '') || undefined,
+        workingHours: f.workingHours.trim() || undefined,
+        receiptPaperWidth: f.receiptPaperWidth,
+        receiptFooter: f.receiptFooter.trim() || undefined
       })
       .subscribe({
         next: () => {

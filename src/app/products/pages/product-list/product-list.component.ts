@@ -87,12 +87,13 @@ export class ProductListComponent {
     return this.products().filter((product) => {
       if (query) {
         const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
+        const matchesVariant = normalizeForSearch(`${product.color ?? ''} ${product.size ?? ''} ${product.sku ?? ''}`).includes(normalizedQuery);
         const matchesBarcode = product.barcode?.toLowerCase().includes(query);
         // Optional per-product synonyms/loanwords (e.g. "truba" tagged on a product
         // actually named "quvur") — same cross-script normalization as the name match.
         const matchesKeyword =
           product.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false;
-        if (!matchesName && !matchesBarcode && !matchesKeyword) return false;
+        if (!matchesName && !matchesVariant && !matchesBarcode && !matchesKeyword) return false;
       }
 
       if (from || to) {

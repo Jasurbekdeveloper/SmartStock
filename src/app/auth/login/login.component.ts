@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,7 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { HeaderComponent } from '../../layout/header/header.component';
+import { Language, TranslationService } from '../../core/services/translation.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +20,8 @@ import { HeaderComponent } from '../../layout/header/header.component';
     CommonModule,
     FormsModule,
     TranslatePipe,
-    HeaderComponent,
+    RouterModule,
+    MatIconModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -33,6 +36,23 @@ export class LoginComponent {
   password = '';
   error = signal<string | null>(null);
   loading = signal(false);
+  showPassword = signal(false);
+
+  private translation = inject(TranslationService);
+  themeService = inject(ThemeService);
+
+  readonly languages: { code: Language; label: string }[] = [
+    { code: 'uz', label: 'UZ' },
+    { code: 'uz-cyrillic', label: 'ЎЗ' },
+    { code: 'ru', label: 'RU' },
+    { code: 'en', label: 'EN' }
+  ];
+
+  currentLanguage = this.translation.currentLanguage$;
+
+  setLanguage(code: Language) {
+    this.translation.setLanguage(code);
+  }
 
   constructor(
     private authService: AuthService,

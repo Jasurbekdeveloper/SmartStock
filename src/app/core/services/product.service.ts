@@ -2,19 +2,20 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-  addDoc,
   collection,
   deleteDoc,
   deleteField,
   doc,
   increment,
   orderBy,
-  query,
   serverTimestamp,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Product {
   id: string;
@@ -38,6 +39,12 @@ export interface Product {
   minQuantity?: number;
   categoryId: string;
   description?: string;
+  sku?: string;
+  color?: string;
+  size?: string;
+  familyId?: string;
+  imageUrl?: string;
+  variantImageUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -47,9 +54,10 @@ export interface Product {
 })
 export class ProductService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   getProducts(): Observable<Product[]> {
-    const productsQuery = query(collection(this.firestore, 'products'), orderBy('name'));
+    const productsQuery = tenantQuery(this.firestore, 'products', requireTenantId(this.authService), orderBy('name'));
     return fromCollectionQuery<Product>(productsQuery);
   }
 
@@ -58,17 +66,26 @@ export class ProductService {
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<void> {
-    // Optional fields (e.g. altUnits left unset) must not reach Firestore
-    // as explicit `undefined` — addDoc rejects that. Simplest for a new doc: drop them.
-    const data: Record<string, unknown> = {
-      ...product,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    for (const key of Object.keys(data)) {
-      if (data[key] === undefined) delete data[key];
+    return this.addProducts([product]);
+  }
+
+  addProducts(products: Omit<Product, 'id'>[]): Observable<void> {
+    const tenantId = requireTenantId(this.authService);
+    const batch = writeBatch(this.firestore);
+    for (const product of products) {
+      const productRef = doc(collection(this.firestore, 'products'));
+      // Firestore rejects explicit undefined values for optional product metadata.
+      const data: Record<string, unknown> = {
+        ...withTenant(product, tenantId),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      for (const key of Object.keys(data)) {
+        if (data[key] === undefined) delete data[key];
+      }
+      batch.set(productRef, data);
     }
-    return from(addDoc(collection(this.firestore, 'products'), data)).pipe(map(() => undefined));
+    return from(batch.commit()).pipe(map(() => undefined));
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<void> {

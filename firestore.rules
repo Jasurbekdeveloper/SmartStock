@@ -11,83 +11,123 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    function isAdmin() {
-      return isSignedIn()
-        && currentUserDoc().data.role == 'admin'
-        && currentUserDoc().data.active == true;
-    }
-
-    function isStaff() {
-      return isSignedIn()
-        && currentUserDoc().data.role in ['admin', 'manager']
-        && currentUserDoc().data.active == true;
-    }
-
     function isActiveUser() {
       return isSignedIn() && currentUserDoc().data.active == true;
     }
 
-    // users/{uid}: every employee's profile + role, keyed by their Firebase Auth uid.
-    match /users/{uid} {
-      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
-      allow create: if isAdmin();
-      allow update: if isAdmin()
-        || (isSignedIn() && request.auth.uid == uid
-            && request.resource.data.role == resource.data.role
-            && request.resource.data.active == resource.data.active);
-      allow delete: if isAdmin();
+    function currentTenantId() {
+      return currentUserDoc().data.tenantId;
     }
 
-    // categories/{id}: product categories, managed by admin/manager.
+    function isTenantMember(tenantId) {
+      return isActiveUser() && currentTenantId() == tenantId;
+    }
+
+    function isTenantStaff(tenantId) {
+      return isTenantMember(tenantId)
+        && currentUserDoc().data.role in ['admin', 'manager'];
+    }
+
+    function isTenantAdmin(tenantId) {
+      return isTenantMember(tenantId) && currentUserDoc().data.role == 'admin';
+    }
+
+    match /tenants/{tenantId} {
+      allow read: if isTenantMember(tenantId);
+      allow update: if isTenantAdmin(tenantId)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.plan == resource.data.plan
+        && request.resource.data.status == resource.data.status;
+      allow delete: if false;
+    }
+
+    // users/{uid}: every employee's profile + role, keyed by their Firebase Auth uid.
+    match /users/{uid} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == uid || isTenantStaff(resource.data.tenantId));
+      allow create: if isTenantAdmin(request.resource.data.tenantId)
+        && request.resource.data.role in ['manager', 'cashier'];
+      allow update: if isTenantAdmin(resource.data.tenantId)
+          && request.resource.data.tenantId == resource.data.tenantId
+        || (isSignedIn() && request.auth.uid == uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.active == resource.data.active
+            && request.resource.data.tenantId == resource.data.tenantId);
+      allow delete: if isTenantAdmin(resource.data.tenantId);
+    }
+
     match /categories/{id} {
-      allow read: if isSignedIn();
-      allow write: if isStaff();
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantStaff(request.resource.data.tenantId);
+      allow update: if isTenantStaff(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId;
+      allow delete: if isTenantStaff(resource.data.tenantId);
     }
 
     // products/{id}: catalog items. Full edits (name/price/etc.) are admin/manager only;
     // any active staff (incl. cashier) may adjust only quantity/updatedAt, since checkout
     // in the POS decrements stock for every role.
     match /products/{id} {
-      allow read: if isSignedIn();
-      allow create, delete: if isStaff();
-      allow update: if isStaff()
-        || (isActiveUser()
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantStaff(request.resource.data.tenantId);
+      allow delete: if isTenantStaff(resource.data.tenantId);
+      allow update: if (isTenantStaff(resource.data.tenantId)
+          && request.resource.data.tenantId == resource.data.tenantId)
+        || (isTenantMember(resource.data.tenantId)
+            && request.resource.data.tenantId == resource.data.tenantId
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity', 'updatedAt']));
     }
 
     // stockEntries/{id}: stock in/out/adjustment audit log, managed by admin/manager
     // (the app's UI already restricts these routes to admin/manager).
     match /stockEntries/{id} {
-      allow read: if isSignedIn();
-      allow create: if isStaff();
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantStaff(request.resource.data.tenantId);
       allow update, delete: if false;
     }
 
     // sales/{id}: POS checkout receipts. Any active staff can create a sale (cashiers
-    // run the register); sales are an immutable record, so no update/delete.
+    // run the register). A sale is otherwise immutable — the only change allowed is a
+    // return bumping its denormalized refundedAmount, never past the sale total.
     match /sales/{id} {
-      allow read: if isSignedIn();
-      allow create: if isActiveUser();
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId);
+      allow update: if isTenantMember(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundedAmount'])
+        && request.resource.data.refundedAmount <= resource.data.total + 1;
+      allow delete: if false;
+    }
+
+    // returns/{id}: refunds against a sale (stock goes back, cash/card goes out).
+    // Immutable once written; attributed to the active user creating it.
+    match /returns/{id} {
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId)
+        && request.resource.data.cashierId == request.auth.uid;
       allow update, delete: if false;
     }
 
     // customers/{id}: debtor contact info, any active staff can register one.
     match /customers/{id} {
-      allow read: if isSignedIn();
-      allow create, update: if isActiveUser();
-      allow delete: if isStaff();
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId);
+      allow update: if isTenantMember(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId;
+      allow delete: if isTenantStaff(resource.data.tenantId);
     }
 
     // debts/{id}: any active staff can open a debt or record a payment against
     // one; only paidAmount/remainingAmount/lastPaymentDate move on update (the
     // original amount and customer stay fixed once created).
     match /debts/{id} {
-      allow read: if isSignedIn();
-      allow create: if isActiveUser();
-      allow update: if isActiveUser()
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId);
+      allow update: if isTenantMember(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate']);
-      allow delete: if isStaff();
+      allow delete: if isTenantStaff(resource.data.tenantId);
     }
 
     // shifts/{id}: cashier register sessions (open/close, Z-report). Any active user
@@ -95,32 +135,46 @@ service cloud.firestore {
     // filtered client-side); only the cashier who opened a shift may create/close it,
     // and closing may only touch the Z-report fields, not the original open data.
     match /shifts/{id} {
-      allow read: if isSignedIn();
-      allow create: if isActiveUser() && request.resource.data.cashierId == request.auth.uid;
-      allow update: if isActiveUser() && resource.data.cashierId == request.auth.uid
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId)
+        && request.resource.data.cashierId == request.auth.uid;
+      allow update: if isTenantMember(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId
+        && resource.data.cashierId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status','closedAt','countedCash','expectedCash','variance','salesCount','totalRevenue','notes']);
-      allow delete: if isAdmin();
+             .hasOnly(['status','closedAt','countedCash','expectedCash','variance','salesCount','totalRevenue','cashTotal','cardTotal','refundTotal','notes']);
+      allow delete: if isTenantAdmin(resource.data.tenantId);
     }
 
     // suppliers/{id}: purchasing contacts (name/phone/address/etc.). Any signed-in
     // user can read (needed for the stock-in supplier picker); only admin/manager
     // may create/update/delete, matching the stock module's access level.
     match /suppliers/{id} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isStaff();
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if isTenantStaff(request.resource.data.tenantId);
+      allow update: if isTenantStaff(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId;
+      allow delete: if isTenantStaff(resource.data.tenantId);
     }
 
-    // settings/general: VAT rate/currency/store info, readable by any signed-in user
-    // (the POS/cashiers need VAT+currency at checkout), writable only by admin.
+    // settings/general: VAT rate/currency/store contact info. Public read — the
+    // landing page shows the store's phone/address/hours to visitors, and nothing
+    // in this doc is secret (that's what settings/integrations is for). Admin-only write.
     // settings/integrations: Telegram bot token/chat ID — admin-only read AND write,
     // kept as a separate doc from `general` so non-admin roles never see the token.
     match /settings/general {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read: if true;
+      allow write: if false;
     }
     match /settings/integrations {
-      allow read, write: if isAdmin();
+      allow read, write: if false;
+    }
+    match /settings/{tenantId} {
+      allow read: if tenantId == 'general' || isTenantMember(tenantId);
+      allow write: if tenantId != 'general' && isTenantAdmin(tenantId);
+    }
+    match /settingsIntegrations/{tenantId} {
+      allow read, write: if isTenantAdmin(tenantId);
     }
 
     // auditLog/{id}: sensitive-action history (price/stock/role changes, deletes).
@@ -128,8 +182,9 @@ service cloud.firestore {
     // to themselves (userId must match their own uid); it's an immutable record,
     // so no update/delete, ever — not even by admin.
     match /auditLog/{id} {
-      allow read: if isStaff();
-      allow create: if isActiveUser() && request.resource.data.userId == request.auth.uid;
+      allow read: if isTenantStaff(resource.data.tenantId);
+      allow create: if isTenantMember(request.resource.data.tenantId)
+        && request.resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
 
@@ -139,7 +194,8 @@ service cloud.firestore {
     // imperatively via getDoc/setDoc (not a live subscription). Any active user may
     // read/write since any cashier's dashboard load can trigger the check.
     match /notificationState/{id} {
-      allow read, write: if isActiveUser();
+      allow read: if isTenantMember(id) && resource.data.tenantId == id;
+      allow write: if isTenantMember(id) && request.resource.data.tenantId == id;
     }
 
     // Everything else is default-denied until its module is built and

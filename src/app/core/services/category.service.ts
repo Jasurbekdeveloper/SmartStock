@@ -13,6 +13,8 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Category {
   id: string;
@@ -31,14 +33,15 @@ export interface CategoryInput {
 })
 export class CategoryService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   getCategories(): Observable<Category[]> {
-    const categoriesQuery = query(collection(this.firestore, 'categories'), orderBy('name'));
+    const categoriesQuery = tenantQuery(this.firestore, 'categories', requireTenantId(this.authService), orderBy('name'));
     return fromCollectionQuery<Category>(categoriesQuery);
   }
 
   addCategory(input: CategoryInput): Observable<void> {
-    const data: Record<string, unknown> = { name: input.name, createdAt: serverTimestamp() };
+    const data: Record<string, unknown> = withTenant({ name: input.name, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     if (input.imageUrl) data['imageUrl'] = input.imageUrl;
 
     return from(addDoc(collection(this.firestore, 'categories'), data)).pipe(map(() => undefined));

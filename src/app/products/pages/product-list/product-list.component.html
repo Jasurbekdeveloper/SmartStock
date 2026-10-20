@@ -1,7 +1,7 @@
 <div class="space-y-6">
-  <div class="flex justify-between items-center">
+  <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
-    <div class="flex gap-2">
+    <div class="flex w-full flex-wrap gap-2 sm:w-auto">
       @if (canImport()) {
       <a mat-stroked-button color="primary" routerLink="/products/import">
         <mat-icon>upload_file</mat-icon>
@@ -63,7 +63,19 @@
       <tbody>
         @for (product of pagination.paged(); track product.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ product.name }}</td>
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+            <div class="flex min-w-0 items-center gap-3">
+              @if (product.imageUrl) {
+              <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" class="h-10 w-10 shrink-0 rounded object-cover" />
+              }
+              <div class="min-w-0">
+                <p class="break-words">{{ product.name }}</p>
+                @if (product.color || product.size) {
+                <p class="text-xs font-normal text-gray-500">{{ product.color }} @if (product.color && product.size) { · } {{ product.size }}</p>
+                }
+              </div>
+            </div>
+          </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
           <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price | currencyDisplay }}</td>
           @if (canSeeCost()) {

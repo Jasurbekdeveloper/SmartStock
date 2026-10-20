@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -18,6 +18,9 @@ import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
 import { formatAltUnitsForInput, parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
+import { StorageService } from '../../../core/services/storage.service';
+import { firstValueFrom } from 'rxjs';
+import { hasDuplicateProductIdentifiers } from '../../../core/utils/product-identifiers';
 
 @Component({
   selector: 'app-product-edit',
@@ -38,7 +41,7 @@ import { formatAltUnitsForInput, parseAltUnitsInput } from '../../../core/utils/
   templateUrl: './product-edit.component.html',
   styleUrl: './product-edit.component.css'
 })
-export class ProductEditComponent implements OnInit {
+export class ProductEditComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
@@ -46,6 +49,7 @@ export class ProductEditComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private storageService = inject(StorageService);
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
   readonly units = PRODUCT_UNITS;
@@ -73,6 +77,27 @@ export class ProductEditComponent implements OnInit {
    *  split/trimmed back at save time. A signal (not a plain field) for the same
    *  zoneless reason as `altUnitsInput` above. */
   searchKeywordsInput = signal('');
+  imageFile: File | null = null;
+  imagePreview = signal<string | null>(null);
+
+  ngOnDestroy(): void {
+    const preview = this.imagePreview();
+    if (preview) URL.revokeObjectURL(preview);
+  }
+
+  selectImage(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      this.errorKey.set('products.invalidImage');
+      return;
+    }
+    const oldPreview = this.imagePreview();
+    if (oldPreview) URL.revokeObjectURL(oldPreview);
+    this.imageFile = file;
+    this.imagePreview.set(URL.createObjectURL(file));
+    this.errorKey.set(null);
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -106,10 +131,19 @@ export class ProductEditComponent implements OnInit {
       });
   }
 
-  updateProduct() {
+  updateProduct(): void {
+    void this.updateProductAsync();
+  }
+
+  private async updateProductAsync(): Promise<void> {
     const product = this.product();
     if (!product) return;
 
+    if (!product.name.trim() || !product.sku?.trim() || !Number.isFinite(product.price) || product.price < 0 ||
+      !Number.isFinite(product.quantity) || product.quantity < 0) {
+      this.errorKey.set('products.invalidProduct');
+      return;
+    }
     const before = this.originalProduct();
 
     this.submitting.set(true);
@@ -120,23 +154,41 @@ export class ProductEditComponent implements OnInit {
       .split(',')
       .map((k) => k.trim())
       .filter((k) => k.length > 0);
-    const payload: Product = {
+    let payload: Product = {
       ...product,
       altUnits: altUnits.length > 0 ? altUnits : undefined,
       searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined
     };
 
-    this.productService.updateProduct(product.id, payload).subscribe({
-      next: () => {
-        this.logProductChanges(before, payload);
-        this.router.navigate(['/products/list']);
-      },
-      error: (err) => {
-        console.error('Update product error:', err);
-        this.errorKey.set('messages.error');
+    try {
+      const existing = await firstValueFrom(this.productService.getProducts());
+      const duplicate = hasDuplicateProductIdentifiers([
+        ...existing.filter((item) => item.id !== product.id),
+        payload
+      ]);
+      if (duplicate) {
+        this.errorKey.set('products.duplicateBarcode');
         this.submitting.set(false);
+        return;
       }
-    });
+      if (this.imageFile) {
+        try {
+          payload = { ...payload, imageUrl: await firstValueFrom(this.storageService.uploadProductImage(this.imageFile)) };
+        } catch (err) {
+          console.error('Upload product image error:', err);
+          this.errorKey.set('products.imageUploadFailed');
+          this.submitting.set(false);
+          return;
+        }
+      }
+      await firstValueFrom(this.productService.updateProduct(product.id, payload));
+      this.logProductChanges(before, payload);
+      await this.router.navigate(['/products/list']);
+    } catch (err) {
+      console.error('Update product error:', err);
+      this.errorKey.set('messages.error');
+      this.submitting.set(false);
+    }
   }
 
   /** Diffs every field between the pristine "before" snapshot and the saved

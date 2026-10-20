@@ -2,7 +2,6 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,12 +9,13 @@ import { ThemeService } from '../../core/services/theme.service';
 import { Language, TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SidebarStateService } from '../sidebar/sidebar-state.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule, MatToolbarModule, MatButtonModule, MatMenuModule, MatIconModule],
+  imports: [CommonModule, RouterModule, TranslateModule, MatButtonModule, MatMenuModule, MatIconModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
@@ -27,7 +27,21 @@ export class HeaderComponent {
   private router = inject(Router);
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
-  userName = computed(() => this.currentUser()?.displayName ?? this.currentUser()?.email ?? '—');
+  userName = computed(() => this.currentUser()?.displayName || this.currentUser()?.email || '—');
+  roleKey = computed(() => {
+    const role = this.currentUser()?.role ?? 'cashier';
+    return 'users.role' + role[0].toUpperCase() + role.slice(1);
+  });
+  initials = computed(() =>
+    this.userName()
+      .split(/\s+/)
+      .map((part) => part[0] ?? '')
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
+  );
+  storeName = inject(SettingsService).storeName;
+  readonly today = new Date();
 
   readonly languages: { code: Language; name: string }[] = [
     { code: 'en', name: 'English' },
@@ -36,8 +50,9 @@ export class HeaderComponent {
     { code: 'uz-cyrillic', name: 'Ўзбек (Cyrillic)' }
   ];
 
-  currentLanguageName(): string {
-    return this.languages.find((l) => l.code === this.translationService.getLanguage())?.name ?? '';
+  currentLanguageShort(): string {
+    const short: Record<Language, string> = { en: 'EN', ru: 'RU', uz: 'UZ', 'uz-cyrillic': 'ЎЗ' };
+    return short[this.translationService.getLanguage() as Language] ?? '';
   }
 
   setLanguage(lang: Language) {

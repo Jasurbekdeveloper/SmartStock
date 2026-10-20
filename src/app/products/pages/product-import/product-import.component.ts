@@ -113,15 +113,17 @@ export class ProductImportComponent {
         firstValueFrom(this.productService.getProducts())
       ]);
 
-      const existingByBarcode = new Map<string, Product>();
+      const existingByIdentifier = new Map<string, Product>();
       for (const product of existingProducts) {
-        if (product.barcode) existingByBarcode.set(product.barcode, product);
+        if (product.barcode) existingByIdentifier.set(product.barcode.trim().toLocaleLowerCase(), product);
+        if (product.sku) existingByIdentifier.set(product.sku.trim().toLocaleLowerCase(), product);
       }
 
       const categoriesByName = new Map(this.categories().map((c) => [c.name.trim().toLowerCase(), c.id]));
 
       const preview: PreviewRow[] = rows.map((parsed) => {
-        const existing = existingByBarcode.get(parsed.barcode);
+        const existing = existingByIdentifier.get((parsed.sku ?? parsed.barcode).trim().toLocaleLowerCase())
+          ?? existingByIdentifier.get(parsed.barcode.trim().toLocaleLowerCase());
         let categoryId: string | undefined;
         let categoryWarning = false;
         if (parsed.categoryName) {
@@ -187,6 +189,7 @@ export class ProductImportComponent {
       // entirely instead leaves it untouched.
       const requiredFields = {
         name: parsed.name,
+        sku: parsed.sku ?? parsed.barcode,
         barcode: parsed.barcode,
         price: parsed.price,
         cost: parsed.cost,
@@ -196,6 +199,10 @@ export class ProductImportComponent {
       const optionalFields: Partial<Product> = {};
       if (parsed.minQuantity !== undefined) optionalFields.minQuantity = parsed.minQuantity;
       if (parsed.description !== undefined) optionalFields.description = parsed.description;
+      if (parsed.color !== undefined) optionalFields.color = parsed.color;
+      if (parsed.size !== undefined) optionalFields.size = parsed.size;
+      if (parsed.familyId !== undefined) optionalFields.familyId = parsed.familyId;
+      if (parsed.imageUrl !== undefined) optionalFields.imageUrl = parsed.imageUrl;
       if (altUnits.length > 0) optionalFields.altUnits = altUnits;
       if (searchKeywords.length > 0) optionalFields.searchKeywords = searchKeywords;
       if (row.categoryId !== undefined) optionalFields.categoryId = row.categoryId;

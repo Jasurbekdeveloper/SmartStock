@@ -1,47 +1,44 @@
 <div class="receipt" [class.receipt--58]="paperWidth() === '58'">
   @if (sale(); as sale) {
   <div class="receipt__store">{{ storeName() }}</div>
-  <div class="receipt__meta">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</div>
-  <div class="receipt__meta">{{ 'table.saleId' | translate }}: {{ sale.id }}</div>
+  @if (settings()?.storeAddress) {
+  <div class="receipt__meta">{{ settings()!.storeAddress }}</div>
+  }
+  @if (settings()?.storePhone) {
+  <div class="receipt__meta">{{ 'form.phone' | translate }}: {{ settings()!.storePhone }}</div>
+  }
+  @if (settings()?.storeTaxId) {
+  <div class="receipt__meta">{{ 'settings.storeTaxId' | translate }}: {{ settings()!.storeTaxId }}</div>
+  }
 
   <div class="receipt__divider"></div>
 
-  <table class="receipt__items">
-    <thead>
-      <tr>
-        <th class="receipt__col-name">{{ 'sales.item' | translate }}</th>
-        <th class="receipt__col-qty">{{ 'sales.qty' | translate }}</th>
-        <th class="receipt__col-price">{{ 'form.price' | translate }}</th>
-        <th class="receipt__col-total">{{ 'pos.total' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (item of sale.items; track $index) {
-      <tr>
-        <td class="receipt__col-name">{{ item.productName || ('sales.unknownProduct' | translate) }}</td>
-        <td class="receipt__col-qty">{{ item.quantity | sum: 0 }}</td>
-        <td class="receipt__col-price">{{ item.price | currencyDisplay }}</td>
-        <td class="receipt__col-total">{{ item.total | currencyDisplay }}</td>
-      </tr>
-      @if (item.discount && item.discount > 0) {
-      <tr>
-        <td class="receipt__col-name" colspan="3">{{ 'pos.itemDiscount' | translate }}</td>
-        <td class="receipt__col-total">-{{ item.discount | currencyDisplay }}</td>
-      </tr>
-      }
-      }
-    </tbody>
-  </table>
+  <div class="receipt__row"><span>{{ 'sales.receiptNo' | translate }}</span><span>{{ sale.receiptNo || sale.id.slice(0, 8) }}</span></div>
+  <div class="receipt__row"><span>{{ 'table.date' | translate }}</span><span>{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</span></div>
+  @if (sale.cashierName) {
+  <div class="receipt__row"><span>{{ 'sales.cashier' | translate }}</span><span>{{ sale.cashierName }}</span></div>
+  }
+
+  <div class="receipt__divider"></div>
+
+  @for (item of sale.items; track $index) {
+  <div class="receipt__item">
+    <div class="receipt__item-name">{{ $index + 1 }}. {{ item.productName || ('sales.unknownProduct' | translate) }}</div>
+    <div class="receipt__row">
+      <span>{{ item.quantity | sum: 3 }} {{ item.unit ? ('units.' + item.unit | translate) : '' }} × {{ item.price | sum: 2 }}</span>
+      <span>{{ item.quantity * item.price | sum: 2 }}</span>
+    </div>
+    @if (item.discount && item.discount > 0) {
+    <div class="receipt__row receipt__row--muted"><span>{{ 'pos.discount' | translate }}</span><span>-{{ item.discount | sum: 2 }}</span></div>
+    }
+  </div>
+  }
 
   <div class="receipt__divider"></div>
 
   <div class="receipt__row">
     <span>{{ 'pos.subtotal' | translate }}</span>
     <span>{{ sale.subtotal | currencyDisplay }}</span>
-  </div>
-  <div class="receipt__row">
-    <span>{{ 'pos.tax' | translate }}</span>
-    <span>{{ sale.tax | currencyDisplay }}</span>
   </div>
   @if (sale.discount && sale.discount > 0) {
   <div class="receipt__row">
@@ -50,23 +47,39 @@
   </div>
   }
   <div class="receipt__row receipt__row--total">
-    <span>{{ 'pos.total' | translate }}</span>
+    <span>{{ 'pos.toPay' | translate }}</span>
     <span>{{ sale.total | currencyDisplay }}</span>
   </div>
+  @if (sale.tax > 0) {
+  <div class="receipt__row receipt__row--muted">
+    <span>{{ (sale.vatIncluded ? 'pos.vatIncluded' : 'pos.vatAdded') | translate }}</span>
+    <span>{{ sale.tax | currencyDisplay }}</span>
+  </div>
+  }
 
   <div class="receipt__divider"></div>
 
+  @if (cash(sale) > 0 || sale.change > 0) {
   <div class="receipt__row">
-    <span>{{ 'sales.paymentMethod' | translate }}</span>
-    <span>{{ 'pos.' + sale.paymentMethod | translate }}</span>
+    <span>{{ 'pos.cash' | translate }}</span>
+    <span>{{ cash(sale) + sale.change | currencyDisplay }}</span>
   </div>
+  }
+  @if (card(sale) > 0) {
   <div class="receipt__row">
-    <span>{{ 'pos.paidAmount' | translate }}</span>
-    <span>{{ sale.paidAmount | currencyDisplay }}</span>
+    <span>{{ 'pos.card' | translate }}</span>
+    <span>{{ card(sale) | currencyDisplay }}</span>
   </div>
+  }
+  @if (sale.change > 0) {
+  <div class="receipt__row">
+    <span>{{ 'pos.change' | translate }}</span>
+    <span>{{ sale.change | currencyDisplay }}</span>
+  </div>
+  }
   @if (sale.debtAmount && sale.debtAmount > 0) {
-  <div class="receipt__row">
-    <span>{{ 'debts.title' | translate }}</span>
+  <div class="receipt__row receipt__row--strong">
+    <span>{{ 'pos.debit' | translate }}</span>
     <span>{{ sale.debtAmount | currencyDisplay }}</span>
   </div>
   @if (sale.customerId) {
@@ -75,12 +88,10 @@
     <span>{{ customerName(sale.customerId) }}</span>
   </div>
   }
-  } @else {
-  <div class="receipt__row">
-    <span>{{ 'pos.change' | translate }}</span>
-    <span>{{ sale.change | currencyDisplay }}</span>
-  </div>
   }
+
+  <div class="receipt__divider"></div>
+  <div class="receipt__thanks">{{ settings()?.receiptFooter || ('sales.receiptThanks' | translate) }}</div>
 
   <div class="receipt__footer no-print">
     <button mat-flat-button color="primary" (click)="print()">

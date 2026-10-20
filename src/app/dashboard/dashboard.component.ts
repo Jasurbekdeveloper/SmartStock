@@ -2,9 +2,12 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Sale, SalesService } from '../core/services/sales.service';
+import { RouterModule } from '@angular/router';
+import { Sale, SalesService, saleCardIn, saleCashIn, saleNetProfit, saleNetTotal } from '../core/services/sales.service';
+import { roundMoney } from '../core/utils/pos-math';
 import { Product, ProductService } from '../core/services/product.service';
 import { SettingsService } from '../core/services/settings.service';
 import { Customer, Debt, DebtService } from '../core/services/debt.service';
@@ -28,25 +31,37 @@ import {
 
 interface StatCard {
   label: string;
-  value: string | number;
+  value: string;
   icon: string;
-  color: string;
-  /** i18n key for a caveat tooltip shown next to the label, e.g. clarifying that a
-   *  figure only covers data tracked after a feature was added. Omitted for cards
-   *  that need no caveat. */
+  /** Full literal Tailwind classes (dynamically built class names get purged). */
+  tone: string;
+  /** Secondary line under the value, e.g. change vs. yesterday. */
+  hint?: string;
   caveat?: string;
 }
+
+interface DayBar {
+  label: string;
+  value: number;
+  /** 0–100, relative to the best day in the window. */
+  pct: number;
+  isToday: boolean;
+}
+
+const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     TranslatePipe,
     TranslateModule,
     SumPipe,
     CurrencyDisplayPipe,
     MatCardModule,
+    MatButtonModule,
     MatIconModule,
     MatTooltipModule
   ],
@@ -75,39 +90,106 @@ export class DashboardComponent implements OnInit {
    *  but there's no reason to re-run the whole check on every Firestore update. */
   private alertsChecked = false;
 
-  /** Today's sale documents == today's receipts (one sale = one receipt). */
-  todaySales = computed(() =>
-    this.sales().filter(s => new Date(s.createdAt).toDateString() === new Date().toDateString())
-  );
+  /** One sale = one receipt. Revenue figures are net of returns. */
+  todaySales = computed(() => this.sales().filter((s) => sameDay(new Date(s.createdAt), new Date())));
+  private yesterdaySales = computed(() => {
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    return this.sales().filter((s) => sameDay(new Date(s.createdAt), y));
+  });
   receiptsToday = computed(() => this.todaySales().length);
-  todayRevenue = computed(() => this.todaySales().reduce((sum, s) => sum + s.total, 0));
-  /** Today's total revenue divided by today's receipt count; guards against divide-by-zero. */
+  todayRevenue = computed(() => roundMoney(this.todaySales().reduce((sum, s) => sum + saleNetTotal(s), 0)));
+  private yesterdayRevenue = computed(() => this.yesterdaySales().reduce((sum, s) => sum + saleNetTotal(s), 0));
   avgReceiptValue = computed(() => {
     const count = this.receiptsToday();
     return count > 0 ? this.todayRevenue() / count : 0;
   });
-  /** Sum of today's sales' `totalNetProfit`; `?? 0` keeps pre-feature sales (which
-   *  omit the field) from turning the sum into `NaN`. */
-  todayNetProfit = computed(() => this.todaySales().reduce((sum, s) => sum + (s.totalNetProfit ?? 0), 0));
+  todayNetProfit = computed(() => this.todaySales().reduce((sum, s) => sum + saleNetProfit(s), 0));
+
+  todayPayments = computed(() => {
+    const sales = this.todaySales();
+    const cash = sales.reduce((s, x) => s + saleCashIn(x), 0);
+    const card = sales.reduce((s, x) => s + saleCardIn(x), 0);
+    const debt = sales.reduce((s, x) => s + (x.debtAmount ?? 0), 0);
+    const total = cash + card + debt || 1;
+    return [
+      { key: 'pos.cash', value: cash, pct: (cash / total) * 100, bar: 'bg-emerald-500' },
+      { key: 'pos.card', value: card, pct: (card / total) * 100, bar: 'bg-sky-500' },
+      { key: 'pos.debit', value: debt, pct: (debt / total) * 100, bar: 'bg-amber-500' }
+    ];
+  });
+
+  /** Revenue for each of the last 7 days, oldest first. */
+  last7Days = computed<DayBar[]>(() => {
+    const days: { date: Date; value: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      days.push({ date: d, value: 0 });
+    }
+    const first = days[0].date.getTime();
+    for (const sale of this.sales()) {
+      const t = new Date(sale.createdAt);
+      if (t.getTime() < first) continue;
+      const day = days.find((d) => sameDay(d.date, t));
+      if (day) day.value += saleNetTotal(sale);
+    }
+    const max = Math.max(1, ...days.map((d) => d.value));
+    return days.map((d, i) => ({
+      label: d.date.toLocaleDateString(undefined, { weekday: 'short' }),
+      value: d.value,
+      pct: Math.max(2, (d.value / max) * 100),
+      isToday: i === days.length - 1
+    }));
+  });
+
+  outstandingDebt = computed(() =>
+    (this.latestDebts() ?? []).reduce((sum, d) => sum + Math.max(0, d.remainingAmount), 0)
+  );
 
   /** `computed()` rather than a signal set imperatively from `ngOnInit`'s subscribe —
    *  this must also recompute if the currency symbol changes in Settings without a
    *  fresh sale coming in, not only when `sales()` changes. */
   stats = computed<StatCard[]>(() => {
     const symbol = this.settingsService.currencySymbol();
-    const totalRevenue = this.sales().reduce((sum, s) => sum + s.total, 0);
+    const money = (v: number) => `${formatNumber(v, 0)} ${symbol}`;
+    const yesterday = this.yesterdayRevenue();
+    const change = yesterday > 0 ? ((this.todayRevenue() - yesterday) / yesterday) * 100 : null;
+    const changeHint = change === null ? undefined : `${change >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(change), 1)}%`;
 
     return [
-      { label: 'dashboard.receiptsToday', value: formatNumber(this.receiptsToday(), 0), icon: 'receipt_long', color: 'blue' },
-      { label: 'dashboard.todayRevenue', value: `${formatNumber(this.todayRevenue())} ${symbol}`, icon: 'payments', color: 'green' },
-      { label: 'dashboard.totalRevenue', value: `${formatNumber(totalRevenue)} ${symbol}`, icon: 'bar_chart', color: 'purple' },
-      { label: 'dashboard.avgReceiptValue', value: `${formatNumber(this.avgReceiptValue())} ${symbol}`, icon: 'trending_up', color: 'orange' },
+      {
+        label: 'dashboard.todayRevenue',
+        value: money(this.todayRevenue()),
+        icon: 'payments',
+        tone: 'bg-brand-100 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300',
+        hint: changeHint
+      },
+      {
+        label: 'dashboard.receiptsToday',
+        value: formatNumber(this.receiptsToday(), 0),
+        icon: 'receipt_long',
+        tone: 'bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-300'
+      },
+      {
+        label: 'dashboard.avgReceiptValue',
+        value: money(this.avgReceiptValue()),
+        icon: 'shopping_basket',
+        tone: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300'
+      },
       {
         label: 'dashboard.todayNetProfit',
-        value: `${formatNumber(this.todayNetProfit())} ${symbol}`,
+        value: money(this.todayNetProfit()),
         icon: 'savings',
-        color: 'teal',
+        tone: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300',
         caveat: 'dashboard.profitCaveat'
+      },
+      {
+        label: 'dashboard.outstandingDebt',
+        value: money(this.outstandingDebt()),
+        icon: 'account_balance_wallet',
+        tone: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300'
       }
     ];
   });

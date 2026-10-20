@@ -1,53 +1,51 @@
-<div class="h-full flex flex-col bg-gray-900 dark:bg-gray-950 text-white">
-  <div class="p-4 border-b border-gray-700 flex justify-between items-center">
-    <h2 class="text-xl font-bold">{{ 'navigation.menu' | translate }}</h2>
-    <button
-      (click)="sidebarState.closeMobile()"
-      class="lg:hidden hover:bg-gray-800 p-2 rounded"
-      aria-label="Close menu"
-    >
+<div class="side">
+  <div class="side__brand">
+    <a routerLink="/dashboard" (click)="onNavigate()" class="flex items-center gap-3 min-w-0">
+      <img src="/logo.svg" alt="" class="w-9 h-9 shrink-0" />
+      <span class="min-w-0">
+        <span class="block font-extrabold leading-tight text-white truncate">{{ storeName() }}</span>
+        <span class="block text-[11px] uppercase tracking-wider text-slate-400">POS · {{ 'navigation.menu' | translate }}</span>
+      </span>
+    </a>
+    <button (click)="sidebarState.closeMobile()" class="lg:hidden p-2 rounded-lg hover:bg-white/10" aria-label="Close menu">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <mat-nav-list class="!py-2 flex-1 overflow-y-auto">
-    @for (item of visibleMenuItems(); track item.label) {
-    <a
-      mat-list-item
-      [routerLink]="item.children ? null : item.path"
-      routerLinkActive="!bg-blue-900/40"
-      [routerLinkActiveOptions]="{ exact: false }"
-      (click)="onItemClick(item)"
-      class="!text-white cursor-pointer"
-    >
-      @if (item.icon) {
-      <mat-icon matListItemIcon class="!text-white">{{ item.icon }}</mat-icon>
-      }
-      <span matListItemTitle class="!text-white">{{ item.label | translate }}</span>
-      @if (item.children) {
-      <mat-icon
-        matListItemMeta
-        class="!text-white transition-transform"
-        [class.rotate-180]="expandedMenu() === item.label"
-      >expand_more</mat-icon>
-      }
-    </a>
+  <a routerLink="/pos" (click)="onNavigate()" class="side__cta">
+    <mat-icon>point_of_sale</mat-icon>
+    <span class="flex-1">{{ 'navigation.pos' | translate }}</span>
+    <kbd>POS</kbd>
+  </a>
 
-    @if (item.children && expandedMenu() === item.label) {
-    <mat-nav-list class="!py-0 !pl-8">
+  <nav class="side__nav">
+    @for (item of visibleMenuItems(); track item.label) {
+    @if (item.children) {
+    <button type="button" class="side__item" [class.side__item--open]="expandedMenu() === item.label" (click)="onItemClick(item)">
+      <mat-icon>{{ item.icon }}</mat-icon>
+      <span class="flex-1 text-left">{{ item.label | translate }}</span>
+      <mat-icon class="side__chev" [class.rotate-180]="expandedMenu() === item.label">expand_more</mat-icon>
+    </button>
+    @if (expandedMenu() === item.label) {
+    <div class="side__sub">
       @for (child of item.children; track child.path) {
-      <a
-        mat-list-item
-        [routerLink]="child.path"
-        routerLinkActive="!bg-blue-900/40"
-        (click)="onNavigate()"
-        class="!text-gray-200 !min-h-10 cursor-pointer"
-      >
-        <span matListItemTitle class="!text-gray-200 !text-sm">{{ child.label | translate }}</span>
+      <a [routerLink]="child.path" routerLinkActive="side__subitem--active" (click)="onNavigate()" class="side__subitem">
+        {{ child.label | translate }}
       </a>
       }
-    </mat-nav-list>
+    </div>
+    }
+    } @else {
+    <a [routerLink]="item.path" routerLinkActive="side__item--active" (click)="onNavigate()" class="side__item">
+      <mat-icon>{{ item.icon }}</mat-icon>
+      <span class="flex-1">{{ item.label | translate }}</span>
+    </a>
     }
     }
-  </mat-nav-list>
+  </nav>
+
+  <div class="side__foot">
+    <span class="w-2 h-2 rounded-full" [class]="online() ? 'bg-green-500' : 'bg-amber-500'"></span>
+    {{ (online() ? 'common.online' : 'common.offline') | translate }}
+  </div>
 </div>

@@ -10,7 +10,22 @@
     "submit": "Submit",
     "logout": "Logout",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "online": "Online",
+    "offline": "Offline — sales queued",
+    "theme": "Theme"
+  },
+  "tenant": {
+    "backToHome": "Back to home",
+    "createStore": "Create a store",
+    "createStoreDescription": "Create an account and start managing your store.",
+    "storeName": "Store name",
+    "ownerName": "Owner name",
+    "passwordHint": "At least 6 characters",
+    "existingAccount": "Already have an account?",
+    "noAccount": "New to SmartStock?",
+    "invalidRegistration": "Complete every field and use a password with at least 6 characters.",
+    "registrationFailed": "Could not create your account. Check your details and try again."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -49,6 +64,21 @@
     "altUnitsHint": "Comma-separated unit:factor pairs, e.g. quti:20,karobka:100 (1 quti = 20 primary units)",
     "searchKeywords": "Search Keywords",
     "searchKeywordsHint": "Comma-separated extra search terms/synonyms, e.g. truba, quvur shlangi — so the product is also found under these words",
+    "color": "Color",
+    "size": "Size",
+    "sku": "SKU",
+    "productImage": "Product image",
+    "imageHint": "Use a PNG, JPEG, or WebP image up to 5 MB.",
+    "requiredImageMaxSize": "Images are optional. Firebase Storage must be configured to upload them.",
+    "imageUploadFailed": "The image could not be uploaded. Check the Firebase Storage setup.",
+    "invalidImage": "Choose a PNG, JPEG, or WebP image no larger than 5 MB.",
+    "variants": "Color and size variants",
+    "baseVariantHint": "The fields above define the first variant. Each variant has its own price and stock.",
+    "addVariant": "Add variant",
+    "variantImage": "Variant image (optional)",
+    "invalidProduct": "Check the product name, price, and stock values.",
+    "invalidVariant": "Give each additional variant a color or size; price and stock cannot be negative.",
+    "duplicateBarcode": "This barcode is already assigned to another product or variant in this store.",
     "import": {
       "title": "Import Products from Excel",
       "hint": "Upload an .xlsx file to create or update many products at once. A row whose barcode matches an existing product updates it; a new barcode creates a product. Expected columns:",
@@ -113,7 +143,7 @@
     "proceedToPay": "PROCEED TO PAY",
     "cash": "Cash",
     "card": "Card",
-    "debit": "Debt",
+    "debit": "On credit",
     "amountDue": "Amount Due",
     "insufficientAmount": "Paid amount is not enough",
     "saleCompleted": "Sale completed! Change",
@@ -124,6 +154,8 @@
     "itemDiscount": "Item discount",
     "scanBarcode": "Scan barcode",
     "scanNotFound": "No product matches this barcode",
+    "decreaseQuantity": "Decrease quantity for",
+    "increaseQuantity": "Increase quantity for",
     "cameraError": "Camera access denied or unavailable",
     "holdCart": "Hold Cart",
     "heldCarts": "Held Carts",
@@ -133,7 +165,29 @@
     "discardHeldCartConfirm": "Are you sure you want to discard this held cart? This cannot be undone.",
     "holdCartLabelPrompt": "Optional label for this held cart (e.g. customer name):",
     "enterInAltUnit": "Enter in unit",
-    "creditLimitExceeded": "Customer's credit limit is {{limit}}, current debt is {{current}} — this sale would exceed the limit"
+    "creditLimitExceeded": "Customer's credit limit is {{limit}}, current debt is {{current}} — this sale would exceed the limit",
+    "notEnoughStock": "not enough in stock",
+    "productRemoved": "product was removed from the catalog, take it out of the cart",
+    "popular": "Popular",
+    "outOfStock": "Out of stock",
+    "positions": "items",
+    "emptyCartHint": "Scan a product or pick one from the list",
+    "inStock": "In stock",
+    "vatIncluded": "Incl. VAT",
+    "vatAdded": "VAT",
+    "hintSearch": "Search",
+    "hintClearSearch": "Clear",
+    "mixed": "Split",
+    "sum": "Amount",
+    "cashReceived": "Cash received",
+    "prepayment": "Prepayment (cash)",
+    "cardFullHint": "The full amount is paid by card",
+    "debtWillBeCreated": "Goes on credit",
+    "currentDebt": "Current debt",
+    "completeSale": "Complete sale",
+    "saleDone": "Sale completed",
+    "newSale": "New sale",
+    "toPay": "TOTAL DUE"
   },
   "stock": {
     "title": "Stock Management",
@@ -190,7 +244,10 @@
     "allPaymentMethods": "All payment methods",
     "fromDate": "From date",
     "toDate": "To date",
-    "noResults": "No sales match the filters"
+    "noResults": "No sales match the filters",
+    "receiptNo": "Receipt #",
+    "cashier": "Cashier",
+    "receiptThanks": "Thank you for your purchase!"
   },
   "shifts": {
     "title": "Shift Management",
@@ -219,7 +276,8 @@
     "confirmClose": "Confirm and close",
     "alreadyClosed": "This shift has already been closed",
     "noShiftsFound": "No shifts found",
-    "notes": "Notes"
+    "notes": "Notes",
+    "shiftOpen": "Shift open"
   },
   "debts": {
     "title": "Debts Management",
@@ -294,7 +352,14 @@
     "receiptPaperWidth": "Receipt Paper Width",
     "telegramBotToken": "Telegram Bot Token",
     "telegramChatId": "Telegram Chat ID",
-    "telegramHint": "Used for low-stock and debt-due alerts (coming in a future update)."
+    "telegramHint": "Used for low-stock and debt-due alerts (coming in a future update).",
+    "receiptFooter": "Receipt footer text",
+    "vatMode": "VAT calculation",
+    "vatIncluded": "Included in price",
+    "vatOnTop": "Added on top",
+    "vatModeHint": "Retail prices usually include VAT (\"Included in price\"). If you are not a VAT payer, set the rate to 0.",
+    "storeTelegram": "Telegram (username)",
+    "workingHours": "Working hours"
   },
   "statistics": {
     "title": "Statistics",
@@ -322,6 +387,8 @@
     "topDebtors": "Top Debtors",
     "noData": "No data available",
     "exportExcel": "Export Excel",
+    "exportFullReport": "Export full Excel report",
+    "inventory": "Inventory",
     "netProfit": "Net Profit",
     "profitMargin": "Profit Margin",
     "profitCaveat": "Only calculated for sales made after this feature was added"
@@ -339,7 +406,14 @@
     "profitCaveat": "Only calculated for sales made after this feature was added",
     "lowStock": "Low Stock Products",
     "lowStockAlert": "Low stock: \"{{name}}\" — only {{quantity}} {{unit}} left.",
-    "debtDueAlert": "Debt overdue: {{name}} — remaining {{amount}} so'm."
+    "debtDueAlert": "Debt overdue: {{name}} — remaining {{amount}} so'm.",
+    "subtitle": "Today's sales at a glance",
+    "newSale": "New sale",
+    "vsYesterday": "vs yesterday",
+    "last7Days": "Revenue, last 7 days",
+    "todayPayments": "Today's payments",
+    "outstandingDebt": "Customer debt",
+    "viewAll": "View all"
   },
   "table": {
     "saleId": "Sale ID",
@@ -369,7 +443,8 @@
     "category": "Category",
     "enterCategory": "Enter category",
     "description": "Description",
-    "enterDescription": "Enter description"
+    "enterDescription": "Enter description",
+    "phone": "Phone"
   },
   "auth": {
     "login": "Login",
@@ -378,7 +453,16 @@
     "enterEmail": "Enter your email",
     "enterPassword": "Enter your password",
     "loginButton": "Login",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "brandTitle": "Your whole store in one window",
+    "brandText": "Checkout, stock, credit and reports — fast, and it keeps working offline.",
+    "brandPoint1": "Fast checkout with scanner and hotkeys",
+    "brandPoint2": "Real-time stock levels",
+    "brandPoint3": "Profit, shift and debt reports",
+    "welcome": "Welcome back",
+    "loginSubtitle": "Sign in with your staff account",
+    "adminProvisionedOnly": "Only an administrator can create new accounts.",
+    "backToSite": "Back to website"
   },
   "users": {
     "title": "User Management",
@@ -456,5 +540,148 @@
     "deleted": "Item deleted successfully",
     "saved": "Changes saved successfully",
     "created": "Item created successfully"
+  },
+  "returns": {
+    "title": "Returns",
+    "short": "Returned",
+    "newReturn": "Return items",
+    "returnable": "Returnable",
+    "refundMethod": "Refund method",
+    "reason": "Reason (optional)",
+    "refundAmount": "Refund amount",
+    "confirm": "Confirm return",
+    "saved": "Return saved, items put back in stock",
+    "cashRefunds": "Cash refunded",
+    "debtSaleHint": "Part of this sale is on credit — only the paid part can be refunded."
+  },
+  "landing": {
+    "tagline": "Building supplies",
+    "viewSite": "Store website",
+    "staffLogin": "Staff login",
+    "toDashboard": "Dashboard",
+    "nav": {
+      "catalog": "Products",
+      "why": "Why us",
+      "order": "Ordering",
+      "contact": "Contact"
+    },
+    "hero": {
+      "eyebrow": "Wholesale & retail",
+      "title1": "Everything you need to build —",
+      "title2": "genuine, in one place",
+      "subtitle": "From cement to plumbing: quality certified building materials, fair prices and delivery to your site.",
+      "order": "Place an order",
+      "browse": "Browse products",
+      "badgeTitle": "Delivered to your site",
+      "badgeText": "Across the city, fast and careful"
+    },
+    "stats": {
+      "assortment": "Products",
+      "assortmentValue": "1000+",
+      "delivery": "Delivery",
+      "deliveryValue": "1 day",
+      "quality": "Genuine"
+    },
+    "catalog": {
+      "title": "For every stage of construction",
+      "subtitle": "From foundation to roof — get everything in one place and save time and money."
+    },
+    "cat": {
+      "cement": {
+        "title": "Cement & mixes",
+        "text": "Cement, putty, plaster, tile adhesive"
+      },
+      "bricks": {
+        "title": "Bricks & blocks",
+        "text": "Fired brick, aerated and foam blocks"
+      },
+      "metal": {
+        "title": "Rebar & metal",
+        "text": "Rebar, profiles, pipes, wire"
+      },
+      "paint": {
+        "title": "Paints & varnish",
+        "text": "Interior and facade paint, primer, varnish"
+      },
+      "plumbing": {
+        "title": "Plumbing",
+        "text": "Pipes, fittings, taps, accessories"
+      },
+      "electrical": {
+        "title": "Electrical",
+        "text": "Cable, sockets, breakers, lighting"
+      },
+      "tools": {
+        "title": "Tools",
+        "text": "Hand and power tools, consumables"
+      },
+      "roofing": {
+        "title": "Roofing",
+        "text": "Profiled sheet, slate, tiles, insulation"
+      }
+    },
+    "why": {
+      "title": "Why builders buy from us",
+      "subtitle": "Contractors and craftsmen choose us for quality, price and service."
+    },
+    "feat": {
+      "original": {
+        "title": "Genuine products only",
+        "text": "Straight from manufacturers and official distributors. No counterfeits."
+      },
+      "prices": {
+        "title": "Fair prices",
+        "text": "Special wholesale prices and discounts. The price is on the receipt — no hidden fees."
+      },
+      "delivery": {
+        "title": "Fast delivery",
+        "text": "We deliver your order to the site and unload it."
+      },
+      "advice": {
+        "title": "Expert advice",
+        "text": "Experienced staff help you choose and calculate materials."
+      },
+      "payment": {
+        "title": "Easy payment",
+        "text": "Cash, card or split payment. A receipt for every purchase."
+      },
+      "wholesale": {
+        "title": "For regular customers",
+        "text": "Credit and individual terms for builders and contractors."
+      }
+    },
+    "order": {
+      "title": "Ordering is easy"
+    },
+    "step": {
+      "call": {
+        "title": "Call or message us",
+        "text": "Send your materials list by phone or Telegram."
+      },
+      "prepare": {
+        "title": "We prepare it",
+        "text": "We confirm prices and availability and pack the order."
+      },
+      "deliver": {
+        "title": "Pick up or delivery",
+        "text": "Collect it from the store or we deliver it to your site."
+      }
+    },
+    "cta": {
+      "title": "Have an estimate? We will price it",
+      "text": "Send us the list — we reply within minutes.",
+      "visit": "Visit the store"
+    },
+    "contact": {
+      "title": "Visit our store",
+      "address": "Address",
+      "phone": "Phone",
+      "hours": "Opening hours",
+      "askUs": "Ask us by phone",
+      "defaultHours": "Daily 8:00–19:00"
+    },
+    "footer": {
+      "rights": "All rights reserved"
+    }
   }
 }

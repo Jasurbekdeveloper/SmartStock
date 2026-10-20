@@ -1,16 +1,16 @@
-<mat-sidenav-container class="h-screen" (backdropClick)="sidebarState.closeMobile()">
+<mat-sidenav-container class="h-screen !bg-transparent" (backdropClick)="sidebarState.closeMobile()">
   <mat-sidenav
     [mode]="isHandset() ? 'over' : 'side'"
     [opened]="isHandset() ? sidebarState.mobileOpen() : true"
     (closedStart)="sidebarState.closeMobile()"
-    class="!w-64"
+    class="!w-64 !border-0 !rounded-none !bg-slate-900"
   >
     <app-sidebar></app-sidebar>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content class="!bg-transparent">
     <app-header></app-header>
-    <main class="p-4 lg:p-6 bg-gray-100 dark:bg-gray-950 min-h-[calc(100%-4rem)]">
+    <main class="p-4 lg:p-6 min-h-[calc(100%-4rem)]">
       <router-outlet></router-outlet>
     </main>
   </mat-sidenav-content>

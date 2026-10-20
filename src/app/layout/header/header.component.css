@@ -1,5 +1,51 @@
-.header {
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: block;
+}
+
+.topbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.25rem;
+  height: 4rem;
+  padding: 0 0.75rem;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+@media (min-width: 1024px) {
+  .topbar {
+    padding: 0 1.5rem;
+  }
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.25rem;
+  padding: 0.25rem 0.4rem 0.25rem 0.25rem;
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.topbar__user:hover {
+  background: var(--surface-2);
+}
+
+.topbar__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
 }

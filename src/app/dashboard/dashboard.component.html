@@ -1,67 +1,141 @@
-<div class="space-y-8">
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-    @for (stat of stats(); track $index) {
-    <mat-card
-      class="!p-6 hover:shadow-lg transition"
-      [ngClass]="'border-l-4 border-' + stat.color + '-500'"
-    >
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-gray-500 dark:text-gray-400 text-sm font-medium flex items-center gap-1">
+<div class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="page-title">{{ 'navigation.dashboard' | translate }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'dashboard.subtitle' | translate }}</p>
+    </div>
+    <div class="flex gap-2">
+      <a mat-stroked-button routerLink="/sales/history">
+        <mat-icon>receipt_long</mat-icon>
+        {{ 'sales.salesHistory' | translate }}
+      </a>
+      <a mat-flat-button color="primary" routerLink="/pos">
+        <mat-icon>point_of_sale</mat-icon>
+        {{ 'dashboard.newSale' | translate }}
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+    @for (stat of stats(); track stat.label) {
+    <mat-card class="!p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
             {{ stat.label | translate }}
             @if (stat.caveat) {
             <mat-icon class="!w-4 !h-4 !text-base text-gray-400 cursor-help" [matTooltip]="stat.caveat | translate">info</mat-icon>
             }
           </p>
-          <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ stat.value }}</p>
+          <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums truncate">{{ stat.value }}</p>
+          @if (stat.hint) {
+          <p class="mt-0.5 text-xs font-semibold" [class]="stat.hint.startsWith('▲') ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+            {{ stat.hint }} <span class="font-normal text-gray-500 dark:text-gray-400">{{ 'dashboard.vsYesterday' | translate }}</span>
+          </p>
+          }
         </div>
-        <mat-icon [ngClass]="'text-' + stat.color + '-500'" class="!w-10 !h-10 !text-4xl">{{ stat.icon }}</mat-icon>
+        <span class="grid place-items-center w-11 h-11 rounded-xl shrink-0" [class]="stat.tone">
+          <mat-icon>{{ stat.icon }}</mat-icon>
+        </span>
       </div>
     </mat-card>
     }
   </div>
 
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+    <!-- 7 day chart -->
+    <mat-card class="!p-5 xl:col-span-2">
+      <h2 class="font-bold text-gray-900 dark:text-white mb-4">{{ 'dashboard.last7Days' | translate }}</h2>
+      <div class="flex items-end gap-2 sm:gap-4 h-48">
+        @for (day of last7Days(); track $index) {
+        <div class="flex-1 flex flex-col items-center gap-2 h-full">
+          <div class="flex-1 w-full flex items-end">
+            <div
+              class="w-full rounded-t-lg transition-all"
+              [class]="day.isToday ? 'bg-brand-500' : 'bg-brand-200 dark:bg-brand-900/60'"
+              [style.height.%]="day.pct"
+              [matTooltip]="(day.value | currencyDisplay:0)"
+            ></div>
+          </div>
+          <span class="text-xs capitalize" [class]="day.isToday ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'">{{ day.label }}</span>
+        </div>
+        }
+      </div>
+    </mat-card>
+
+    <!-- payment split -->
+    <mat-card class="!p-5">
+      <h2 class="font-bold text-gray-900 dark:text-white mb-4">{{ 'dashboard.todayPayments' | translate }}</h2>
+      <div class="space-y-4">
+        @for (p of todayPayments(); track p.key) {
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="text-gray-600 dark:text-gray-300">{{ p.key | translate }}</span>
+            <span class="font-semibold text-gray-900 dark:text-white tabular-nums">{{ p.value | currencyDisplay:0 }}</span>
+          </div>
+          <div class="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+            <div class="h-full rounded-full" [class]="p.bar" [style.width.%]="p.pct"></div>
+          </div>
+        </div>
+        }
+      </div>
+    </mat-card>
+  </div>
+
   @if (lowStockProducts().length > 0) {
-  <mat-card class="!p-6 border-l-4 border-red-500">
-    <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-      {{ 'dashboard.lowStock' | translate }}
-      <span class="text-sm font-normal text-red-600 dark:text-red-400">({{ lowStockProducts().length }})</span>
-    </h2>
+  <mat-card class="!p-5">
+    <div class="flex items-center gap-2 mb-3">
+      <mat-icon class="text-red-500">inventory</mat-icon>
+      <h2 class="font-bold text-gray-900 dark:text-white">{{ 'dashboard.lowStock' | translate }}</h2>
+      <span class="badge badge--red">{{ lowStockProducts().length }}</span>
+    </div>
     <div class="flex flex-wrap gap-2">
       @for (product of lowStockProducts(); track product.id) {
-      <span class="px-3 py-1 text-sm rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
-        {{ product.name }}: {{ product.quantity | sum:0 }} {{ 'units.' + product.unit | translate }}
+      <span class="badge badge--red !py-1 !px-3 !font-medium">
+        {{ product.name }}: {{ product.quantity | sum:2 }} {{ 'units.' + product.unit | translate }}
       </span>
       }
     </div>
   </mat-card>
   }
 
-  <mat-card class="!p-6">
-    <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">{{ 'dashboard.recentSales' | translate }}</h2>
+  <mat-card class="!p-0 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4">
+      <h2 class="font-bold text-gray-900 dark:text-white">{{ 'dashboard.recentSales' | translate }}</h2>
+      <a mat-button routerLink="/sales/history">{{ 'dashboard.viewAll' | translate }}</a>
+    </div>
     @if (sales().length > 0) {
     <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-gray-100 dark:bg-gray-700">
+      <table class="data-table">
+        <thead>
           <tr>
-            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.items' | translate }}</th>
-            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.total' | translate }}</th>
-            <th class="px-4 py-2 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+            <th>№</th>
+            <th>{{ 'table.items' | translate }}</th>
+            <th>{{ 'sales.paymentMethod' | translate }}</th>
+            <th class="text-right">{{ 'table.total' | translate }}</th>
+            <th class="text-right">{{ 'table.date' | translate }}</th>
           </tr>
         </thead>
         <tbody>
-          @for (sale of sales().slice(0, 10); track sale.id) {
-          <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-            <td class="px-4 py-2 text-gray-900 dark:text-white">{{ itemNames(sale) }}</td>
-            <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
-            <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
+          @for (sale of sales().slice(0, 8); track sale.id) {
+          <tr class="cursor-pointer" [routerLink]="['/sales', sale.id]">
+            <td class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
+            <td class="max-w-xs truncate">{{ itemNames(sale) }}</td>
+            <td>
+              <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
+              @if (sale.debtAmount) { <span class="badge badge--amber ml-1">{{ 'pos.debit' | translate }}</span> }
+              @if (sale.refundedAmount) { <span class="badge badge--red ml-1">{{ 'returns.short' | translate }}</span> }
+            </td>
+            <td class="text-right font-semibold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
+            <td class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>
           </tr>
           }
         </tbody>
       </table>
     </div>
     } @else {
-    <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.noSalesYet' | translate }}</p>
+    <p class="text-gray-500 dark:text-gray-400 text-center py-10">{{ 'messages.noSalesYet' | translate }}</p>
     }
   </mat-card>
 </div>

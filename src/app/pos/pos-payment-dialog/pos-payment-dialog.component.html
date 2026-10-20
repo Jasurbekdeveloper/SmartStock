@@ -1,85 +1,135 @@
-<h2 mat-dialog-title>{{ 'pos.checkout' | translate }}</h2>
-
-<mat-dialog-content>
-  <div class="space-y-3">
-    <div class="grid gap-3 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg" [class.grid-cols-3]="hasDebtPortion()" [class.grid-cols-2]="!hasDebtPortion()">
-      <div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'pos.amountDue' | translate }}</p>
-        @if (discount() > 0) {
-        <p class="text-xs text-gray-400 dark:text-gray-500 line-through">{{ originalTotal() | currencyDisplay }}</p>
-        }
-        <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ discountedTotal() | currencyDisplay }}</p>
-      </div>
+@let c = checkout();
+@let sp = split();
+<div class="pay">
+  <div class="pay__head">
+    <div>
+      <p class="pay__label">{{ 'pos.amountDue' | translate }}</p>
+      @if (c.cartDiscount > 0) {
+      <p class="pay__old">{{ originalTotal | currencyDisplay:0 }}</p>
+      }
+      <p class="pay__total">{{ c.total | currencyDisplay:0 }}</p>
+    </div>
+    <div class="text-right">
       @if (hasDebtPortion()) {
-      <div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'debts.remainingAmount' | translate }}</p>
-        <p class="text-lg font-bold text-red-600 dark:text-red-400">{{ debtAmount() | currencyDisplay }}</p>
-      </div>
-      } @else if (paidAmount() > 0) {
-      <div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'pos.change' | translate }}</p>
-        <p class="text-lg font-bold text-green-600 dark:text-green-400">{{ change() | currencyDisplay }}</p>
-      </div>
+      <p class="pay__label">{{ 'pos.debit' | translate }}</p>
+      <p class="pay__side text-red-600 dark:text-red-400">{{ sp.debt | currencyDisplay:0 }}</p>
+      } @else {
+      <p class="pay__label">{{ 'pos.change' | translate }}</p>
+      <p class="pay__side text-green-600 dark:text-green-400">{{ sp.change | currencyDisplay:0 }}</p>
       }
     </div>
+  </div>
 
-    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-      <mat-label>{{ 'pos.discount' | translate }}</mat-label>
-      <input matInput type="number" [ngModel]="discount()" (ngModelChange)="discount.set($event || 0)" step="0.01" min="0" [max]="data.subtotal" placeholder="0.00" />
-    </mat-form-field>
+  <mat-dialog-content class="!pt-4">
+    <!-- Tender type -->
+    <div class="pay__tenders">
+      <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'cash'" (click)="setTender('cash')">
+        <mat-icon>payments</mat-icon>{{ 'pos.cash' | translate }}
+      </button>
+      <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'card'" (click)="setTender('card')">
+        <mat-icon>credit_card</mat-icon>{{ 'pos.card' | translate }}
+      </button>
+      <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'mixed'" (click)="setTender('mixed')">
+        <mat-icon>call_split</mat-icon>{{ 'pos.mixed' | translate }}
+      </button>
+      <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'debt'" (click)="setTender('debt')">
+        <mat-icon>person_add</mat-icon>{{ 'pos.debit' | translate }}
+      </button>
+    </div>
 
-    <div>
-      <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">{{ 'pos.paymentMethod' | translate }}:</label>
-      <mat-button-toggle-group class="w-full" [value]="paymentMethod()" (change)="paymentMethod.set($event.value)">
-        <mat-button-toggle value="cash" class="!flex-1">{{ 'pos.cash' | translate }}</mat-button-toggle>
-        <mat-button-toggle value="card" class="!flex-1">{{ 'pos.card' | translate }}</mat-button-toggle>
+    <!-- Discount -->
+    <div class="flex items-start gap-2 mt-4">
+      <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
+        <mat-label>{{ 'pos.discount' | translate }}</mat-label>
+        <input matInput type="number" min="0" step="any" [ngModel]="discountInput()" (ngModelChange)="setDiscount($event)" />
+        @if (discount() > 0 && discountMode() === 'percent') {
+        <span matTextSuffix class="text-xs opacity-70">= {{ discount() | currencyDisplay:0 }}</span>
+        }
+      </mat-form-field>
+      <mat-button-toggle-group class="!h-14" [value]="discountMode()" (change)="setDiscountMode($event.value)">
+        <mat-button-toggle value="amount">{{ 'pos.sum' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="percent">%</mat-button-toggle>
       </mat-button-toggle-group>
     </div>
 
-    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-      <mat-label>{{ 'pos.paidAmount' | translate }}</mat-label>
-      <input matInput type="number" [ngModel]="paidAmount()" (ngModelChange)="paidAmount.set($event)" (keydown.enter)="submit()" step="0.01" min="0" [placeholder]="'pos.enterAmount' | translate" />
+    <!-- Amounts -->
+    @if (tender() === 'mixed') {
+    <mat-form-field appearance="outline" class="w-full mt-3" subscriptSizing="dynamic">
+      <mat-label>{{ 'pos.card' | translate }}</mat-label>
+      <mat-icon matPrefix class="mx-2">credit_card</mat-icon>
+      <input matInput type="number" min="0" step="any" [ngModel]="cardInput()" (ngModelChange)="setCard($event)" />
+    </mat-form-field>
+    }
+
+    @if (tender() !== 'card') {
+    <mat-form-field appearance="outline" class="w-full mt-3" subscriptSizing="dynamic">
+      <mat-label>{{ (tender() === 'debt' ? 'pos.prepayment' : 'pos.cashReceived') | translate }}</mat-label>
+      <mat-icon matPrefix class="mx-2">payments</mat-icon>
+      <input
+        matInput
+        type="number"
+        min="0"
+        step="any"
+        cdkFocusInitial
+        [ngModel]="cashInput()"
+        (ngModelChange)="setCash($event)"
+        (keydown.enter)="submit()"
+      />
     </mat-form-field>
 
-    @if (quickAmounts().length > 0) {
-    <div class="flex flex-wrap gap-1.5">
+    @if (tender() !== 'debt') {
+    <div class="flex flex-wrap gap-2 mt-2">
       @for (amount of quickAmounts(); track amount) {
-      <button
-        type="button"
-        mat-stroked-button
-        (click)="setPaidAmount(amount)"
-      >
-        {{ amount | currencyDisplay:0 }}
-      </button>
+      <button type="button" class="pay__quick" (click)="setCash(amount)">{{ amount | currencyDisplay:0 }}</button>
       }
-      <button type="button" mat-stroked-button color="warn" (click)="setPaidAmount(0)">
-        {{ 'pos.allOnCredit' | translate }}
-      </button>
     </div>
     }
-    @if (hasDebtPortion()) {
-    <p class="text-orange-600 dark:text-orange-400 text-xs">
-      {{ debtAmount() | currencyDisplay }} — {{ 'debts.title' | translate }}
-    </p>
+    } @else {
+    <div class="pay__note mt-3">
+      <mat-icon>contactless</mat-icon>
+      {{ 'pos.cardFullHint' | translate }}
+    </div>
     }
 
+    <!-- Breakdown -->
+    <div class="pay__breakdown">
+      <div><span>{{ 'pos.subtotal' | translate }}</span><span>{{ c.subtotal | currencyDisplay }}</span></div>
+      @if (c.cartDiscount > 0) {
+      <div class="text-brand-600 dark:text-brand-400"><span>{{ 'pos.discount' | translate }}</span><span>−{{ c.cartDiscount | currencyDisplay }}</span></div>
+      }
+      @if (data.vat.vatRate > 0) {
+      <div>
+        <span>{{ (data.vat.pricesIncludeVat ? 'pos.vatIncluded' : 'pos.vatAdded') | translate }}</span>
+        <span>{{ c.vat | currencyDisplay }}</span>
+      </div>
+      }
+      @if (sp.card > 0 && sp.cash > 0) {
+      <div><span>{{ 'pos.card' | translate }} / {{ 'pos.cash' | translate }}</span><span>{{ sp.card | currencyDisplay:0 }} / {{ sp.cash | currencyDisplay:0 }}</span></div>
+      }
+    </div>
+
+    <!-- Debt customer -->
     @if (hasDebtPortion()) {
-    <div class="p-2.5 border-2 border-orange-200 dark:border-orange-900 rounded-lg space-y-2">
-      <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium">{{ 'debts.customer' | translate }}:</label>
-      <mat-button-toggle-group class="w-full" [value]="isNewCustomer()" (change)="isNewCustomer.set($event.value)">
-        <mat-button-toggle [value]="true" class="!flex-1">{{ 'debts.newCustomer' | translate }}</mat-button-toggle>
+    <div class="pay__debt">
+      <p class="text-sm font-semibold mb-2">
+        {{ 'pos.debtWillBeCreated' | translate }}: {{ sp.debt | currencyDisplay:0 }}
+      </p>
+      <mat-button-toggle-group class="w-full mb-3" [value]="isNewCustomer()" (change)="isNewCustomer.set($event.value)">
         <mat-button-toggle [value]="false" class="!flex-1">{{ 'debts.existingCustomer' | translate }}</mat-button-toggle>
+        <mat-button-toggle [value]="true" class="!flex-1">{{ 'debts.newCustomer' | translate }}</mat-button-toggle>
       </mat-button-toggle-group>
 
       @if (isNewCustomer()) {
-      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-        <mat-label>{{ 'debts.customerName' | translate }}</mat-label>
-        <input matInput [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-        <mat-label>{{ 'debts.customerPhone' | translate }}</mat-label>
-        <input matInput [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" />
-      </mat-form-field>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'debts.customerName' | translate }}</mat-label>
+          <input matInput [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'debts.customerPhone' | translate }}</mat-label>
+          <input matInput type="tel" [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" />
+        </mat-form-field>
+      </div>
       } @else {
       <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
         <mat-label>{{ 'debts.selectCustomer' | translate }}</mat-label>
@@ -89,20 +139,23 @@
           }
         </mat-select>
       </mat-form-field>
+      @if (selectedCustomerId() && currentDebtTotal() > 0) {
+      <p class="text-xs mt-1 opacity-80">{{ 'pos.currentDebt' | translate }}: {{ currentDebtTotal() | currencyDisplay:0 }}</p>
+      }
       @if (creditLimitExceeded()) {
-      <p class="text-red-600 dark:text-red-400 text-xs font-medium">
-        {{ creditLimitWarning() }}
-      </p>
+      <p class="text-red-600 dark:text-red-400 text-xs font-medium mt-1">{{ creditLimitWarning() }}</p>
       }
       }
     </div>
     }
-  </div>
-</mat-dialog-content>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">{{ 'buttons.cancel' | translate }}</button>
-  <button mat-flat-button color="primary" [disabled]="!canSubmit()" (click)="submit()">
-    {{ 'buttons.submit' | translate }}
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-actions class="!px-6 !pb-5 gap-2">
+    <button mat-button (click)="cancel()">{{ 'buttons.cancel' | translate }} <span class="opacity-60 text-xs">Esc</span></button>
+    <span class="flex-1"></span>
+    <button mat-flat-button color="primary" class="!h-12 !px-6 !text-base" [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon>check_circle</mat-icon>
+      {{ 'pos.completeSale' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

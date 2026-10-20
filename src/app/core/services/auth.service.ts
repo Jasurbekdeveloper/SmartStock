@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, from, of, switchMap } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Auth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import {
+  Auth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE } from '../firebase/firebase.providers';
 import { fromDocRef } from '../firebase/firestore.utils';
@@ -14,6 +19,7 @@ export interface AppUser {
   displayName: string;
   role: UserRole;
   active: boolean;
+  tenantId: string;
   createdAt?: Date;
 }
 

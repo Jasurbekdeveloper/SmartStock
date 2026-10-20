@@ -12,13 +12,14 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { Sale, SalesService } from '../core/services/sales.service';
+import { Sale, SalesService, saleNetProfit, saleNetTotal } from '../core/services/sales.service';
 import { Debt, DebtService } from '../core/services/debt.service';
 import { TranslationService } from '../core/services/translation.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
-import { exportToExcel } from '../core/utils/excel-export';
+import { exportReportsToExcel, exportToExcel } from '../core/utils/excel-export';
+import { Product, ProductService } from '../core/services/product.service';
 
 interface MonthlyReportRow {
   month: string;
@@ -76,10 +77,12 @@ export class StatisticsComponent {
   private salesService: SalesService = inject(SalesService);
   private debtService: DebtService = inject(DebtService);
   private translation: TranslationService = inject(TranslationService);
+  private productService = inject(ProductService);
 
   sales = toSignal(this.salesService.getSales(), { initialValue: [] as Sale[] });
   debts = toSignal(this.debtService.getDebts(), { initialValue: [] as Debt[] });
   customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+  products = toSignal(this.productService.getProducts(), { initialValue: [] as Product[] });
 
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
@@ -136,14 +139,14 @@ export class StatisticsComponent {
 
   totalSales = computed(() => this.filteredSales().length);
 
-  totalRevenue = computed(() => this.filteredSales().reduce((sum, s) => sum + s.total, 0));
+  totalRevenue = computed(() => this.filteredSales().reduce((sum, s) => sum + saleNetTotal(s), 0));
 
   averageOrderValue = computed(() => (this.totalSales() > 0 ? this.totalRevenue() / this.totalSales() : 0));
 
   /** Sum of every filtered sale's `totalNetProfit`. Older sales made before net-profit
    *  tracking existed simply omit the field, so `?? 0` treats them as contributing zero
    *  rather than poisoning the sum with `NaN` — see the `profitCaveat` note in the template. */
-  totalNetProfit = computed(() => this.filteredSales().reduce((sum, s) => sum + (s.totalNetProfit ?? 0), 0));
+  totalNetProfit = computed(() => this.filteredSales().reduce((sum, s) => sum + saleNetProfit(s), 0));
 
   profitMargin = computed(() => (this.totalRevenue() > 0 ? (this.totalNetProfit() / this.totalRevenue()) * 100 : 0));
 
@@ -155,9 +158,9 @@ export class StatisticsComponent {
       const row = stats.get(sale.paymentMethod);
       if (row) {
         row.count++;
-        row.amount += sale.total;
+        row.amount += saleNetTotal(sale);
       } else {
-        stats.set(sale.paymentMethod, { method: sale.paymentMethod, count: 1, amount: sale.total });
+        stats.set(sale.paymentMethod, { method: sale.paymentMethod, count: 1, amount: saleNetTotal(sale) });
       }
     }
     return Array.from(stats.values()).sort((a, b) => b.amount - a.amount);
@@ -174,9 +177,9 @@ export class StatisticsComponent {
       const row = byMonth.get(month);
       if (row) {
         row.ordersCount++;
-        row.revenue += sale.total;
+        row.revenue += saleNetTotal(sale);
       } else {
-        byMonth.set(month, { month, ordersCount: 1, revenue: sale.total });
+        byMonth.set(month, { month, ordersCount: 1, revenue: saleNetTotal(sale) });
       }
     }
     return Array.from(byMonth.values()).sort((a, b) => (a.month < b.month ? 1 : -1));
@@ -254,7 +257,7 @@ export class StatisticsComponent {
       const key = monthly
         ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
         : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      buckets.set(key, (buckets.get(key) ?? 0) + sale.total);
+      buckets.set(key, (buckets.get(key) ?? 0) + saleNetTotal(sale));
     }
     const sortedKeys = Array.from(buckets.keys()).sort();
 
@@ -376,5 +379,60 @@ export class StatisticsComponent {
         [t('debts.remainingAmount')]: row.remainingAmount
       }))
     );
+  }
+
+  exportCompleteReport(): void {
+    const t = (key: string) => this.translation.translate(key);
+    const sheets = [
+      {
+        name: t('statistics.recentSales'),
+        rows: this.filteredSales().map((sale) => ({
+          [t('table.saleId')]: sale.receiptNo ?? sale.id,
+          [t('table.items')]: sale.items.length,
+          [t('table.total')]: saleNetTotal(sale),
+          [t('pos.paymentMethod')]: t(`pos.${sale.paymentMethod}`),
+          [t('table.date')]: new Date(sale.createdAt).toLocaleString()
+        }))
+      },
+      {
+        name: t('statistics.monthlyReport'),
+        rows: this.monthlyReport().map((row) => ({
+          [t('statistics.month')]: row.month,
+          [t('statistics.ordersCount')]: row.ordersCount,
+          [t('statistics.revenue')]: row.revenue
+        }))
+      },
+      {
+        name: t('statistics.topProducts'),
+        rows: this.topProducts().map((row) => ({
+          [t('table.name')]: row.productName,
+          [t('statistics.quantitySold')]: row.quantity,
+          [t('statistics.revenue')]: row.revenue
+        }))
+      },
+      {
+        name: t('statistics.topDebtors'),
+        rows: this.topDebtors().map((row) => ({
+          [t('debts.customer')]: row.customerName,
+          [t('debts.customerPhone')]: row.customerPhone,
+          [t('debts.remainingAmount')]: row.remainingAmount
+        }))
+      },
+      {
+        name: t('statistics.inventory'),
+        rows: this.products().map((product) => ({
+          [t('products.name')]: product.name,
+          [t('products.sku')]: product.sku ?? '',
+          [t('products.color')]: product.color ?? '',
+          [t('products.size')]: product.size ?? '',
+          [t('form.barcode')]: product.barcode,
+          [t('products.quantity')]: product.quantity,
+          [t('products.unit')]: t(`units.${product.unit}`),
+          [t('products.minQuantity')]: product.minQuantity ?? 0
+        }))
+      }
+    ];
+    const date = new Date().toISOString().slice(0, 10);
+    exportReportsToExcel(`${t('statistics.title')}-${date}`, sheets);
   }
 }

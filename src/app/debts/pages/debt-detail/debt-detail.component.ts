@@ -74,7 +74,8 @@ export class DebtDetailComponent implements OnInit {
   }
 
   confirmPayment(debt: Debt) {
-    const amount = this.paymentAmount();
+    // Never accept more than is owed — an overpayment would push remainingAmount negative.
+    const amount = Math.min(this.paymentAmount(), debt.remainingAmount);
     if (amount <= 0) return;
 
     this.submitting.set(true);

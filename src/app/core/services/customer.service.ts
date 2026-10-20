@@ -14,6 +14,8 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Customer {
   id: string;
@@ -33,9 +35,10 @@ export interface Customer {
 })
 export class CustomerService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   getCustomers(): Observable<Customer[]> {
-    const customersQuery = query(collection(this.firestore, 'customers'), orderBy('name'));
+    const customersQuery = tenantQuery(this.firestore, 'customers', requireTenantId(this.authService), orderBy('name'));
     return fromCollectionQuery<Customer>(customersQuery);
   }
 
@@ -46,7 +49,7 @@ export class CustomerService {
   addCustomer(customer: Omit<Customer, 'id'>): Observable<string> {
     // Optional fields (e.g. creditLimit left unset) must not reach Firestore as
     // explicit `undefined` — addDoc rejects that. Simplest for a new doc: drop them.
-    const data: Record<string, unknown> = { ...customer, createdAt: serverTimestamp() };
+    const data: Record<string, unknown> = withTenant({ ...customer, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     for (const key of Object.keys(data)) {
       if (data[key] === undefined) delete data[key];
     }

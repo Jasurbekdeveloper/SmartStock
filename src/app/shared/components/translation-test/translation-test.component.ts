@@ -12,7 +12,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
         <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Tarjima Test</h1>
         
         <div class="space-y-4">
-          <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded">
+          <div class="p-4 bg-brand-50 dark:bg-brand-900 rounded">
             <p class="text-gray-700 dark:text-gray-300">
               <strong>{{ 'common.search' | translate }}:</strong> {{ 'common.search' | translate }}
             </p>

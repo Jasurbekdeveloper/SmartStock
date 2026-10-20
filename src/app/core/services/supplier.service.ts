@@ -14,6 +14,8 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Supplier {
   id: string;
@@ -30,9 +32,10 @@ export interface Supplier {
 })
 export class SupplierService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   getSuppliers(): Observable<Supplier[]> {
-    const suppliersQuery = query(collection(this.firestore, 'suppliers'), orderBy('name'));
+    const suppliersQuery = tenantQuery(this.firestore, 'suppliers', requireTenantId(this.authService), orderBy('name'));
     return fromCollectionQuery<Supplier>(suppliersQuery);
   }
 
@@ -43,7 +46,7 @@ export class SupplierService {
   addSupplier(supplier: Omit<Supplier, 'id'>): Observable<string> {
     // Optional fields left unset must not reach Firestore as explicit `undefined` —
     // addDoc rejects that. Simplest for a new doc: drop them.
-    const data: Record<string, unknown> = { ...supplier, createdAt: serverTimestamp() };
+    const data: Record<string, unknown> = withTenant({ ...supplier, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     for (const key of Object.keys(data)) {
       if (data[key] === undefined) delete data[key];
     }

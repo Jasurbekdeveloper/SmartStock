@@ -1,5 +1,5 @@
 <div class="max-w-3xl mx-auto">
-  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'settings.title' | translate }}</h1>
+  <h1 class="page-title mb-6">{{ 'settings.title' | translate }}</h1>
 
   <mat-card class="!p-0 overflow-hidden">
     <mat-tab-group>
@@ -41,6 +41,31 @@
               <mat-label>{{ 'settings.storeTaxId' | translate }}</mat-label>
               <input matInput [(ngModel)]="g.storeTaxId" name="storeTaxId" />
             </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.storeTelegram' | translate }}</mat-label>
+              <span matTextPrefix>&#64;</span>
+              <input matInput [(ngModel)]="g.storeTelegram" name="storeTelegram" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.workingHours' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.workingHours" name="workingHours" placeholder="Du–Sha 8:00–19:00" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'settings.receiptFooter' | translate }}</mat-label>
+              <input matInput [(ngModel)]="g.receiptFooter" name="receiptFooter" />
+            </mat-form-field>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">{{ 'settings.vatMode' | translate }}:</label>
+            <mat-button-toggle-group [value]="g.pricesIncludeVat" (change)="setPricesIncludeVat($event.value)">
+              <mat-button-toggle [value]="true">{{ 'settings.vatIncluded' | translate }}</mat-button-toggle>
+              <mat-button-toggle [value]="false">{{ 'settings.vatOnTop' | translate }}</mat-button-toggle>
+            </mat-button-toggle-group>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ 'settings.vatModeHint' | translate }}</p>
           </div>
 
           <div>

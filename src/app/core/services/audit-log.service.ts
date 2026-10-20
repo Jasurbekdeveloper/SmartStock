@@ -12,6 +12,7 @@ import {
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery } from './tenant-data';
 
 export interface AuditLogEntry {
   id: string;
@@ -65,7 +66,7 @@ export class AuditLogService {
    *  Firestore indexes for every entityType/action combination). `filters` is a
    *  light convenience for callers that only need one dimension server-side. */
   getAuditLog(filters?: AuditLogFilters): Observable<AuditLogEntry[]> {
-    const auditQuery = query(collection(this.firestore, 'auditLog'), orderBy('createdAt', 'desc'));
+    const auditQuery = tenantQuery(this.firestore, 'auditLog', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
     return fromCollectionQuery<AuditLogEntry>(auditQuery).pipe(
       map((entries) =>
         entries.filter((entry) => {
@@ -81,6 +82,7 @@ export class AuditLogService {
     const user = this.authService.getCurrentUser();
     const data: Record<string, unknown> = {
       ...entry,
+      tenantId: requireTenantId(this.authService),
       userId: user?.uid ?? '',
       userName: user?.displayName,
       createdAt: serverTimestamp()

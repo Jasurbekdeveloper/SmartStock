@@ -9,7 +9,12 @@ import * as XLSX from 'xlsx';
 export interface ParsedProductRow {
   rowNumber: number;
   name: string;
+  sku?: string;
   barcode: string;
+  color?: string;
+  size?: string;
+  familyId?: string;
+  imageUrl?: string;
   price: number;
   cost: number;
   quantity: number;
@@ -27,7 +32,12 @@ export interface ParsedProductRow {
  *  below, so the downloadable template and the parser can never drift apart. */
 export const PRODUCT_IMPORT_HEADERS = {
   name: 'Nomi',
+  sku: 'SKU',
   barcode: 'Shtrix-kod',
+  color: 'Rang',
+  size: "O'lcham",
+  familyId: 'Variant guruhi',
+  imageUrl: 'Rasm URL',
   price: 'Narx',
   cost: 'Tannarx',
   quantity: 'Miqdor',
@@ -83,7 +93,12 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           const rowNumber = index + 2;
 
           const name = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.name));
+          const sku = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.sku)) || undefined;
           const barcode = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.barcode));
+          const color = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.color)) || undefined;
+          const size = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.size)) || undefined;
+          const familyId = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.familyId)) || undefined;
+          const imageUrl = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.imageUrl)) || undefined;
           const price = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.price));
           const cost = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.cost));
           const quantity = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.quantity));
@@ -113,7 +128,12 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           rows.push({
             rowNumber,
             name,
+            sku: sku ?? barcode,
             barcode,
+            color,
+            size,
+            familyId,
+            imageUrl,
             price: price as number,
             cost: cost ?? 0,
             quantity: quantity as number,
@@ -141,7 +161,12 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
 export function generateProductImportTemplate(): void {
   const exampleRow: Record<string, unknown> = {
     [PRODUCT_IMPORT_HEADERS.name]: 'Sement M400',
+    [PRODUCT_IMPORT_HEADERS.sku]: 'CEM-M400-50',
     [PRODUCT_IMPORT_HEADERS.barcode]: '1234567890123',
+    [PRODUCT_IMPORT_HEADERS.color]: '',
+    [PRODUCT_IMPORT_HEADERS.size]: '50 kg',
+    [PRODUCT_IMPORT_HEADERS.familyId]: 'CEM-M400',
+    [PRODUCT_IMPORT_HEADERS.imageUrl]: '',
     [PRODUCT_IMPORT_HEADERS.price]: 45000,
     [PRODUCT_IMPORT_HEADERS.cost]: 38000,
     [PRODUCT_IMPORT_HEADERS.quantity]: 100,

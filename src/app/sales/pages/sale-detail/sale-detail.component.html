@@ -1,92 +1,120 @@
-<div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto space-y-6">
   @if (sale(); as sale) {
-  <mat-card class="!p-8">
-    <h1 class="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">{{ 'sales.receipt' | translate }}</h1>
-
-    <div class="space-y-4 mb-8">
-      <div class="flex justify-between">
-        <span class="text-gray-600 dark:text-gray-400">{{ 'table.saleId' | translate }}:</span>
-        <span class="font-semibold text-gray-900 dark:text-white">{{ sale.id }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-gray-600 dark:text-gray-400">{{ 'table.date' | translate }}:</span>
-        <span class="font-semibold text-gray-900 dark:text-white">{{ sale.createdAt | date: 'medium' }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-gray-600 dark:text-gray-400">{{ 'sales.paymentMethod' | translate }}:</span>
-        <span class="font-semibold capitalize text-gray-900 dark:text-white">{{ 'pos.' + sale.paymentMethod | translate }}</span>
-      </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <a mat-icon-button routerLink="/sales/history" aria-label="back"><mat-icon>arrow_back</mat-icon></a>
+    <div class="flex-1 min-w-0">
+      <h1 class="page-title">{{ 'sales.receipt' | translate }} № {{ sale.receiptNo || sale.id.slice(0, 8) }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        {{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}
+        @if (sale.cashierName) { · {{ sale.cashierName }} }
+      </p>
     </div>
-
-    <table class="w-full mb-8">
-      <thead class="border-b-2 border-gray-400 dark:border-gray-600">
-        <tr class="text-gray-900 dark:text-white">
-          <th class="text-left py-2">{{ 'sales.item' | translate }}</th>
-          <th class="text-right py-2">{{ 'sales.qty' | translate }}</th>
-          <th class="text-right py-2">{{ 'form.price' | translate }}</th>
-          <th class="text-right py-2">{{ 'pos.itemDiscount' | translate }}</th>
-          <th class="text-right py-2">{{ 'pos.total' | translate }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of sale.items; track $index) {
-        <tr class="border-b dark:border-gray-700 text-gray-900 dark:text-white">
-          <td class="py-2">{{ item.productName || ('sales.unknownProduct' | translate) }}</td>
-          <td class="text-right">{{ item.quantity | sum:0 }}</td>
-          <td class="text-right">{{ item.price | currencyDisplay }}</td>
-          <td class="text-right text-orange-600 dark:text-orange-400">{{ item.discount && item.discount > 0 ? ('-' + (item.discount | currencyDisplay)) : '—' }}</td>
-          <td class="text-right font-semibold">{{ item.total | currencyDisplay }}</td>
-        </tr>
-        }
-      </tbody>
-    </table>
-
-    <div class="space-y-2 text-lg mb-8 border-t-2 border-gray-400 dark:border-gray-600 pt-4 text-gray-900 dark:text-white">
-      <div class="flex justify-between">
-        <span>{{ 'pos.subtotal' | translate }}:</span>
-        <span>{{ sale.subtotal | currencyDisplay }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span>{{ 'pos.tax' | translate }}:</span>
-        <span>{{ sale.tax | currencyDisplay }}</span>
-      </div>
-      @if (sale.discount && sale.discount > 0) {
-      <div class="flex justify-between text-orange-600 dark:text-orange-400">
-        <span>{{ 'pos.discount' | translate }}:</span>
-        <span>-{{ sale.discount | currencyDisplay }}</span>
-      </div>
-      }
-      <div class="flex justify-between font-bold text-lg">
-        <span>{{ 'pos.total' | translate }}:</span>
-        <span class="text-blue-600 dark:text-blue-400">{{ sale.total | currencyDisplay }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span>{{ 'pos.paidAmount' | translate }}:</span>
-        <span>{{ sale.paidAmount | currencyDisplay }}</span>
-      </div>
-      @if (sale.debtAmount && sale.debtAmount > 0) {
-      <div class="flex justify-between text-orange-600 dark:text-orange-400 font-bold">
-        <span>{{ 'debts.title' | translate }}:</span>
-        <span>{{ sale.debtAmount | currencyDisplay }}</span>
-      </div>
-      @if (sale.customerId) {
-      <div class="flex justify-between">
-        <span>{{ 'debts.customer' | translate }}:</span>
-        <span class="font-semibold">{{ customerName(sale.customerId) }}</span>
-      </div>
-      }
-      } @else {
-      <div class="flex justify-between text-green-600 dark:text-green-400 font-bold">
-        <span>{{ 'pos.change' | translate }}:</span>
-        <span>{{ sale.change | currencyDisplay }}</span>
-      </div>
-      }
-    </div>
-
-    <button mat-flat-button color="primary" class="w-full !py-3" (click)="printReceipt()">
+    @if (canReturn()) {
+    <button mat-stroked-button color="warn" (click)="openReturnDialog()">
+      <mat-icon>assignment_return</mat-icon>
+      {{ 'returns.newReturn' | translate }}
+    </button>
+    }
+    <button mat-flat-button color="primary" (click)="printReceipt()">
       <mat-icon>print</mat-icon>
       {{ 'sales.printReceipt' | translate }}
     </button>
+  </div>
+
+  <mat-card class="!p-0 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'sales.item' | translate }}</th>
+            <th class="text-right">{{ 'sales.qty' | translate }}</th>
+            <th class="text-right">{{ 'form.price' | translate }}</th>
+            <th class="text-right">{{ 'pos.itemDiscount' | translate }}</th>
+            <th class="text-right">{{ 'pos.total' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of sale.items; track $index) {
+          <tr>
+            <td>
+              {{ item.productName || ('sales.unknownProduct' | translate) }}
+              @if (returnedQty().get(item.productId); as r) {
+              <span class="badge badge--red ml-1">−{{ r | sum: 3 }}</span>
+              }
+            </td>
+            <td class="text-right tabular-nums">{{ item.quantity | sum: 3 }}</td>
+            <td class="text-right tabular-nums">{{ item.price | currencyDisplay }}</td>
+            <td class="text-right tabular-nums text-brand-600 dark:text-brand-400">
+              {{ item.discount && item.discount > 0 ? '−' + (item.discount | currencyDisplay) : '—' }}
+            </td>
+            <td class="text-right font-semibold tabular-nums">{{ item.finalTotal ?? item.total | currencyDisplay }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="p-6 grid gap-6 sm:grid-cols-2 border-t border-gray-200 dark:border-gray-700">
+      <div class="space-y-1.5 text-sm text-gray-900 dark:text-white">
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'pos.subtotal' | translate }}</span><span>{{ sale.subtotal | currencyDisplay }}</span></div>
+        @if (sale.discount && sale.discount > 0) {
+        <div class="flex justify-between text-brand-600 dark:text-brand-400"><span>{{ 'pos.discount' | translate }}</span><span>−{{ sale.discount | currencyDisplay }}</span></div>
+        }
+        @if (sale.tax > 0) {
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ (sale.vatIncluded ? 'pos.vatIncluded' : 'pos.vatAdded') | translate }}</span><span>{{ sale.tax | currencyDisplay }}</span></div>
+        }
+        <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 dark:border-gray-700">
+          <span>{{ 'pos.total' | translate }}</span><span class="text-brand-600 dark:text-brand-400">{{ sale.total | currencyDisplay }}</span>
+        </div>
+        @if (sale.refundedAmount) {
+        <div class="flex justify-between text-red-600 dark:text-red-400 font-semibold"><span>{{ 'returns.title' | translate }}</span><span>−{{ sale.refundedAmount | currencyDisplay }}</span></div>
+        }
+      </div>
+      <div class="space-y-1.5 text-sm text-gray-900 dark:text-white">
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'sales.paymentMethod' | translate }}</span><span class="font-semibold">{{ 'pos.' + sale.paymentMethod | translate }}</span></div>
+        @if (cash(sale) > 0) {
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'pos.cash' | translate }}</span><span>{{ cash(sale) | currencyDisplay }}</span></div>
+        }
+        @if (card(sale) > 0) {
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'pos.card' | translate }}</span><span>{{ card(sale) | currencyDisplay }}</span></div>
+        }
+        @if (sale.change > 0) {
+        <div class="flex justify-between text-green-600 dark:text-green-400"><span>{{ 'pos.change' | translate }}</span><span>{{ sale.change | currencyDisplay }}</span></div>
+        }
+        @if (sale.debtAmount && sale.debtAmount > 0) {
+        <div class="flex justify-between text-amber-600 dark:text-amber-400 font-semibold"><span>{{ 'pos.debit' | translate }}</span><span>{{ sale.debtAmount | currencyDisplay }}</span></div>
+        @if (sale.customerId) {
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'debts.customer' | translate }}</span><a class="font-semibold text-brand-600 dark:text-brand-400" [routerLink]="['/customers', sale.customerId]">{{ customerName(sale.customerId) }}</a></div>
+        }
+        }
+      </div>
+    </div>
   </mat-card>
+
+  @if (returns().length > 0) {
+  <mat-card class="!p-6">
+    <h2 class="text-lg font-bold mb-3 text-gray-900 dark:text-white">{{ 'returns.title' | translate }}</h2>
+    <div class="space-y-3">
+      @for (r of returns(); track r.id) {
+      <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-sm">
+        <div class="flex justify-between font-semibold text-red-800 dark:text-red-200">
+          <span>{{ r.createdAt | date: 'dd.MM.yyyy HH:mm' }} · {{ 'pos.' + r.refundMethod | translate }}</span>
+          <span>−{{ r.refundAmount | currencyDisplay }}</span>
+        </div>
+        <p class="text-gray-700 dark:text-gray-300">
+          @for (item of r.items; track $index) {
+          {{ item.productName }} × {{ item.quantity | sum: 3 }}@if (!$last) {, }
+          }
+        </p>
+        @if (r.reason) {
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ r.reason }}</p>
+        }
+      </div>
+      }
+    </div>
+  </mat-card>
+  }
+  } @else {
+  <mat-card class="!p-6 text-center text-gray-500 dark:text-gray-400">{{ 'messages.loading' | translate }}</mat-card>
   }
 </div>

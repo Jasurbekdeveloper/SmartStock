@@ -2,40 +2,73 @@
 
 @import "tailwindcss";
 
-/* Tailwind v4 ignores tailwind.config.js's `darkMode: 'class'` unless the
-   config is wired in via @config — it wasn't, so every dark: utility in the
-   app was silently following the OS's prefers-color-scheme instead of the
-   .dark class ThemeService toggles on <html>. This is what caused text/
-   backgrounds to go out of sync (e.g. white text with no dark background)
-   whenever the OS theme and the in-app toggle disagreed. This directive is
-   Tailwind v4's replacement for `darkMode: 'class'`. */
+/* Tailwind v4 ignores tailwind.config.js's `darkMode: 'class'` unless wired in via
+   @config — this is v4's replacement, so dark: utilities follow the .dark class
+   ThemeService toggles on <html> instead of the OS preference. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-gray-950: #0a0a0a;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-gray-950: #0a0d14;
+
+  /* Brand (construction orange). Use `brand-*` utilities for accents so the
+     palette can be changed here in one place. */
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+  --color-brand-900: #7c2d12;
+  --color-brand-950: #431407;
 }
 
+/* Semantic design tokens used by component CSS (POS, dialogs, tables). */
 :root {
   color-scheme: light;
+  --app-bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --brand: #f97316;
+  --brand-strong: #ea580c;
+  --brand-soft: #fff7ed;
+  --brand-ring: rgba(249, 115, 22, 0.18);
+  --brand-contrast: #ffffff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 6px 16px -6px rgba(15, 23, 42, 0.18);
 }
 
 html.dark {
   color-scheme: dark;
+  --app-bg: #0a0d14;
+  --surface: #121722;
+  --surface-2: #0e131c;
+  --border: #252d3b;
+  --text: #e5e7eb;
+  --text-muted: #94a3b8;
+  --brand-soft: rgba(249, 115, 22, 0.12);
+  --brand-ring: rgba(249, 115, 22, 0.25);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, 0.6);
 }
 
-/* Light mode */
 body {
-  @apply bg-gray-50 text-gray-900 transition-colors duration-200;
-}
-
-/* Dark mode */
-html.dark body {
-  @apply bg-gray-950 text-gray-100;
-}
-
-/* Dark mode for common elements */
-html.dark {
-  --tw-bg-opacity: 1;
+  @apply transition-colors duration-200;
+  background: var(--app-bg) !important;
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 html.dark button {
@@ -48,9 +81,7 @@ html.dark textarea {
   @apply bg-gray-800 text-white border-gray-700;
 }
 
-/* Native <option> popups are OS/browser-rendered and don't reliably inherit
-   Tailwind's dark: background utilities, which can leave light text on a
-   light popup. color-scheme forces the browser to theme them correctly. */
+/* Native <option> popups are OS-rendered; color-scheme makes them follow dark mode. */
 html.dark select,
 html.dark option {
   color-scheme: dark;
@@ -68,6 +99,83 @@ html.dark tr:hover {
   @apply bg-gray-800;
 }
 
+/* ---------- Material surface tweaks ---------- */
+.mat-mdc-card {
+  --mat-card-elevated-container-shape: var(--radius-lg);
+  --mat-card-elevated-container-elevation: none;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm) !important;
+  background: var(--surface) !important;
+}
+
+.mat-mdc-dialog-surface {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  --mat-button-filled-container-shape: 10px;
+  --mat-button-outlined-container-shape: 10px;
+  --mat-button-text-container-shape: 10px;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+/* ---------- Shared page primitives ---------- */
+.page-title {
+  @apply text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white;
+}
+
+.kpi-tile {
+  @apply p-4 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700;
+}
+
+.kpi-tile__label {
+  @apply text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400;
+}
+
+.kpi-tile__value {
+  @apply text-xl font-bold text-gray-900 dark:text-white tabular-nums;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full;
+}
+
+.badge--red {
+  @apply bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300;
+}
+
+.badge--amber {
+  @apply bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300;
+}
+
+.badge--green {
+  @apply bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300;
+}
+
+.badge--gray {
+  @apply bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300;
+}
+
+.data-table {
+  @apply w-full text-sm;
+}
+
+.data-table thead th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700;
+}
+
+.data-table tbody td {
+  @apply px-4 py-3 text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800;
+}
+
+.data-table tbody tr:hover td {
+  @apply bg-gray-50 dark:bg-gray-800/40;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -83,8 +191,7 @@ html.dark tr:hover {
   animation: toast-in 0.2s ease-out;
 }
 
-/* So "print" buttons (receipt, QR label) only print their own content, not
-   the surrounding app chrome. */
+/* "Print" buttons (receipt, barcode label) print only their own content. */
 @media print {
   app-header,
   app-sidebar,
@@ -93,10 +200,9 @@ html.dark tr:hover {
   }
 }
 
-/* Guards mat-icon's ligature rendering against ancestor components (e.g.
-   mat-list-item's "meta" slot) that set their own font-family with equal or
-   higher specificity — without this, the icon name renders as literal text
-   ("expand_more") instead of the glyph, clipped by the icon's fixed size. */
+/* Guards mat-icon's ligature rendering against ancestors that set their own
+   font-family (e.g. mat-list-item's meta slot) — otherwise the icon name
+   renders as literal text. */
 .mat-icon {
   font-family: 'Material Icons' !important;
   font-feature-settings: 'liga' !important;

@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { SalesService, Sale } from '../../../core/services/sales.service';
+import { SalesService, Sale, saleCardIn, saleCashIn } from '../../../core/services/sales.service';
 import { DebtService } from '../../../core/services/debt.service';
 import {
   DEFAULT_RECEIPT_PAPER_WIDTH,
@@ -39,11 +39,14 @@ export class ReceiptComponent implements OnInit {
 
   /** `null` until `settings/general` has been saved at least once — both signals below
    *  fall back to sensible defaults in that case. */
-  generalSettings = toSignal(this.settingsService.getGeneralSettings(), { initialValue: null });
+  settings = toSignal(this.settingsService.getGeneralSettings(), { initialValue: null });
 
-  paperWidth = computed(() => this.generalSettings()?.receiptPaperWidth ?? DEFAULT_RECEIPT_PAPER_WIDTH);
+  paperWidth = computed(() => this.settings()?.receiptPaperWidth ?? DEFAULT_RECEIPT_PAPER_WIDTH);
 
-  storeName = computed(() => this.generalSettings()?.storeName ?? DEFAULT_STORE_NAME);
+  storeName = computed(() => this.settings()?.storeName || DEFAULT_STORE_NAME);
+
+  cash = saleCashIn;
+  card = saleCardIn;
 
   private printTriggered = false;
 

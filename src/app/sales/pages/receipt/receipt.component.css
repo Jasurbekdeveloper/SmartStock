@@ -80,12 +80,32 @@
   gap: 8px;
 }
 
+.receipt__item {
+  margin-bottom: 3px;
+}
+
+.receipt__item-name {
+  font-weight: bold;
+}
+
+.receipt__row--muted {
+  font-size: 11px;
+}
+
+.receipt__row--strong {
+  font-weight: bold;
+}
+
+.receipt__thanks {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
 .receipt__row--total {
   font-weight: bold;
-  font-size: 13px;
-  border-top: 1px solid #000;
+  font-size: 15px;
   margin-top: 4px;
-  padding-top: 4px;
 }
 
 .receipt__footer {

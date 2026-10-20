@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
+import { AuthService } from './auth.service';
+import { requireTenantId } from './tenant-data';
 
 /**
  * `notificationState/telegram` — shared (cross-device/cross-cashier) dedup bookkeeping
@@ -21,16 +23,15 @@ export interface NotificationState {
   debtDueLastSentAt?: Record<string, string>;
 }
 
-const STATE_DOC_ID = 'telegram';
-
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationStateService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   private stateRef() {
-    return doc(this.firestore, 'notificationState', STATE_DOC_ID);
+    return doc(this.firestore, 'notificationState', requireTenantId(this.authService));
   }
 
   /** One-shot read (not a live subscription — see class doc). */
@@ -42,7 +43,7 @@ export class NotificationStateService {
   async markLowStockSent(productId: string): Promise<void> {
     await setDoc(
       this.stateRef(),
-      { lowStockLastSentAt: { [productId]: new Date().toISOString() } },
+      { tenantId: requireTenantId(this.authService), lowStockLastSentAt: { [productId]: new Date().toISOString() } },
       { merge: true }
     );
   }
@@ -50,7 +51,7 @@ export class NotificationStateService {
   async markDebtDueSent(debtId: string): Promise<void> {
     await setDoc(
       this.stateRef(),
-      { debtDueLastSentAt: { [debtId]: new Date().toISOString() } },
+      { tenantId: requireTenantId(this.authService), debtDueLastSentAt: { [debtId]: new Date().toISOString() } },
       { merge: true }
     );
   }

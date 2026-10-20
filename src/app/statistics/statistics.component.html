@@ -1,5 +1,11 @@
 <div class="space-y-8">
-  <h1 class="text-3xl font-bold dark:text-white">{{ 'statistics.title' | translate }}</h1>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-3xl font-bold dark:text-white">{{ 'statistics.title' | translate }}</h1>
+    <button mat-flat-button color="primary" (click)="exportCompleteReport()"
+      [disabled]="filteredSales().length === 0 && filteredDebts().length === 0 && products().length === 0">
+      <mat-icon>download</mat-icon>{{ 'statistics.exportFullReport' | translate }}
+    </button>
+  </div>
 
   <!-- Date range filter -->
   <mat-card class="!p-4">
@@ -25,8 +31,8 @@
     </div>
   </mat-card>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-    <mat-card class="!p-6 border-l-4 border-blue-500">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+    <mat-card class="!p-6 border-l-4 border-brand-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm">{{ 'statistics.totalSales' | translate }}</p>
       <p class="text-3xl font-bold dark:text-white">{{ totalSales() | sum:0 }}</p>
     </mat-card>
@@ -49,10 +55,10 @@
     <mat-card class="!p-6 border-l-4 border-teal-500">
       <p class="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1">
         {{ 'statistics.netProfit' | translate }}
-        <mat-icon class="!w-4 !h-4 !text-base text-gray-400 cursor-help" [matTooltip]="'statistics.profitCaveat' | translate">info</mat-icon>
+        <mat-icon class="!w-4 !h-4 !text-base text-gray-600 dark:text-gray-400 cursor-help" [matTooltip]="'statistics.profitCaveat' | translate">info</mat-icon>
       </p>
       <p class="text-3xl font-bold text-teal-600 dark:text-teal-400">{{ totalNetProfit() | currencyDisplay }}</p>
-      <p class="text-sm text-gray-400 dark:text-gray-500">{{ 'statistics.profitMargin' | translate }}: {{ profitMargin() | number:'1.1-1' }}%</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'statistics.profitMargin' | translate }}: {{ profitMargin() | number:'1.1-1' }}%</p>
     </mat-card>
   </div>
 
@@ -220,9 +226,9 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'statistics.totalCollected' | translate }}</p>
         <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalCollected() | currencyDisplay }}</p>
       </div>
-      <div class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+      <div class="p-4 rounded-lg bg-brand-50 dark:bg-brand-900/30">
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'statistics.customersWithDebt' | translate }}</p>
-        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ customersWithDebtCount() | sum:0 }}</p>
+        <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">{{ customersWithDebtCount() | sum:0 }}</p>
       </div>
     </div>
 

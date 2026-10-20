@@ -1,0 +1,11 @@
+{
+  "name": "smartstock-tenant-migration",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node migrate-legacy-tenant.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

@@ -106,6 +106,7 @@ export class StockInComponent {
         supplier: supplierName,
         supplierId,
         costPrice: this.costPrice ?? 0,
+        currentCost: product.cost,
         sellingPrice: this.sellingPrice ?? product.price
       })
       .subscribe({

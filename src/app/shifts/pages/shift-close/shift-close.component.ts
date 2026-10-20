@@ -7,7 +7,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ShiftService } from '../../../core/services/shift.service';
+import { ShiftService, computeShiftTotals } from '../../../core/services/shift.service';
+import { SalesService } from '../../../core/services/sales.service';
+import { roundMoney } from '../../../core/utils/pos-math';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { ToastService } from '../../../core/services/toast.service';
@@ -34,6 +36,7 @@ export class ShiftCloseComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private shiftService = inject(ShiftService);
+  private salesService = inject(SalesService);
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
 
@@ -41,35 +44,28 @@ export class ShiftCloseComponent {
 
   shift = toSignal(this.shiftService.getShiftById(this.shiftId), { initialValue: undefined });
   sales = toSignal(this.shiftService.getShiftSales(this.shiftId), { initialValue: [] });
+  returns = toSignal(this.salesService.getReturnsForShift(this.shiftId), { initialValue: [] });
 
-  countedCash: number | null = null;
+  /** Signal, not a plain field: `variance` below is a computed and would never
+   *  recompute off a plain field in this zoneless app. */
+  countedCash = signal<number | null>(null);
   submitting = signal(false);
 
   alreadyClosed = computed(() => this.shift()?.status === 'closed');
 
-  salesCount = computed(() => this.sales().length);
-  totalRevenue = computed(() => this.sales().reduce((sum, s) => sum + s.total, 0));
+  /** Same function ShiftService.closeShift() uses, so the preview always matches the saved Z-report. */
+  totals = computed(() => computeShiftTotals(this.sales(), this.returns()));
 
-  cashTotal = computed(() => this.sales().filter((s) => s.paymentMethod === 'cash').reduce((sum, s) => sum + s.total, 0));
-  cardTotal = computed(() => this.sales().filter((s) => s.paymentMethod === 'card').reduce((sum, s) => sum + s.total, 0));
+  expectedCash = computed(() => roundMoney((this.shift()?.startingCash ?? 0) + this.totals().cashDrawerDelta));
 
-  /** Net cash added to the drawer: amount tendered minus change handed back — mirrors
-   * ShiftService.closeShift()'s calculation, shown here live before confirming. */
-  private cashDrawerDelta = computed(() =>
-    this.sales()
-      .filter((s) => s.paymentMethod === 'cash')
-      .reduce((sum, s) => sum + (s.paidAmount - s.change), 0)
-  );
-
-  expectedCash = computed(() => (this.shift()?.startingCash ?? 0) + this.cashDrawerDelta());
-
-  variance = computed(() => (this.countedCash ?? 0) - this.expectedCash());
+  variance = computed(() => roundMoney((this.countedCash() ?? 0) - this.expectedCash()));
 
   confirmClose() {
-    if (this.countedCash === null || this.countedCash < 0 || !this.shiftId) return;
+    const counted = this.countedCash();
+    if (counted === null || counted < 0 || !this.shiftId) return;
 
     this.submitting.set(true);
-    this.shiftService.closeShift(this.shiftId, this.countedCash).subscribe({
+    this.shiftService.closeShift(this.shiftId, counted).subscribe({
       next: () => {
         this.submitting.set(false);
         this.toast.success(this.translation.translate('shifts.shiftClosed'));

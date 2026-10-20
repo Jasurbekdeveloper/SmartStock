@@ -86,7 +86,7 @@
                 {{ 'products.import.willCreate' | translate }}
               </span>
               } @else {
-              <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+              <span class="px-2 py-0.5 text-xs rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300">
                 {{ 'products.import.willUpdate' | translate }}
               </span>
               }
@@ -131,7 +131,7 @@
     <h2 class="font-semibold text-gray-900 dark:text-white mb-3">{{ 'products.import.importComplete' | translate }}</h2>
     <div class="flex flex-wrap gap-6 mb-3">
       <span class="text-green-700 dark:text-green-300">{{ 'products.import.createdCount' | translate }}: {{ result.created }}</span>
-      <span class="text-blue-700 dark:text-blue-300">{{ 'products.import.updatedCount' | translate }}: {{ result.updated }}</span>
+      <span class="text-brand-700 dark:text-brand-300">{{ 'products.import.updatedCount' | translate }}: {{ result.updated }}</span>
       @if (result.failed > 0) {
       <span class="text-red-700 dark:text-red-300">{{ 'products.import.failedCount' | translate }}: {{ result.failed }}</span>
       }

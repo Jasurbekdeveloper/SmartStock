@@ -35,8 +35,16 @@ import { SettingsPageComponent } from './settings/pages/settings-page/settings-p
 import { AuditLogListComponent } from './audit-log/pages/audit-log-list/audit-log-list.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  // Public storefront for visitors; staff sign in from there.
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./landing/landing.component').then((m) => m.LandingComponent)
+  },
   { path: 'auth/login', component: LoginComponent },
+  { path: 'auth/register', redirectTo: '/auth/login', pathMatch: 'full' },
+  // Outside the layout so the printed receipt has no app chrome around it.
+  { path: 'sales/:id/receipt', component: ReceiptComponent, canActivate: [authGuard] },
   {
     path: '',
     component: LayoutComponent,
@@ -85,7 +93,6 @@ export const routes: Routes = [
         path: 'sales',
         children: [
           { path: 'history', component: SalesHistoryComponent },
-          { path: ':id/receipt', component: ReceiptComponent },
           { path: ':id', component: SaleDetailComponent }
         ]
       },

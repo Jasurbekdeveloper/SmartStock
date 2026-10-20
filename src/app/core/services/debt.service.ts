@@ -15,6 +15,8 @@ import {
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { Customer } from './customer.service';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 // Customer now lives in customer.service.ts (its own CRUD module — see 5-band CRM
 // plan); re-exported here so existing imports across pos/sale-detail/statistics/debt
@@ -54,9 +56,10 @@ export interface Debt {
 })
 export class DebtService {
   private firestore = inject(FIRESTORE);
+  private authService = inject(AuthService);
 
   getDebts(): Observable<Debt[]> {
-    const debtsQuery = query(collection(this.firestore, 'debts'), orderBy('createdAt', 'desc'));
+    const debtsQuery = tenantQuery(this.firestore, 'debts', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
     return fromCollectionQuery<Debt>(debtsQuery);
   }
 
@@ -67,6 +70,7 @@ export class DebtService {
   getCustomerDebts(customerId: string): Observable<Debt[]> {
     const debtsQuery = query(
       collection(this.firestore, 'debts'),
+      where('tenantId', '==', requireTenantId(this.authService)),
       where('customerId', '==', customerId),
       orderBy('createdAt', 'desc')
     );
@@ -79,13 +83,13 @@ export class DebtService {
     notes?: string;
     dueDate?: Date;
   }): Observable<void> {
-    const data: Record<string, unknown> = {
+    const data: Record<string, unknown> = withTenant({
       customerId: debt.customerId,
       totalAmount: debt.totalAmount,
       paidAmount: 0,
       remainingAmount: debt.totalAmount,
       createdAt: serverTimestamp()
-    };
+    }, requireTenantId(this.authService));
     if (debt.notes) data['notes'] = debt.notes;
     if (debt.dueDate) data['dueDate'] = debt.dueDate;
 
@@ -104,13 +108,13 @@ export class DebtService {
   }
 
   getCustomers(): Observable<Customer[]> {
-    const customersQuery = query(collection(this.firestore, 'customers'), orderBy('name'));
+    const customersQuery = tenantQuery(this.firestore, 'customers', requireTenantId(this.authService), orderBy('name'));
     return fromCollectionQuery<Customer>(customersQuery);
   }
 
   addCustomer(customer: Omit<Customer, 'id'>): Observable<string> {
     return from(
-      addDoc(collection(this.firestore, 'customers'), { ...customer, createdAt: serverTimestamp() })
+      addDoc(collection(this.firestore, 'customers'), withTenant({ ...customer, createdAt: serverTimestamp() }, requireTenantId(this.authService)))
     ).pipe(map((ref) => ref.id));
   }
 }

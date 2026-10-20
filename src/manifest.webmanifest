@@ -1,12 +1,12 @@
 {
-  "name": "SmartStock",
-  "short_name": "SmartStock",
-  "description": "SmartStock — qurilish mollari do'koni uchun savdo/ombor tizimi",
-  "theme_color": "#2563eb",
+  "name": "Original qurilish do'koni — POS",
+  "short_name": "Original POS",
+  "description": "Original qurilish do'koni uchun savdo/ombor tizimi",
+  "theme_color": "#ea580c",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
-  "start_url": "./",
+  "start_url": "./dashboard",
   "icons": [
     {
       "src": "assets/icons/icon-192x192.png",

@@ -17,6 +17,8 @@ import { FIRESTORE } from '../firebase/firebase.providers';
 import { AppUser, UserRole } from './auth.service';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
 import { AuditLogService } from './audit-log.service';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery } from './tenant-data';
 
 export interface CreateEmployeeInput {
   email: string;
@@ -31,9 +33,10 @@ export interface CreateEmployeeInput {
 export class UserManagementService {
   private firestore: Firestore = inject(FIRESTORE);
   private auditLogService = inject(AuditLogService);
+  private authService = inject(AuthService);
 
   getUsers(): Observable<AppUser[]> {
-    const usersQuery = query(collection(this.firestore, 'users'), orderBy('createdAt', 'desc'));
+    const usersQuery = tenantQuery(this.firestore, 'users', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
     return fromCollectionQuery<AppUser>(usersQuery);
   }
 
@@ -98,6 +101,7 @@ export class UserManagementService {
         displayName: input.displayName,
         role: input.role,
         active: true,
+        tenantId: requireTenantId(this.authService),
         createdAt: serverTimestamp()
       });
 

@@ -9,11 +9,11 @@ html {
   height: 100%;
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$orange-palette,
+      tertiary: mat.$azure-palette,
       theme-type: light,
     ),
-    typography: Roboto,
+    typography: (plain-family: Inter, brand-family: Inter),
     density: 0,
   ));
 }
@@ -24,11 +24,11 @@ html {
 html.dark {
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$orange-palette,
+      tertiary: mat.$azure-palette,
       theme-type: dark,
     ),
-    typography: Roboto,
+    typography: (plain-family: Inter, brand-family: Inter),
     density: 0,
   ));
 }
@@ -47,4 +47,24 @@ body {
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+}
+
+// M3's generated orange primary comes out brownish; pin it to the brand orange
+// so Material buttons match the Tailwind `brand-*` accents.
+html {
+  @include mat.theme-overrides((
+    primary: #ea580c,
+    on-primary: #ffffff,
+    primary-container: #ffedd5,
+    on-primary-container: #7c2d12,
+  ));
+}
+
+html.dark {
+  @include mat.theme-overrides((
+    primary: #fb923c,
+    on-primary: #1c0a00,
+    primary-container: #7c2d12,
+    on-primary-container: #ffedd5,
+  ));
 }

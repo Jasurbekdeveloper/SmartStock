@@ -14,7 +14,10 @@ import {
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
-import { Sale } from './sales.service';
+import { Sale, SaleReturn, SalesService, saleCardIn, saleCashIn } from './sales.service';
+import { roundMoney } from '../utils/pos-math';
+import { AuthService } from './auth.service';
+import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Shift {
   id: string;
@@ -29,7 +32,44 @@ export interface Shift {
   variance?: number;
   salesCount?: number;
   totalRevenue?: number;
+  cashTotal?: number;
+  cardTotal?: number;
+  refundTotal?: number;
   notes?: string;
+}
+
+/** Z-report figures for one shift — shared by the live close screen and closeShift(). */
+export interface ShiftTotals {
+  salesCount: number;
+  /** Revenue net of refunds. */
+  totalRevenue: number;
+  cashTotal: number;
+  cardTotal: number;
+  debtTotal: number;
+  refundTotal: number;
+  cashRefunds: number;
+  /** Net cash movement in the drawer: cash kept from sales minus cash refunds. */
+  cashDrawerDelta: number;
+}
+
+export function computeShiftTotals(sales: Sale[], returns: SaleReturn[]): ShiftTotals {
+  const sum = <T>(list: T[], pick: (x: T) => number) => roundMoney(list.reduce((s, x) => s + pick(x), 0));
+  const cashTotal = sum(sales, saleCashIn);
+  const cashRefunds = sum(
+    returns.filter((r) => r.refundMethod === 'cash'),
+    (r) => r.refundAmount
+  );
+  const refundTotal = sum(returns, (r) => r.refundAmount);
+  return {
+    salesCount: sales.length,
+    totalRevenue: roundMoney(sum(sales, (s) => s.total) - refundTotal),
+    cashTotal,
+    cardTotal: sum(sales, saleCardIn),
+    debtTotal: sum(sales, (s) => s.debtAmount ?? 0),
+    refundTotal,
+    cashRefunds,
+    cashDrawerDelta: roundMoney(cashTotal - cashRefunds)
+  };
 }
 
 @Injectable({
@@ -37,40 +77,40 @@ export interface Shift {
 })
 export class ShiftService {
   private firestore = inject(FIRESTORE);
+  private salesService = inject(SalesService);
+  private authService = inject(AuthService);
 
   /** Opens a new shift for the given cashier, starting with the cash float they counted into the drawer. */
   openShift(cashierId: string, cashierName: string, startingCash: number): Observable<string> {
     return from(
-      addDoc(collection(this.firestore, 'shifts'), {
+      addDoc(collection(this.firestore, 'shifts'), withTenant({
         cashierId,
         cashierName,
         startingCash,
         status: 'open',
         openedAt: serverTimestamp()
-      })
+      }, requireTenantId(this.authService)))
     ).pipe(map((ref) => ref.id));
   }
 
   /**
-   * Closes the shift: pulls every sale linked to it, nets out the cash-only drawer
-   * movement (amount tendered minus change handed back) on top of the starting float
+   * Closes the shift: pulls every sale and return linked to it, adds the net cash
+   * drawer movement (cash kept from sales minus cash refunds) to the starting float
    * to get `expectedCash`, then records the cashier's physical count and the variance
    * between the two (positive = surplus, negative = shortage).
    */
   closeShift(shiftId: string, countedCash: number): Observable<void> {
     return forkJoin({
       shiftSnap: from(getDoc(doc(this.firestore, 'shifts', shiftId))),
-      sales: this.getShiftSales(shiftId).pipe(take(1))
+      sales: this.getShiftSales(shiftId).pipe(take(1)),
+      returns: this.salesService.getReturnsForShift(shiftId).pipe(take(1))
     }).pipe(
-      switchMap(({ shiftSnap, sales }) => {
+      switchMap(({ shiftSnap, sales, returns }) => {
         const startingCash = (shiftSnap.data()?.['startingCash'] as number) ?? 0;
-        const cashDrawerDelta = sales
-          .filter((s) => s.paymentMethod === 'cash')
-          .reduce((sum, s) => sum + (s.paidAmount - s.change), 0);
-        const expectedCash = startingCash + cashDrawerDelta;
-        const variance = countedCash - expectedCash;
-        const salesCount = sales.length;
-        const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0);
+        const totals = computeShiftTotals(sales, returns);
+        const expectedCash = roundMoney(startingCash + totals.cashDrawerDelta);
+        const variance = roundMoney(countedCash - expectedCash);
+        const { salesCount, totalRevenue, cashTotal, cardTotal, refundTotal } = totals;
 
         return from(
           updateDoc(doc(this.firestore, 'shifts', shiftId), {
@@ -80,7 +120,10 @@ export class ShiftService {
             countedCash,
             variance,
             salesCount,
-            totalRevenue
+            totalRevenue,
+            cashTotal,
+            cardTotal,
+            refundTotal
           })
         );
       })
@@ -91,6 +134,7 @@ export class ShiftService {
   getOpenShiftForUser(uid: string): Observable<Shift | undefined> {
     const openShiftQuery = query(
       collection(this.firestore, 'shifts'),
+      where('tenantId', '==', requireTenantId(this.authService)),
       where('cashierId', '==', uid),
       where('status', '==', 'open')
     );
@@ -110,16 +154,16 @@ export class ShiftService {
   getShifts(uid: string, seeAll: boolean): Observable<Shift[]> {
     const shiftsCollection = collection(this.firestore, 'shifts');
     if (seeAll) {
-      return fromCollectionQuery<Shift>(query(shiftsCollection, orderBy('openedAt', 'desc')));
+      return fromCollectionQuery<Shift>(tenantQuery(this.firestore, 'shifts', requireTenantId(this.authService), orderBy('openedAt', 'desc')));
     }
-    return fromCollectionQuery<Shift>(query(shiftsCollection, where('cashierId', '==', uid))).pipe(
+    return fromCollectionQuery<Shift>(query(shiftsCollection, where('tenantId', '==', requireTenantId(this.authService)), where('cashierId', '==', uid))).pipe(
       map((shifts) => shifts.slice().sort((a, b) => b.openedAt.getTime() - a.openedAt.getTime()))
     );
   }
 
   getShiftSales(shiftId: string): Observable<Sale[]> {
     if (!shiftId) return of([]);
-    const salesQuery = query(collection(this.firestore, 'sales'), where('shiftId', '==', shiftId));
+    const salesQuery = tenantQuery(this.firestore, 'sales', requireTenantId(this.authService), where('shiftId', '==', shiftId));
     return fromCollectionQuery<Sale>(salesQuery);
   }
 }

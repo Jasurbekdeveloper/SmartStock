@@ -1,2 +1,13 @@
 <router-outlet></router-outlet>
 <app-toast-container></app-toast-container>
+
+@if (updateReady()) {
+<div
+  class="fixed z-[1000] left-1/2 -translate-x-1/2 bottom-4 w-[calc(100%-2rem)] max-w-md flex items-center gap-3 rounded-xl bg-slate-900 text-white shadow-xl px-4 py-3"
+  role="status"
+>
+  <mat-icon class="text-orange-400 shrink-0">system_update</mat-icon>
+  <span class="flex-1 text-sm">{{ 'common.updateAvailable' | translate }}</span>
+  <button mat-flat-button color="primary" (click)="applyUpdate()">{{ 'common.updateNow' | translate }}</button>
+</div>
+}

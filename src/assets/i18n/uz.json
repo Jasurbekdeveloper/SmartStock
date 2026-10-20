@@ -13,7 +13,9 @@
     "profile": "Profil",
     "online": "Onlayn",
     "offline": "Oflayn — sotuvlar navbatda",
-    "theme": "Mavzu"
+    "theme": "Mavzu",
+    "updateAvailable": "Ilovaning yangi versiyasi tayyor.",
+    "updateNow": "Yangilash"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",

@@ -13,7 +13,9 @@
     "profile": "Profile",
     "online": "Online",
     "offline": "Offline — sales queued",
-    "theme": "Theme"
+    "theme": "Theme",
+    "updateAvailable": "A new version of the app is ready.",
+    "updateNow": "Update"
   },
   "tenant": {
     "backToHome": "Back to home",

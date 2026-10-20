@@ -13,7 +13,9 @@
     "profile": "Профиль",
     "online": "Онлайн",
     "offline": "Офлайн — продажи в очереди",
-    "theme": "Тема"
+    "theme": "Тема",
+    "updateAvailable": "Доступна новая версия приложения.",
+    "updateNow": "Обновить"
   },
   "tenant": {
     "backToHome": "На главную",

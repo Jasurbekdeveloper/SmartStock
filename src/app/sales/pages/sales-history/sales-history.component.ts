@@ -1,4 +1,6 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -16,6 +18,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
+import { DEFAULT_RANGE_DAYS, daysAgo, endOfDay, startOfDay } from '../../../core/utils/date-range';
 
 type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed';
 
@@ -41,25 +44,25 @@ type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed';
   templateUrl: './sales-history.component.html',
   styleUrl: './sales-history.component.css'
 })
-export class SalesHistoryComponent implements OnInit {
-  sales = signal<Sale[]>([]);
+export class SalesHistoryComponent {
+  private salesService = inject(SalesService);
 
   searchQuery = signal('');
   paymentFilter = signal<PaymentFilter>('all');
-  startDate = signal<Date | null>(null);
+  /** The date range is what Firestore is queried with (not just a client-side filter),
+   *  so it always has a start: the last DEFAULT_RANGE_DAYS days unless the user picks one. */
+  startDate = signal<Date | null>(daysAgo(DEFAULT_RANGE_DAYS));
   endDate = signal<Date | null>(null);
 
-  constructor(private salesService: SalesService) {}
+  private range = computed(() => ({
+    from: startOfDay(this.startDate() ?? daysAgo(DEFAULT_RANGE_DAYS)),
+    to: this.endDate() ? endOfDay(this.endDate()!) : null
+  }));
 
-  ngOnInit() {
-    this.loadSales();
-  }
-
-  loadSales() {
-    this.salesService.getSales().subscribe(sales => {
-      this.sales.set(sales);
-    });
-  }
+  sales = toSignal(
+    toObservable(this.range).pipe(switchMap(({ from, to }) => this.salesService.getSalesInRange(from, to))),
+    { initialValue: [] as Sale[] }
+  );
 
   itemNames(sale: Sale): string {
     return sale.items.map((item) => `${item.productName} x${item.quantity}`).join(', ');
@@ -100,7 +103,7 @@ export class SalesHistoryComponent implements OnInit {
   clearFilters() {
     this.searchQuery.set('');
     this.paymentFilter.set('all');
-    this.startDate.set(null);
+    this.startDate.set(daysAgo(DEFAULT_RANGE_DAYS));
     this.endDate.set(null);
     this.pagination.reset();
   }

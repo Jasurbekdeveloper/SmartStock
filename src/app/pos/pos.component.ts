@@ -24,6 +24,7 @@ import { SettingsService } from '../core/services/settings.service';
 import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { CheckoutLineInput, calculateCheckout, generateReceiptNo, splitPayment } from '../core/utils/pos-math';
+import { DEFAULT_RANGE_DAYS, daysAgo } from '../core/utils/date-range';
 import { PosPaymentDialogComponent, PosPaymentDialogData, PosPaymentDialogResult } from './pos-payment-dialog/pos-payment-dialog.component';
 import { PosSuccessDialogComponent, PosSuccessDialogData } from './pos-success-dialog/pos-success-dialog.component';
 import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog.component';
@@ -96,7 +97,8 @@ export class PosComponent implements OnInit {
   @ViewChild('searchInput') private searchInputRef?: ElementRef<HTMLInputElement>;
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
-  sales = toSignal(this.salesService.getSales(), { initialValue: [] });
+  /** Recent sales only drive the "most sold first" ordering of categories/products. */
+  sales = toSignal(this.salesService.getSalesInRange(daysAgo(DEFAULT_RANGE_DAYS)), { initialValue: [] });
   customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
   currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
 

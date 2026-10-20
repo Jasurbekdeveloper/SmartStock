@@ -2,7 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
+import { DEFAULT_RANGE_DAYS, daysAgo, endOfDay, startOfDay } from '../core/utils/date-range';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -79,13 +81,23 @@ export class StatisticsComponent {
   private translation: TranslationService = inject(TranslationService);
   private productService = inject(ProductService);
 
-  sales = toSignal(this.salesService.getSales(), { initialValue: [] as Sale[] });
+  /** The period is part of the Firestore query (not only a client-side filter), so it
+   *  always has a start — the last DEFAULT_RANGE_DAYS days unless the user picks one. */
+  fromDate = signal<Date | null>(daysAgo(DEFAULT_RANGE_DAYS));
+  toDate = signal<Date | null>(null);
+
+  private range = computed(() => ({
+    from: startOfDay(this.fromDate() ?? daysAgo(DEFAULT_RANGE_DAYS)),
+    to: this.toDate() ? endOfDay(this.toDate()!) : null
+  }));
+
+  sales = toSignal(
+    toObservable(this.range).pipe(switchMap(({ from, to }) => this.salesService.getSalesInRange(from, to))),
+    { initialValue: [] as Sale[] }
+  );
   debts = toSignal(this.debtService.getDebts(), { initialValue: [] as Debt[] });
   customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
   products = toSignal(this.productService.getProducts(), { initialValue: [] as Product[] });
-
-  fromDate = signal<Date | null>(null);
-  toDate = signal<Date | null>(null);
 
   onFromDateChange(value: Date | null) {
     this.fromDate.set(value);
@@ -96,7 +108,7 @@ export class StatisticsComponent {
   }
 
   clearDateRange() {
-    this.fromDate.set(null);
+    this.fromDate.set(daysAgo(DEFAULT_RANGE_DAYS));
     this.toDate.set(null);
   }
 
@@ -120,10 +132,18 @@ export class StatisticsComponent {
     });
   });
 
+  /** True while the period is the automatic default rather than one the user picked. */
+  private isDefaultRange = computed(() => {
+    const from = this.fromDate();
+    return !this.toDate() && (!from || startOfDay(from).getTime() === daysAgo(DEFAULT_RANGE_DAYS).getTime());
+  });
+
+  /** Debts are all loaded (outstanding balances need every open debt), so with the
+   *  default period they stay unfiltered — "outstanding" means all of it, as before. */
   filteredDebts = computed(() => {
     const from = this.fromDate();
     const to = this.toDate();
-    if (!from && !to) return this.debts();
+    if (this.isDefaultRange() || (!from && !to)) return this.debts();
 
     return this.debts().filter((debt) => {
       const createdAt = new Date(debt.createdAt);

@@ -18,6 +18,7 @@ import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { formatNumber } from '../core/utils/format-number';
+import { daysAgo } from '../core/utils/date-range';
 import {
   debtDueToastStorageKey,
   debtsNeedingTelegramAlert,
@@ -200,7 +201,8 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.salesService.getSales().subscribe(sales => {
+    // Today's KPIs and the 7-day chart need nothing older than a week.
+    this.salesService.getSalesInRange(daysAgo(7)).subscribe(sales => {
       this.sales.set(sales);
     });
 

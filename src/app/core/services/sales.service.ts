@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import {
+  QueryConstraint,
+  Timestamp,
   WriteBatch,
   collection,
   doc,
+  endAt,
   increment,
   orderBy,
   query,
   serverTimestamp,
+  startAt,
   where,
   writeBatch
 } from 'firebase/firestore';
@@ -142,9 +146,23 @@ export class SalesService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
 
-  getSales(): Observable<Sale[]> {
-    const salesQuery = tenantQuery(this.firestore, 'sales', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
-    return fromCollectionQuery<Sale>(salesQuery);
+  /**
+   * Sales from `from` up to `to` (or now), newest first. There is deliberately no
+   * "all sales" query: every page reads a bounded window so cost doesn't grow with
+   * the store's history.
+   *
+   * The window is expressed as cursors on the createdAt ordering rather than
+   * `where('createdAt', '>=', …)`: a sale made offline still has a pending server
+   * timestamp, which a range filter skips until it syncs, while the ordering puts it
+   * first — so offline sales keep showing up on the dashboard and in the POS.
+   */
+  getSalesInRange(from: Date, to?: Date | null): Observable<Sale[]> {
+    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
+    if (to && to.getTime() < Date.now()) {
+      constraints.push(startAt(Timestamp.fromDate(to)));
+    }
+    constraints.push(endAt(Timestamp.fromDate(from)));
+    return fromCollectionQuery<Sale>(tenantQuery(this.firestore, 'sales', requireTenantId(this.authService), ...constraints));
   }
 
   getSaleById(id: string): Observable<Sale | undefined> {
@@ -165,9 +183,6 @@ export class SalesService {
     return fromCollectionQuery<Sale>(salesQuery);
   }
 
-  getReturns(): Observable<SaleReturn[]> {
-    return fromCollectionQuery<SaleReturn>(tenantQuery(this.firestore, 'returns', requireTenantId(this.authService), orderBy('createdAt', 'desc')));
-  }
 
   /** Single-field filter only, so no composite index is needed. */
   getReturnsForSale(saleId: string): Observable<SaleReturn[]> {

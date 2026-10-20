@@ -71,7 +71,12 @@ import { STATE_BADGE, money, stateKey } from '../../../platform/platform-ui';
               @for (p of payments(); track p.id) {
               <tr class="border-t border-gray-100 dark:border-gray-800">
                 <td class="px-5 py-2.5 whitespace-nowrap">{{ p.createdAt | date: 'dd.MM.yyyy' }}</td>
-                <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap">{{ money(p.amount) }}</td>
+                <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap" [class.line-through]="p.voided" [class.text-gray-400]="p.voided">
+                  {{ money(p.amount) }}
+                  @if (p.voided) {
+                  <div class="text-xs text-red-600 dark:text-red-400 no-underline">{{ 'platform.payments.voided' | translate }}</div>
+                  }
+                </td>
                 <td class="px-5 py-2.5">{{ p.months }}</td>
                 <td class="px-5 py-2.5 tabular-nums">{{ p.paidUntilAfter | date: 'dd.MM.yyyy' }}</td>
               </tr>

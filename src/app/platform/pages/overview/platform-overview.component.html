@@ -75,7 +75,7 @@
           <tr class="border-t border-gray-100 dark:border-gray-800">
             <td class="px-5 py-2.5 whitespace-nowrap">{{ p.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
             <td class="px-5 py-2.5"><a [routerLink]="['/platform/tenants', p.tenantId]" class="hover:text-brand-600">{{ p.tenantName }}</a></td>
-            <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap">{{ money(p.amount) }}</td>
+            <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap" [class.line-through]="p.voided" [class.text-gray-400]="p.voided">{{ money(p.amount) }}</td>
             <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap">{{ p.paidUntilAfter | date: 'dd.MM.yyyy' }}</td>
           </tr>
           }

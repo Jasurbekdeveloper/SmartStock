@@ -4,6 +4,7 @@ import {
   Firestore,
   Timestamp,
   collection,
+  deleteField,
   doc,
   limit,
   orderBy,
@@ -210,6 +211,55 @@ export class PlatformService {
       maxProducts: plan.maxProducts
     });
     this.addAudit(batch, 'tenant_plan', tenant.id, tenant.name, `${tenant.planName ?? '—'} → ${plan.name}`);
+    return from(batch.commit());
+  }
+
+  /** Store name/contacts; the name is mirrored into the store's receipt settings. */
+  updateTenantInfo(tenant: Tenant, info: { name: string; phone?: string; address?: string }): Observable<void> {
+    const batch = writeBatch(this.firestore);
+    batch.update(doc(this.firestore, 'tenants', tenant.id), {
+      name: info.name,
+      phone: info.phone ?? deleteField(),
+      address: info.address ?? deleteField()
+    });
+    batch.set(
+      doc(this.firestore, 'settings', tenant.id),
+      { storeName: info.name, storePhone: info.phone ?? deleteField(), storeAddress: info.address ?? deleteField() },
+      { merge: true }
+    );
+    this.addAudit(batch, 'tenant_edit', tenant.id, info.name, tenant.name !== info.name ? `${tenant.name} → ${info.name}` : '');
+    return from(batch.commit());
+  }
+
+  /** Makes another active admin of the same store its owner (e.g. the owner's email
+   *  changed: add an admin with the new email, then transfer). */
+  transferOwnership(tenant: Tenant, newOwner: AppUser): Observable<void> {
+    const batch = writeBatch(this.firestore);
+    batch.update(doc(this.firestore, 'tenants', tenant.id), {
+      ownerId: newOwner.uid,
+      ownerName: newOwner.displayName,
+      ownerEmail: newOwner.email
+    });
+    this.addAudit(batch, 'tenant_owner', tenant.id, tenant.name, `${tenant.ownerEmail ?? ''} → ${newOwner.email}`);
+    return from(batch.commit());
+  }
+
+  /** Cancels a mistaken payment: it stays in the history marked as voided and the
+   *  store's paidUntil goes back to what it was before. Only the latest active
+   *  payment can be voided, so paid periods are always unwound in order. */
+  voidPayment(tenant: Tenant, payment: SubscriptionPayment): Observable<void> {
+    const user = this.authService.getCurrentUser();
+    const batch = writeBatch(this.firestore);
+    batch.update(doc(this.firestore, 'subscriptionPayments', payment.id), {
+      voided: true,
+      voidedAt: serverTimestamp(),
+      voidedBy: user?.uid ?? '',
+      voidedByName: user?.displayName || user?.email || ''
+    });
+    batch.update(doc(this.firestore, 'tenants', tenant.id), {
+      paidUntil: payment.paidUntilBefore ? Timestamp.fromDate(payment.paidUntilBefore) : deleteField()
+    });
+    this.addAudit(batch, 'payment_void', tenant.id, tenant.name, `${payment.amount} × ${payment.months}m`);
     return from(batch.commit());
   }
 

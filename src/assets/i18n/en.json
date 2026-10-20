@@ -704,7 +704,15 @@
       "planChanged": "Plan changed",
       "paymentSaved": "Payment saved, period extended",
       "statusChanged": "Status changed",
-      "userUpdated": "Staff member updated"
+      "userUpdated": "Staff member updated",
+      "infoSaved": "Store details saved",
+      "makeOwner": "Make owner",
+      "confirmMakeOwner": "This admin becomes the new store owner. The previous owner stays a regular admin. Continue?",
+      "ownerChanged": "Store owner changed",
+      "ownerHint": "To change the owner's email: add an admin with the new email, then make them owner with the crown button.",
+      "voidPayment": "Cancel payment",
+      "confirmVoidPayment": "The payment is marked as cancelled and the paid period goes back to what it was. The record stays in the history. Continue?",
+      "paymentVoided": "Payment cancelled, period restored"
     },
     "payments": {
       "none": "No payments yet",
@@ -719,7 +727,8 @@
         "cash": "Cash",
         "card": "Card",
         "transfer": "Transfer"
-      }
+      },
+      "voided": "Cancelled"
     },
     "plans": {
       "title": "Plans",
@@ -751,7 +760,10 @@
         "tenant_plan": "Plan changed",
         "payment_record": "Payment",
         "tenant_user_create": "Staff added",
-        "tenant_user_active": "Staff status"
+        "tenant_user_active": "Staff status",
+        "tenant_edit": "Store edited",
+        "tenant_owner": "Owner changed",
+        "payment_void": "Payment cancelled"
       }
     }
   }

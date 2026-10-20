@@ -29,7 +29,32 @@
   <div class="grid gap-6 lg:grid-cols-3">
     <!-- Store info -->
     <mat-card class="!p-5">
-      <h2 class="font-semibold mb-3">{{ 'platform.detail.info' | translate }}</h2>
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <h2 class="font-semibold">{{ 'platform.detail.info' | translate }}</h2>
+        @if (!editingInfo()) {
+        <button mat-icon-button (click)="startEditInfo(t)" [matTooltip]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>
+        }
+      </div>
+      @if (editingInfo()) {
+      <form [formGroup]="infoForm" (ngSubmit)="saveInfo(t)" class="flex flex-col">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.storeName' | translate }}</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.phone' | translate }}</mat-label>
+          <input matInput formControlName="phone" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.detail.address' | translate }}</mat-label>
+          <input matInput formControlName="address" />
+        </mat-form-field>
+        <div class="flex justify-end gap-2">
+          <button mat-button type="button" (click)="editingInfo.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="busy()">{{ 'common.save' | translate }}</button>
+        </div>
+      </form>
+      } @else {
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
         <dt class="text-gray-500">{{ 'platform.tenants.owner' | translate }}</dt>
         <dd class="min-w-0 break-words">{{ t.ownerName || '—' }}<div class="text-xs text-gray-500">{{ t.ownerEmail }}</div></dd>
@@ -48,6 +73,7 @@
         <dt class="text-gray-500">{{ 'platform.detail.setup' | translate }}</dt>
         <dd>{{ (t.onboarded === false ? 'platform.detail.setupPending' : 'platform.detail.setupDone') | translate }}</dd>
       </dl>
+      }
     </mat-card>
 
     <!-- Subscription -->
@@ -141,6 +167,7 @@
       <p class="mt-1 select-all tabular-nums">{{ cu.email }} · {{ cu.password }}</p>
     </div>
     }
+    <p class="px-5 pb-3 text-xs text-gray-500 dark:text-gray-400">{{ 'platform.detail.ownerHint' | translate }}</p>
 
     @if (showUserForm()) {
     <form [formGroup]="userForm" (ngSubmit)="addUser(t)" class="px-5 pb-4 grid gap-x-3 md:grid-cols-2 xl:grid-cols-4">
@@ -197,7 +224,12 @@
             </td>
             <td class="px-5 py-2.5">{{ roleLabelKey(u.role) | translate }}</td>
             <td class="px-5 py-2.5">{{ (u.active ? 'users.active' : 'users.inactive') | translate }}</td>
-            <td class="px-5 py-2.5 text-right">
+            <td class="px-5 py-2.5 text-right whitespace-nowrap">
+              @if (canBecomeOwner(u)) {
+              <button mat-icon-button [disabled]="busy()" (click)="makeOwner(t, u)" [matTooltip]="'platform.detail.makeOwner' | translate">
+                <mat-icon>workspace_premium</mat-icon>
+              </button>
+              }
               <button mat-icon-button [color]="u.active ? 'warn' : 'primary'" [disabled]="busy()" (click)="toggleUser(t, u)"
                 [matTooltip]="(u.active ? 'users.deactivate' : 'users.activate') | translate">
                 <mat-icon>{{ u.active ? 'block' : 'check_circle' }}</mat-icon>
@@ -226,17 +258,30 @@
             <th class="px-5 py-2 text-left font-medium">{{ 'platform.payments.method' | translate }}</th>
             <th class="px-5 py-2 text-left font-medium">{{ 'platform.payments.paidUntil' | translate }}</th>
             <th class="px-5 py-2 text-left font-medium">{{ 'platform.payments.recordedBy' | translate }}</th>
+            <th class="px-5 py-2"></th>
           </tr>
         </thead>
         <tbody>
           @for (p of payments(); track p.id) {
-          <tr class="border-t border-gray-100 dark:border-gray-800">
+          <tr class="border-t border-gray-100 dark:border-gray-800" [class.text-gray-400]="p.voided">
             <td class="px-5 py-2.5 whitespace-nowrap">{{ p.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
-            <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap">{{ money(p.amount) }}</td>
+            <td class="px-5 py-2.5 text-right tabular-nums whitespace-nowrap" [class.line-through]="p.voided">{{ money(p.amount) }}</td>
             <td class="px-5 py-2.5">{{ p.months }}</td>
             <td class="px-5 py-2.5">{{ 'platform.payments.methods.' + p.method | translate }}@if (p.note) {<div class="text-xs text-gray-500">{{ p.note }}</div>}</td>
             <td class="px-5 py-2.5 tabular-nums whitespace-nowrap">{{ p.paidUntilAfter | date: 'dd.MM.yyyy' }}</td>
-            <td class="px-5 py-2.5">{{ p.recordedByName }}</td>
+            <td class="px-5 py-2.5">
+              {{ p.recordedByName }}
+              @if (p.voided) {
+              <div class="text-xs text-red-600 dark:text-red-400">{{ 'platform.payments.voided' | translate }}: {{ p.voidedByName }}, {{ p.voidedAt | date: 'dd.MM.yyyy' }}</div>
+              }
+            </td>
+            <td class="px-5 py-2.5 text-right">
+              @if (p.id === voidablePaymentId()) {
+              <button mat-icon-button color="warn" [disabled]="busy()" (click)="voidPayment(t, p)" [matTooltip]="'platform.detail.voidPayment' | translate">
+                <mat-icon>undo</mat-icon>
+              </button>
+              }
+            </td>
           </tr>
           }
         </tbody>

@@ -704,7 +704,15 @@
       "planChanged": "Tarif o'zgartirildi",
       "paymentSaved": "To'lov saqlandi, muddat uzaytirildi",
       "statusChanged": "Holat o'zgartirildi",
-      "userUpdated": "Xodim yangilandi"
+      "userUpdated": "Xodim yangilandi",
+      "infoSaved": "Do'kon ma'lumotlari saqlandi",
+      "makeOwner": "Do'kon egasi qilish",
+      "confirmMakeOwner": "Shu admin do'konning yangi egasi bo'ladi. Avvalgi egasi oddiy admin bo'lib qoladi. Davom etasizmi?",
+      "ownerChanged": "Do'kon egasi almashtirildi",
+      "ownerHint": "Egasining email'ini o'zgartirish kerak bo'lsa: yangi email bilan admin qo'shing va uni toj belgisi orqali ega qiling.",
+      "voidPayment": "To'lovni bekor qilish",
+      "confirmVoidPayment": "To'lov bekor qilingan deb belgilanadi va muddat avvalgi holatiga qaytadi. Yozuv tarixda qoladi. Davom etasizmi?",
+      "paymentVoided": "To'lov bekor qilindi, muddat qaytarildi"
     },
     "payments": {
       "none": "Hali to'lov yo'q",
@@ -719,7 +727,8 @@
         "cash": "Naqd",
         "card": "Karta",
         "transfer": "O'tkazma"
-      }
+      },
+      "voided": "Bekor qilingan"
     },
     "plans": {
       "title": "Tariflar",
@@ -751,7 +760,10 @@
         "tenant_plan": "Tarif o'zgardi",
         "payment_record": "To'lov",
         "tenant_user_create": "Xodim qo'shildi",
-        "tenant_user_active": "Xodim holati"
+        "tenant_user_active": "Xodim holati",
+        "tenant_edit": "Do'kon tahrirlandi",
+        "tenant_owner": "Egasi almashdi",
+        "payment_void": "To'lov bekor qilindi"
       }
     }
   }

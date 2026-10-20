@@ -17,7 +17,14 @@ import { PlatformService } from '../../../core/services/platform.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { AppUser, StoreRole } from '../../../core/services/auth.service';
-import { PaymentMethod, Tenant, TenantStatus, extendPaidUntil, getSubscriptionInfo } from '../../../core/models/saas';
+import {
+  PaymentMethod,
+  SubscriptionPayment,
+  Tenant,
+  TenantStatus,
+  extendPaidUntil,
+  getSubscriptionInfo
+} from '../../../core/models/saas';
 import { authCreateErrorKey } from '../../../core/firebase/create-auth-account';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { STATE_BADGE, generatePassword, money, stateKey } from '../../platform-ui';
@@ -93,6 +100,16 @@ export class TenantDetailComponent {
   });
   createdUser = signal<{ email: string; password: string } | null>(null);
 
+  editingInfo = signal(false);
+  infoForm = this.fb.nonNullable.group({
+    name: ['', Validators.required],
+    phone: [''],
+    address: ['']
+  });
+
+  /** Only the newest active payment can be voided, so periods unwind in order. */
+  voidablePaymentId = computed(() => this.payments().find((p) => !p.voided)?.id ?? null);
+
   constructor() {
     effect(() => {
       const tenant = this.tenant();
@@ -111,6 +128,54 @@ export class TenantDetailComponent {
 
   isOwner(user: AppUser): boolean {
     return user.uid === this.tenant()?.ownerId;
+  }
+
+  canBecomeOwner(user: AppUser): boolean {
+    return !this.isOwner(user) && user.role === 'admin' && user.active;
+  }
+
+  startEditInfo(tenant: Tenant) {
+    this.infoForm.reset({ name: tenant.name, phone: tenant.phone ?? '', address: tenant.address ?? '' });
+    this.editingInfo.set(true);
+  }
+
+  saveInfo(tenant: Tenant) {
+    if (this.infoForm.invalid) {
+      this.infoForm.markAllAsTouched();
+      return;
+    }
+    const value = this.infoForm.getRawValue();
+    this.run(
+      this.platform.updateTenantInfo(tenant, {
+        name: value.name.trim(),
+        phone: value.phone.trim() || undefined,
+        address: value.address.trim() || undefined
+      }),
+      'platform.detail.infoSaved',
+      () => this.editingInfo.set(false)
+    );
+  }
+
+  makeOwner(tenant: Tenant, user: AppUser) {
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: { titleKey: 'platform.detail.makeOwner', messageKey: 'platform.detail.confirmMakeOwner' }
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) this.run(this.platform.transferOwnership(tenant, user), 'platform.detail.ownerChanged');
+      });
+  }
+
+  voidPayment(tenant: Tenant, payment: SubscriptionPayment) {
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: { titleKey: 'platform.detail.voidPayment', messageKey: 'platform.detail.confirmVoidPayment' }
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) this.run(this.platform.voidPayment(tenant, payment), 'platform.detail.paymentVoided');
+      });
   }
 
   changePlan(tenant: Tenant) {

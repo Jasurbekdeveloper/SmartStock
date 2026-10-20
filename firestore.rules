@@ -68,13 +68,20 @@ service cloud.firestore {
       return role in ['admin', 'manager', 'cashier'];
     }
 
+    // Ownership can only move to an active admin of the same store.
+    function isActiveAdminOf(uid, tenantId) {
+      let u = get(/databases/$(database)/documents/users/$(uid)).data;
+      return u.tenantId == tenantId && u.role == 'admin' && u.active == true;
+    }
+
     // tenants/{tenantId}: one store. The super admin creates it and owns the
     // subscription fields; the store's admin may only edit its own contact details.
     match /tenants/{tenantId} {
       allow read: if isTenantMember(tenantId) || isSuperAdmin();
       allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin()
-        && request.resource.data.ownerId == resource.data.ownerId
+      allow update: if (isSuperAdmin()
+          && (request.resource.data.ownerId == resource.data.ownerId
+              || isActiveAdminOf(request.resource.data.ownerId, tenantId)))
         || (isTenantAdmin(tenantId)
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['name', 'phone', 'address', 'onboarded', 'updatedAt']));
@@ -115,11 +122,17 @@ service cloud.firestore {
     }
 
     // subscriptionPayments/{id}: recorded by the super admin; the store admin sees
-    // its own history. Immutable.
+    // its own history. Never deleted: a mistaken payment is only marked voided, once.
     match /subscriptionPayments/{id} {
       allow read: if isSuperAdmin() || isTenantAdmin(resource.data.tenantId);
       allow create: if isSuperAdmin() && request.resource.data.recordedBy == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if isSuperAdmin()
+        && resource.data.get('voided', false) == false
+        && request.resource.data.voided == true
+        && request.resource.data.voidedBy == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['voided', 'voidedAt', 'voidedBy', 'voidedByName']);
+      allow delete: if false;
     }
 
     // platformAudit/{id}: what the super admin did. Immutable.

@@ -50,6 +50,11 @@ export interface SubscriptionPayment {
   recordedBy: string;
   recordedByName: string;
   createdAt?: Date;
+  /** A cancelled payment stays in the history (money trail) but no longer counts. */
+  voided?: boolean;
+  voidedAt?: Date;
+  voidedBy?: string;
+  voidedByName?: string;
 }
 
 export type PlatformAuditAction =
@@ -58,7 +63,10 @@ export type PlatformAuditAction =
   | 'tenant_plan'
   | 'payment_record'
   | 'tenant_user_create'
-  | 'tenant_user_active';
+  | 'tenant_user_active'
+  | 'tenant_edit'
+  | 'tenant_owner'
+  | 'payment_void';
 
 /** `platformAudit/{id}` — what the super admin did, immutable. */
 export interface PlatformAuditEntry {

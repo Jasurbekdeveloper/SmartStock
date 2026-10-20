@@ -1,9 +1,10 @@
 {
-  "name": "smartstock-tenant-migration",
+  "name": "hisobla-admin-scripts",
   "private": true,
   "type": "module",
   "scripts": {
-    "migrate": "node migrate-legacy-tenant.mjs"
+    "migrate": "node migrate-legacy-tenant.mjs",
+    "create-super-admin": "node create-super-admin.mjs"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0"

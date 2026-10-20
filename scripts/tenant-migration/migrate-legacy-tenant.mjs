@@ -28,9 +28,12 @@ if (existingTenant.exists && existingTenant.data().ownerId !== ownerUid) {
   throw new Error(`Tenant ${tenantId} already belongs to a different owner.`);
 }
 
+const legacySettings = await db.doc('settings/general').get();
 await tenantRef.set({
-  name: existingTenant.data()?.name ?? 'SmartStock',
+  name: existingTenant.data()?.name ?? legacySettings.data()?.storeName ?? 'SmartStock',
   ownerId: ownerUid,
+  ownerName: ownerSnapshot.data().displayName ?? '',
+  ownerEmail: ownerSnapshot.data().email ?? '',
   plan: existingTenant.data()?.plan ?? 'free',
   status: existingTenant.data()?.status ?? 'active',
   ...(existingTenant.exists ? {} : { createdAt: new Date() })

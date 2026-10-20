@@ -1,0 +1,101 @@
+<div class="max-w-3xl space-y-6">
+  <div>
+    <a routerLink="/platform/tenants" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600">
+      <mat-icon class="!w-4 !h-4 !text-base">arrow_back</mat-icon>
+      {{ 'platform.nav.tenants' | translate }}
+    </a>
+    <h1 class="page-title mt-1">{{ 'platform.create.title' | translate }}</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.create.subtitle' | translate }}</p>
+  </div>
+
+  @if (created(); as store) {
+  <mat-card class="!p-6">
+    <div class="flex items-start gap-3">
+      <span class="grid place-items-center w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 shrink-0">
+        <mat-icon>check_circle</mat-icon>
+      </span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-semibold">{{ 'platform.create.doneTitle' | translate }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.create.doneText' | translate }}</p>
+      </div>
+    </div>
+    <pre class="mt-4 rounded-xl bg-gray-50 dark:bg-gray-800 p-4 text-sm whitespace-pre-wrap break-all select-all">{{ credentialsText(store) }}</pre>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <button mat-flat-button color="primary" (click)="copyCredentials(store)">
+        <mat-icon>content_copy</mat-icon>
+        {{ 'platform.create.copy' | translate }}
+      </button>
+      <a mat-stroked-button [routerLink]="['/platform/tenants', store.tenantId]">{{ 'platform.create.openStore' | translate }}</a>
+      <button mat-button (click)="createAnother()">{{ 'platform.create.another' | translate }}</button>
+    </div>
+  </mat-card>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+    <mat-card class="!p-6">
+      <h2 class="font-semibold mb-4 flex items-center gap-2"><mat-icon class="text-brand-600">storefront</mat-icon>{{ 'platform.create.storeSection' | translate }}</h2>
+      <div class="grid gap-x-4 md:grid-cols-2">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.storeName' | translate }}</mat-label>
+          <input matInput formControlName="storeName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.phone' | translate }}</mat-label>
+          <input matInput formControlName="phone" placeholder="+998 90 123 45 67" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.tenants.plan' | translate }}</mat-label>
+          <mat-select formControlName="planId">
+            @for (plan of activePlans(); track plan.id) {
+            <mat-option [value]="plan.id">{{ plan.name }} · {{ money(plan.priceMonthly) }}</mat-option>
+            }
+          </mat-select>
+          @if (activePlans().length === 0) {
+          <mat-hint>
+            <a routerLink="/platform/plans" class="text-brand-600 underline">{{ 'platform.create.noPlans' | translate }}</a>
+          </mat-hint>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.trialDays' | translate }}</mat-label>
+          <input matInput type="number" min="0" max="365" formControlName="trialDays" />
+          <mat-hint>{{ 'platform.create.trialHint' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <mat-card class="!p-6">
+      <h2 class="font-semibold mb-4 flex items-center gap-2"><mat-icon class="text-brand-600">person</mat-icon>{{ 'platform.create.ownerSection' | translate }}</h2>
+      <div class="grid gap-x-4 md:grid-cols-2">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.ownerName' | translate }}</mat-label>
+          <input matInput formControlName="ownerName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'auth.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="ownerEmail" autocomplete="off" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'platform.create.tempPassword' | translate }}</mat-label>
+          <input matInput formControlName="ownerPassword" autocomplete="off" />
+          <button mat-icon-button matSuffix type="button" (click)="regeneratePassword()" [matTooltip]="'platform.create.regenerate' | translate">
+            <mat-icon>autorenew</mat-icon>
+          </button>
+          <mat-hint>{{ 'platform.create.passwordHint' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    @if (errorKey(); as key) {
+    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-sm">{{ key | translate }}</div>
+    }
+
+    <div class="flex justify-end gap-2">
+      <a mat-button routerLink="/platform/tenants">{{ 'common.cancel' | translate }}</a>
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting() || activePlans().length === 0">
+        <mat-icon>add_business</mat-icon>
+        {{ (submitting() ? 'messages.loading' : 'platform.create.submit') | translate }}
+      </button>
+    </div>
+  </form>
+  }
+</div>

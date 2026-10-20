@@ -6,6 +6,7 @@ import {
   deleteDoc,
   deleteField,
   doc,
+  getCountFromServer,
   increment,
   orderBy,
   serverTimestamp,
@@ -16,6 +17,7 @@ import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
+import { TenantService } from './tenant.service';
 
 export interface Product {
   id: string;
@@ -55,6 +57,7 @@ export interface Product {
 export class ProductService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private tenantService = inject(TenantService);
 
   getProducts(): Observable<Product[]> {
     const productsQuery = tenantQuery(this.firestore, 'products', requireTenantId(this.authService), orderBy('name'));
@@ -70,7 +73,22 @@ export class ProductService {
   }
 
   addProducts(products: Omit<Product, 'id'>[]): Observable<void> {
+    return from(this.addProductsAsync(products));
+  }
+
+  /** Throws PRODUCT_LIMIT_REACHED when the store's plan caps the catalog size. */
+  private async assertProductLimit(tenantId: string, adding: number): Promise<void> {
+    const max = this.tenantService.tenant()?.maxProducts;
+    if (!max) return;
+    const current = await getCountFromServer(tenantQuery(this.firestore, 'products', tenantId));
+    if (current.data().count + adding > max) {
+      throw new Error('PRODUCT_LIMIT_REACHED');
+    }
+  }
+
+  private async addProductsAsync(products: Omit<Product, 'id'>[]): Promise<void> {
     const tenantId = requireTenantId(this.authService);
+    await this.assertProductLimit(tenantId, products.length);
     const batch = writeBatch(this.firestore);
     for (const product of products) {
       const productRef = doc(collection(this.firestore, 'products'));
@@ -85,7 +103,7 @@ export class ProductService {
       }
       batch.set(productRef, data);
     }
-    return from(batch.commit()).pipe(map(() => undefined));
+    await batch.commit();
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<void> {

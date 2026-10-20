@@ -35,10 +35,16 @@
     <mat-icon class="text-gray-400">expand_more</mat-icon>
   </button>
   <mat-menu #userMenu="matMenu" xPosition="before">
-    <a mat-menu-item routerLink="/">
-      <mat-icon>storefront</mat-icon>
-      {{ 'landing.viewSite' | translate }}
+    @if (isAdmin()) {
+    <a mat-menu-item routerLink="/settings/subscription">
+      <mat-icon>workspace_premium</mat-icon>
+      {{ 'subscription.title' | translate }}
     </a>
+    }
+    <button mat-menu-item (click)="openTelegram()">
+      <mat-icon>send</mat-icon>
+      {{ 'telegram.menuItem' | translate }}
+    </button>
     <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
       {{ 'common.logout' | translate }}

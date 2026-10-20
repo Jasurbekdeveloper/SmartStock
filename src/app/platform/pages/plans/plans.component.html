@@ -1,0 +1,82 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="page-title">{{ 'platform.plans.title' | translate }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.plans.subtitle' | translate }}</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="startNew()">
+      <mat-icon>add</mat-icon>
+      {{ 'platform.plans.add' | translate }}
+    </button>
+  </div>
+
+  @if (editingId() !== null) {
+  <mat-card class="!p-5">
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid gap-x-3 sm:grid-cols-2 xl:grid-cols-5 items-start">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'platform.plans.name' | translate }}</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'platform.plans.price' | translate }}</mat-label>
+        <input matInput type="number" min="0" formControlName="priceMonthly" />
+        <span matTextSuffix>so'm</span>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'platform.plans.maxUsers' | translate }}</mat-label>
+        <input matInput type="number" min="0" formControlName="maxUsers" />
+        <mat-hint>{{ 'platform.plans.zeroUnlimited' | translate }}</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'platform.plans.maxProducts' | translate }}</mat-label>
+        <input matInput type="number" min="0" formControlName="maxProducts" />
+        <mat-hint>{{ 'platform.plans.zeroUnlimited' | translate }}</mat-hint>
+      </mat-form-field>
+      <div class="flex items-center h-14">
+        <mat-slide-toggle formControlName="active">{{ 'platform.plans.active' | translate }}</mat-slide-toggle>
+      </div>
+      <div class="sm:col-span-2 xl:col-span-5 flex justify-end gap-2 mt-2">
+        <button mat-button type="button" (click)="editingId.set(null)">{{ 'common.cancel' | translate }}</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving()">{{ 'common.save' | translate }}</button>
+      </div>
+    </form>
+    <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">{{ 'platform.plans.limitsNote' | translate }}</p>
+  </mat-card>
+  }
+
+  @if (plans() === undefined) {
+  <p class="p-8 text-center text-gray-500">{{ 'messages.loading' | translate }}</p>
+  } @else if (plans()!.length === 0) {
+  <mat-card class="!p-8 text-center">
+    <mat-icon class="!w-12 !h-12 !text-5xl text-gray-300">sell</mat-icon>
+    <p class="mt-2 text-gray-500 dark:text-gray-400">{{ 'platform.plans.empty' | translate }}</p>
+    <button mat-stroked-button color="primary" class="mt-4" [disabled]="saving()" (click)="seed()">{{ 'platform.plans.seed' | translate }}</button>
+  </mat-card>
+  } @else {
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    @for (plan of plans(); track plan.id) {
+    <mat-card class="!p-5" [class.opacity-60]="!plan.active">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-bold">{{ plan.name }}</h2>
+          @if (!plan.active) {
+          <span class="text-xs text-gray-500">{{ 'platform.plans.hidden' | translate }}</span>
+          }
+        </div>
+        <button mat-icon-button (click)="edit(plan)" [attr.aria-label]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>
+      </div>
+      <p class="mt-2 text-2xl font-bold tabular-nums">
+        {{ money(plan.priceMonthly) }}<span class="text-sm font-normal text-gray-500"> / {{ 'subscription.month' | translate }}</span>
+      </p>
+      @if (plan.priceMonthly === 0) {
+      <p class="text-xs text-amber-600 dark:text-amber-400">{{ 'platform.plans.noPrice' | translate }}</p>
+      }
+      <ul class="mt-4 space-y-1.5 text-sm">
+        <li class="flex items-center gap-2"><mat-icon class="!w-5 !h-5 !text-[20px] text-gray-400">group</mat-icon>{{ 'platform.plans.maxUsers' | translate }}: <b>{{ limit(plan.maxUsers) }}</b></li>
+        <li class="flex items-center gap-2"><mat-icon class="!w-5 !h-5 !text-[20px] text-gray-400">inventory_2</mat-icon>{{ 'platform.plans.maxProducts' | translate }}: <b>{{ limit(plan.maxProducts) }}</b></li>
+      </ul>
+    </mat-card>
+    }
+  </div>
+  }
+</div>

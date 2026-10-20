@@ -1,30 +1,31 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, tap } from 'rxjs';
-import { deleteApp, initializeApp } from 'firebase/app';
-import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
 import {
   Firestore,
   collection,
   doc,
+  getCountFromServer,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  where
 } from 'firebase/firestore';
-import { environment } from '../../../environments/environment';
+import { createAuthAccount } from '../firebase/create-auth-account';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { AppUser, UserRole } from './auth.service';
+import { AppUser, StoreRole } from './auth.service';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
 import { AuditLogService } from './audit-log.service';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery } from './tenant-data';
+import { TenantService } from './tenant.service';
 
 export interface CreateEmployeeInput {
   email: string;
   password: string;
   displayName: string;
-  role: UserRole;
+  role: StoreRole;
 }
 
 @Injectable({
@@ -34,6 +35,7 @@ export class UserManagementService {
   private firestore: Firestore = inject(FIRESTORE);
   private auditLogService = inject(AuditLogService);
   private authService = inject(AuthService);
+  private tenantService = inject(TenantService);
 
   getUsers(): Observable<AppUser[]> {
     const usersQuery = tenantQuery(this.firestore, 'users', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
@@ -47,7 +49,7 @@ export class UserManagementService {
   /** `previousRole` is optional only so this keeps compiling for any future caller
    *  that doesn't have it handy — pass it whenever the caller already has the
    *  user's current role in scope (see `setActive()`/its call site for the pattern). */
-  updateRole(uid: string, role: UserRole, previousRole?: UserRole): Observable<void> {
+  updateRole(uid: string, role: StoreRole, previousRole?: StoreRole): Observable<void> {
     return from(updateDoc(doc(this.firestore, 'users', uid), { role })).pipe(
       tap(() => {
         // Non-atomic by design (see plan) — a failure here doesn't roll back the
@@ -81,33 +83,31 @@ export class UserManagementService {
     );
   }
 
-  /**
-   * Creates the Auth account on a throwaway secondary Firebase App so the
-   * admin's own session (on the default app) is never signed out.
-   */
+  /** Checks the subscription (writable, staff limit) before creating the login, which
+   *  goes through a secondary Firebase App so the admin's own session is kept. */
   private async createEmployeeAsync(input: CreateEmployeeInput): Promise<void> {
-    const secondaryApp = initializeApp(environment.firebase, `secondary-${Date.now()}`);
-    const secondaryAuth = getAuth(secondaryApp);
-
-    try {
-      const credential = await createUserWithEmailAndPassword(
-        secondaryAuth,
-        input.email,
-        input.password
-      );
-
-      await setDoc(doc(this.firestore, 'users', credential.user.uid), {
-        email: input.email,
-        displayName: input.displayName,
-        role: input.role,
-        active: true,
-        tenantId: requireTenantId(this.authService),
-        createdAt: serverTimestamp()
-      });
-
-      await signOut(secondaryAuth);
-    } finally {
-      await deleteApp(secondaryApp);
+    const tenantId = requireTenantId(this.authService);
+    const tenant = this.tenantService.tenant();
+    if (!this.tenantService.subscription().canWrite) {
+      throw new Error('TENANT_READ_ONLY');
     }
+    if (tenant?.maxUsers) {
+      const activeUsers = await getCountFromServer(
+        query(collection(this.firestore, 'users'), where('tenantId', '==', tenantId), where('active', '==', true))
+      );
+      if (activeUsers.data().count >= tenant.maxUsers) {
+        throw new Error('USER_LIMIT_REACHED');
+      }
+    }
+
+    const uid = await createAuthAccount(input.email, input.password);
+    await setDoc(doc(this.firestore, 'users', uid), {
+      email: input.email,
+      displayName: input.displayName,
+      role: input.role,
+      active: true,
+      tenantId,
+      createdAt: serverTimestamp()
+    });
   }
 }

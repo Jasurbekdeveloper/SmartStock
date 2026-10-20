@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
+  /** Bot used by the Telegram Login Widget (without @). Its domain must be set via @BotFather /setdomain. */
+  telegramBotUsername: '',
   firebase: {
     apiKey: 'AIzaSyA_FMzMPhgmLfrQdxklhyJbMjUXQkPCIIc',
     authDomain: 'smartstock-d737f.firebaseapp.com',

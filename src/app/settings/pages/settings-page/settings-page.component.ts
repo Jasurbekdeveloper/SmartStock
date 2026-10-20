@@ -19,6 +19,7 @@ import {
   ReceiptPaperWidth,
   SettingsService
 } from '../../../core/services/settings.service';
+import { TenantService } from '../../../core/services/tenant.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 
@@ -65,6 +66,7 @@ interface IntegrationFormModel {
 })
 export class SettingsPageComponent implements OnInit {
   private settingsService = inject(SettingsService);
+  private tenantService = inject(TenantService);
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
 
@@ -174,6 +176,8 @@ export class SettingsPageComponent implements OnInit {
         next: () => {
           this.savingGeneral.set(false);
           this.toast.success(this.translation.translate('messages.saved'));
+          // The platform lists stores by tenant name; keep it in step with the receipt name.
+          this.tenantService.syncStoreName(f.storeName.trim() || DEFAULT_STORE_NAME).subscribe({ error: () => {} });
         },
         error: (err) => {
           console.error('Save general settings error:', err);

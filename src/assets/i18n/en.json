@@ -40,7 +40,8 @@
     "users": "Users",
     "settings": "Settings",
     "menu": "Menu",
-    "auditLog": "Audit Log"
+    "auditLog": "Audit Log",
+    "storeSettings": "Store settings"
   },
   "products": {
     "title": "Products",
@@ -462,7 +463,9 @@
     "welcome": "Welcome back",
     "loginSubtitle": "Sign in with your staff account",
     "adminProvisionedOnly": "Only an administrator can create new accounts.",
-    "backToSite": "Back to website"
+    "backToSite": "Back to website",
+    "storeSuspended": "This store is suspended. Contact the Hisobla administrator.",
+    "inactive": "Your account is disabled. Contact your store administrator."
   },
   "users": {
     "title": "User Management",
@@ -483,7 +486,11 @@
     "deactivate": "Deactivate",
     "confirmDeactivate": "Deactivate this employee? They will no longer be able to log in.",
     "employeeCreated": "Employee created successfully",
-    "noUsersFound": "No employees found"
+    "noUsersFound": "No employees found",
+    "roleSuperadmin": "Super admin",
+    "emailInUse": "This email is already registered",
+    "invalidEmail": "Invalid email",
+    "weakPassword": "Password must be at least 6 characters"
   },
   "buttons": {
     "add": "Add",
@@ -554,134 +561,198 @@
     "cashRefunds": "Cash refunded",
     "debtSaleHint": "Part of this sale is on credit — only the paid part can be refunded."
   },
-  "landing": {
-    "tagline": "Building supplies",
-    "viewSite": "Store website",
-    "staffLogin": "Staff login",
-    "toDashboard": "Dashboard",
+  "telegram": {
+    "or": "or",
+    "loginHint": "To log in with Telegram, first connect it from your profile menu.",
+    "menuItem": "Connect Telegram",
+    "linkTitle": "Log in with Telegram",
+    "linkHelp": "Connect your Telegram account to log in with one tap, no password needed.",
+    "linked": "Telegram connected",
+    "unlink": "Disconnect",
+    "linkedOk": "Telegram connected",
+    "notConfigured": "The Telegram bot is not set up yet. Contact the system administrator.",
+    "notLinked": "This Telegram account is not connected to any employee. Log in with email and password first, then connect Telegram.",
+    "taken": "This Telegram account is connected to another employee",
+    "invalid": "Telegram data could not be verified. Please try again.",
+    "serviceUnavailable": "Telegram login is temporarily unavailable. Use email and password."
+  },
+  "subscription": {
+    "title": "Subscription",
+    "subtitle": "Your plan, paid period and payment history",
+    "status": "Status",
+    "plan": "Plan",
+    "paidUntil": "Valid until",
+    "staffUsage": "Staff",
+    "productLimit": "Product limit",
+    "payments": "Payment history",
+    "howToPayTitle": "How do I renew?",
+    "howToPayText": "Contact your Hisobla manager: we accept cash, card or bank transfer and extend the period right away.",
+    "details": "Details",
+    "daysShort": "days",
+    "month": "month",
+    "monthShort": "mo",
+    "noExpiry": "No expiry",
+    "userLimitReached": "You've reached your plan's staff limit. Contact Hisobla to upgrade.",
+    "productLimitReached": "You've reached your plan's product limit. Contact Hisobla to upgrade.",
+    "readOnlyAction": "Subscription expired: view-only mode. Please renew.",
+    "state": {
+      "trial": "Trial",
+      "active": "Active",
+      "grace": "Overdue",
+      "readonly": "Read-only",
+      "suspended": "Suspended"
+    },
+    "banner": {
+      "trial": "Trial period. Remaining:",
+      "expiresSoon": "Your subscription ends soon. Remaining:",
+      "grace": "Your subscription has expired. The store still works, but without payment it becomes view-only in:",
+      "readonly": "Subscription expired: sales and changes are locked; you can still view and export data.",
+      "suspended": "This store is suspended. Contact the Hisobla administrator."
+    }
+  },
+  "onboarding": {
+    "title": "Let's set up your store",
+    "subtitle": "One-minute setup: store details appear on receipts.",
+    "storeSection": "Store details",
+    "pricesIncludeVat": "Prices include VAT",
+    "pricesIncludeVatHint": "In most stores the shelf price already includes VAT; the receipt shows it separately.",
+    "passwordSection": "New password",
+    "passwordHint": "Replace the temporary password you were given (optional).",
+    "newPassword": "New password",
+    "later": "Later",
+    "finish": "Get started",
+    "reloginForPassword": "To change your password, log out and log in again."
+  },
+  "platform": {
+    "badge": "Platform",
     "nav": {
-      "catalog": "Products",
-      "why": "Why us",
-      "order": "Ordering",
-      "contact": "Contact"
+      "overview": "Overview",
+      "tenants": "Stores",
+      "plans": "Plans",
+      "audit": "Log"
     },
-    "hero": {
-      "eyebrow": "Wholesale & retail",
-      "title1": "Everything you need to build —",
-      "title2": "genuine, in one place",
-      "subtitle": "From cement to plumbing: quality certified building materials, fair prices and delivery to your site.",
-      "order": "Place an order",
-      "browse": "Browse products",
-      "badgeTitle": "Delivered to your site",
-      "badgeText": "Across the city, fast and careful"
+    "overview": {
+      "title": "Platform",
+      "subtitle": "All stores and their subscriptions",
+      "totalStores": "Total stores",
+      "mrr": "Monthly recurring revenue",
+      "mrrHint": "Sum of plan prices of all paying active stores",
+      "attention": "Needs attention",
+      "allGood": "No store expires in the next 7 days",
+      "recentPayments": "Recent payments"
     },
-    "stats": {
-      "assortment": "Products",
-      "assortmentValue": "1000+",
-      "delivery": "Delivery",
-      "deliveryValue": "1 day",
-      "quality": "Genuine"
+    "tenants": {
+      "title": "Stores",
+      "subtitle": "Every store on the platform and its subscription",
+      "create": "Open a store",
+      "searchPlaceholder": "Search by name, owner, email or phone",
+      "allStates": "All statuses",
+      "empty": "No stores found",
+      "store": "Store",
+      "owner": "Owner",
+      "plan": "Plan",
+      "status": "Status",
+      "paidUntil": "Valid until"
     },
-    "catalog": {
-      "title": "For every stage of construction",
-      "subtitle": "From foundation to roof — get everything in one place and save time and money."
-    },
-    "cat": {
-      "cement": {
-        "title": "Cement & mixes",
-        "text": "Cement, putty, plaster, tile adhesive"
-      },
-      "bricks": {
-        "title": "Bricks & blocks",
-        "text": "Fired brick, aerated and foam blocks"
-      },
-      "metal": {
-        "title": "Rebar & metal",
-        "text": "Rebar, profiles, pipes, wire"
-      },
-      "paint": {
-        "title": "Paints & varnish",
-        "text": "Interior and facade paint, primer, varnish"
-      },
-      "plumbing": {
-        "title": "Plumbing",
-        "text": "Pipes, fittings, taps, accessories"
-      },
-      "electrical": {
-        "title": "Electrical",
-        "text": "Cable, sockets, breakers, lighting"
-      },
-      "tools": {
-        "title": "Tools",
-        "text": "Hand and power tools, consumables"
-      },
-      "roofing": {
-        "title": "Roofing",
-        "text": "Profiled sheet, slate, tiles, insulation"
-      }
-    },
-    "why": {
-      "title": "Why builders buy from us",
-      "subtitle": "Contractors and craftsmen choose us for quality, price and service."
-    },
-    "feat": {
-      "original": {
-        "title": "Genuine products only",
-        "text": "Straight from manufacturers and official distributors. No counterfeits."
-      },
-      "prices": {
-        "title": "Fair prices",
-        "text": "Special wholesale prices and discounts. The price is on the receipt — no hidden fees."
-      },
-      "delivery": {
-        "title": "Fast delivery",
-        "text": "We deliver your order to the site and unload it."
-      },
-      "advice": {
-        "title": "Expert advice",
-        "text": "Experienced staff help you choose and calculate materials."
-      },
-      "payment": {
-        "title": "Easy payment",
-        "text": "Cash, card or split payment. A receipt for every purchase."
-      },
-      "wholesale": {
-        "title": "For regular customers",
-        "text": "Credit and individual terms for builders and contractors."
-      }
-    },
-    "order": {
-      "title": "Ordering is easy"
-    },
-    "step": {
-      "call": {
-        "title": "Call or message us",
-        "text": "Send your materials list by phone or Telegram."
-      },
-      "prepare": {
-        "title": "We prepare it",
-        "text": "We confirm prices and availability and pack the order."
-      },
-      "deliver": {
-        "title": "Pick up or delivery",
-        "text": "Collect it from the store or we deliver it to your site."
-      }
-    },
-    "cta": {
-      "title": "Have an estimate? We will price it",
-      "text": "Send us the list — we reply within minutes.",
-      "visit": "Visit the store"
-    },
-    "contact": {
-      "title": "Visit our store",
-      "address": "Address",
+    "create": {
+      "title": "New store",
+      "subtitle": "Creates the store and its owner's account together",
+      "storeSection": "Store",
+      "storeName": "Store name",
       "phone": "Phone",
-      "hours": "Opening hours",
-      "askUs": "Ask us by phone",
-      "defaultHours": "Daily 8:00–19:00"
+      "noPlans": "Create a plan first",
+      "trialDays": "Trial (days)",
+      "trialHint": "0 = no trial, payment due now",
+      "ownerSection": "Owner (admin)",
+      "ownerName": "Name",
+      "tempPassword": "Temporary password",
+      "regenerate": "New password",
+      "passwordHint": "The owner replaces it on first login",
+      "submit": "Open store",
+      "doneTitle": "Store opened",
+      "doneText": "Send these details to the store owner.",
+      "credentialsFor": "Store",
+      "loginUrl": "Login address",
+      "copy": "Copy",
+      "copied": "Copied",
+      "openStore": "Store page",
+      "another": "Open another"
     },
-    "footer": {
-      "rights": "All rights reserved"
+    "detail": {
+      "info": "Details",
+      "address": "Address",
+      "created": "Opened",
+      "staff": "Staff",
+      "productLimit": "Product limit",
+      "setup": "Setup",
+      "setupPending": "Owner hasn't logged in yet",
+      "setupDone": "Done",
+      "subscription": "Subscription",
+      "changePlan": "Change plan",
+      "recordPayment": "Record a payment",
+      "newPaidUntil": "New end date",
+      "savePayment": "Save payment",
+      "staffTitle": "Staff and admins",
+      "addUser": "Add staff member",
+      "userCreated": "Account created. Send the login and password to the owner:",
+      "ownerBadge": "Owner",
+      "paymentsTitle": "Payment history",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "confirmSuspend": "The store's staff won't be able to log in. Data is kept. Continue?",
+      "confirmActivate": "The store will start working again. Continue?",
+      "planChanged": "Plan changed",
+      "paymentSaved": "Payment saved, period extended",
+      "statusChanged": "Status changed",
+      "userUpdated": "Staff member updated"
+    },
+    "payments": {
+      "none": "No payments yet",
+      "date": "Date",
+      "amount": "Amount",
+      "months": "Period",
+      "method": "Method",
+      "note": "Note",
+      "paidUntil": "Valid until",
+      "recordedBy": "Recorded by",
+      "methods": {
+        "cash": "Cash",
+        "card": "Card",
+        "transfer": "Transfer"
+      }
+    },
+    "plans": {
+      "title": "Plans",
+      "subtitle": "Prices and limits. Limits are copied to a store when the plan is assigned.",
+      "add": "Add plan",
+      "name": "Name",
+      "price": "Monthly price",
+      "maxUsers": "Staff",
+      "maxProducts": "Products",
+      "zeroUnlimited": "0 = unlimited",
+      "active": "Offer to new stores",
+      "limitsNote": "Changed limits apply to existing stores when you re-select the plan for them.",
+      "empty": "No plans yet",
+      "seed": "Create sample plans (Start, Biznes, Pro)",
+      "hidden": "Hidden",
+      "noPrice": "No price set",
+      "saved": "Plan saved"
+    },
+    "audit": {
+      "title": "Platform log",
+      "subtitle": "Super admin actions: stores opened, payments, status changes",
+      "empty": "No entries yet",
+      "action": "Action",
+      "details": "Details",
+      "by": "By",
+      "actions": {
+        "tenant_create": "Store opened",
+        "tenant_status": "Status changed",
+        "tenant_plan": "Plan changed",
+        "payment_record": "Payment",
+        "tenant_user_create": "Staff added",
+        "tenant_user_active": "Staff status"
+      }
     }
   }
 }

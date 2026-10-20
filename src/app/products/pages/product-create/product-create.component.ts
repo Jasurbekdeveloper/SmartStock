@@ -250,7 +250,7 @@ export class ProductCreateComponent implements OnDestroy {
       await this.router.navigate(['/products/list']);
     } catch (err) {
       console.error('Create product error:', err);
-      this.errorKey.set('messages.error');
+      this.errorKey.set((err as Error)?.message === 'PRODUCT_LIMIT_REACHED' ? 'subscription.productLimitReached' : 'messages.error');
       this.submitting.set(false);
     }
   }

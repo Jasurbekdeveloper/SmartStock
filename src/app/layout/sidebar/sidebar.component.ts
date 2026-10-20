@@ -92,7 +92,16 @@ export class SidebarComponent {
     { label: 'navigation.statistics', path: '/statistics', icon: 'bar_chart' },
     { label: 'navigation.users', path: '/users', icon: 'group', roles: ['admin'] },
     { label: 'navigation.auditLog', path: '/audit-log', icon: 'history', roles: ['admin', 'manager'] },
-    { label: 'navigation.settings', path: '/settings', icon: 'settings', roles: ['admin'] }
+    {
+      label: 'navigation.settings',
+      path: '/settings',
+      icon: 'settings',
+      roles: ['admin'],
+      children: [
+        { label: 'navigation.storeSettings', path: '/settings' },
+        { label: 'subscription.title', path: '/settings/subscription' }
+      ]
+    }
   ];
 
   onItemClick(item: MenuItem) {

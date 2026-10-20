@@ -11,6 +11,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { SidebarStateService } from '../sidebar/sidebar-state.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+import { TelegramLinkDialogComponent } from '../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
 
 @Component({
   selector: 'app-header',
@@ -25,8 +27,10 @@ export class HeaderComponent {
   authService = inject(AuthService);
   sidebarState = inject(SidebarStateService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
+  isAdmin = computed(() => this.currentUser()?.role === 'admin');
   userName = computed(() => this.currentUser()?.displayName || this.currentUser()?.email || '—');
   roleKey = computed(() => {
     const role = this.currentUser()?.role ?? 'cashier';
@@ -66,5 +70,9 @@ export class HeaderComponent {
   logout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  openTelegram() {
+    this.dialog.open(TelegramLinkDialogComponent, { width: '420px' });
   }
 }

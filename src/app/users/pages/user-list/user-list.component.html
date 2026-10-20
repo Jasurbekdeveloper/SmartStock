@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'users.title' | translate }}</h1>
-    <button mat-flat-button color="primary" (click)="openCreateForm()">
+    <button mat-flat-button color="primary" [disabled]="!canWrite()" (click)="openCreateForm()">
       <mat-icon>add</mat-icon>
       {{ 'users.addEmployee' | translate }}
     </button>
@@ -69,7 +69,12 @@
       <tbody>
         @for (user of pagination.paged(); track user.uid) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ user.displayName }}</td>
+          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+            {{ user.displayName }}
+            @if (isOwner(user)) {
+            <span class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">{{ 'platform.detail.ownerBadge' | translate }}</span>
+            }
+          </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ user.email }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ roleLabelKey(user.role) | translate }}</td>
           <td class="px-4 py-3">
@@ -84,6 +89,7 @@
             }
           </td>
           <td class="px-4 py-3">
+            @if (!isOwner(user)) {
             <button
               mat-icon-button
               [color]="user.active ? 'warn' : 'primary'"
@@ -92,6 +98,7 @@
             >
               <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
             </button>
+            }
           </td>
         </tr>
         }

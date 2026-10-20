@@ -1,23 +1,40 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { AuthService } from '../core/services/auth.service';
+import { TenantService } from '../core/services/tenant.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { SubscriptionBannerComponent } from './subscription-banner/subscription-banner.component';
 import { SidebarStateService } from './sidebar/sidebar-state.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, MatSidenavModule, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterOutlet, MatSidenavModule, HeaderComponent, SidebarComponent, SubscriptionBannerComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
 export class LayoutComponent {
   sidebarState = inject(SidebarStateService);
+  private tenantService = inject(TenantService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  constructor() {
+    // A store suspended by the platform while someone is signed in (or with a saved
+    // session) is closed immediately, not just on the next login.
+    effect(() => {
+      if (this.tenantService.tenant() && this.tenantService.subscription().state === 'suspended') {
+        this.authService.logout();
+        this.router.navigate(['/auth/login'], { queryParams: { reason: 'suspended' } });
+      }
+    });
+  }
   private breakpointObserver = inject(BreakpointObserver);
 
   // Matches Tailwind's lg breakpoint (1024px) so this stays in sync with the

@@ -18,6 +18,7 @@ import { ReceiptComponent } from './sales/pages/receipt/receipt.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { onboardingGuard, storeUserGuard, superAdminGuard } from './core/guards/platform.guard';
 import { UserListComponent } from './users/pages/user-list/user-list.component';
 import { CategoryListComponent } from './products/pages/category-list/category-list.component';
 import { ShiftOpenComponent } from './shifts/pages/shift-open/shift-open.component';
@@ -35,22 +36,61 @@ import { SettingsPageComponent } from './settings/pages/settings-page/settings-p
 import { AuditLogListComponent } from './audit-log/pages/audit-log-list/audit-log-list.component';
 
 export const routes: Routes = [
-  // Public storefront for visitors; staff sign in from there.
-  {
-    path: '',
-    pathMatch: 'full',
-    loadComponent: () => import('./landing/landing.component').then((m) => m.LandingComponent)
-  },
+  // The marketing site lives separately (website/); the app itself starts at login.
+  { path: '', pathMatch: 'full', redirectTo: '/auth/login' },
   { path: 'auth/login', component: LoginComponent },
+  // Super admin panel: every store, subscriptions, plans.
+  {
+    path: 'platform',
+    canActivate: [superAdminGuard],
+    loadComponent: () => import('./platform/platform-layout.component').then((m) => m.PlatformLayoutComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./platform/pages/overview/platform-overview.component').then((m) => m.PlatformOverviewComponent)
+      },
+      {
+        path: 'tenants',
+        loadComponent: () =>
+          import('./platform/pages/tenant-list/tenant-list.component').then((m) => m.TenantListComponent)
+      },
+      {
+        path: 'tenants/new',
+        loadComponent: () =>
+          import('./platform/pages/tenant-create/tenant-create.component').then((m) => m.TenantCreateComponent)
+      },
+      {
+        path: 'tenants/:id',
+        loadComponent: () =>
+          import('./platform/pages/tenant-detail/tenant-detail.component').then((m) => m.TenantDetailComponent)
+      },
+      {
+        path: 'plans',
+        loadComponent: () => import('./platform/pages/plans/plans.component').then((m) => m.PlansComponent)
+      },
+      {
+        path: 'audit',
+        loadComponent: () =>
+          import('./platform/pages/audit/platform-audit.component').then((m) => m.PlatformAuditComponent)
+      }
+    ]
+  },
   { path: 'auth/register', redirectTo: '/auth/login', pathMatch: 'full' },
   // Outside the layout so the printed receipt has no app chrome around it.
-  { path: 'sales/:id/receipt', component: ReceiptComponent, canActivate: [authGuard] },
+  { path: 'sales/:id/receipt', component: ReceiptComponent, canActivate: [authGuard, storeUserGuard] },
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, storeUserGuard],
     children: [
-      { path: 'dashboard', component: DashboardComponent },
+      { path: 'dashboard', component: DashboardComponent, canActivate: [onboardingGuard] },
+      {
+        path: 'onboarding',
+        loadComponent: () => import('./onboarding/onboarding.component').then((m) => m.OnboardingComponent),
+        canActivate: [roleGuard('admin')]
+      },
       {
         path: 'products',
         children: [
@@ -129,6 +169,12 @@ export const routes: Routes = [
       },
       { path: 'users', component: UserListComponent, canActivate: [roleGuard('admin')] },
       { path: 'settings', component: SettingsPageComponent, canActivate: [roleGuard('admin')] },
+      {
+        path: 'settings/subscription',
+        loadComponent: () =>
+          import('./settings/pages/subscription/subscription-page.component').then((m) => m.SubscriptionPageComponent),
+        canActivate: [roleGuard('admin')]
+      },
       { path: 'audit-log', component: AuditLogListComponent, canActivate: [roleGuard('admin', 'manager')] }
     ]
   },

@@ -29,7 +29,7 @@
     @if (expandedMenu() === item.label) {
     <div class="side__sub">
       @for (child of item.children; track child.path) {
-      <a [routerLink]="child.path" routerLinkActive="side__subitem--active" (click)="onNavigate()" class="side__subitem">
+      <a [routerLink]="child.path" routerLinkActive="side__subitem--active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavigate()" class="side__subitem">
         {{ child.label | translate }}
       </a>
       }

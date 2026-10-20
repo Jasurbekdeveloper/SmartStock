@@ -8,12 +8,17 @@ import {
   persistentMultipleTabManager
 } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
+import { Functions, getFunctions } from 'firebase/functions';
 import { environment } from '../../../environments/environment';
 
 export const FIREBASE_APP = new InjectionToken<FirebaseApp>('FIREBASE_APP');
 export const FIREBASE_AUTH = new InjectionToken<Auth>('FIREBASE_AUTH');
 export const FIRESTORE = new InjectionToken<Firestore>('FIRESTORE');
 export const FIREBASE_STORAGE = new InjectionToken<FirebaseStorage>('FIREBASE_STORAGE');
+export const FIREBASE_FUNCTIONS = new InjectionToken<Functions>('FIREBASE_FUNCTIONS');
+
+/** Must match the region in functions/index.js. */
+export const FUNCTIONS_REGION = 'europe-west1';
 
 export function provideFirebase(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -39,6 +44,11 @@ export function provideFirebase(): EnvironmentProviders {
     {
       provide: FIREBASE_STORAGE,
       useFactory: (app: FirebaseApp) => getStorage(app),
+      deps: [FIREBASE_APP]
+    },
+    {
+      provide: FIREBASE_FUNCTIONS,
+      useFactory: (app: FirebaseApp) => getFunctions(app, FUNCTIONS_REGION),
       deps: [FIREBASE_APP]
     }
   ]);

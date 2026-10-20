@@ -1,7 +1,7 @@
 // Contact details shown in the "Aloqa" section — edit these before publishing.
 const CONTACT = {
   phone: '+998 94 686 44 22',
-  telegram: '@JasurbekDeveloper'
+  telegram: 'JasurbekDeveloper'
 };
 
 // Uzbek is the source text in index.html; it is captured from the DOM on load.

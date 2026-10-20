@@ -1,0 +1,82 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="page-title">{{ 'platform.tenants.title' | translate }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.tenants.subtitle' | translate }}</p>
+    </div>
+    <a mat-flat-button color="primary" routerLink="/platform/tenants/new">
+      <mat-icon>add_business</mat-icon>
+      {{ 'platform.tenants.create' | translate }}
+    </a>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    <mat-form-field appearance="outline" class="flex-1 min-w-[220px]" subscriptSizing="dynamic">
+      <mat-icon matPrefix class="mx-2 text-gray-400">search</mat-icon>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="'platform.tenants.searchPlaceholder' | translate" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-52" subscriptSizing="dynamic">
+      <mat-select [ngModel]="stateFilter()" (ngModelChange)="stateFilter.set($event)">
+        <mat-option value="">{{ 'platform.tenants.allStates' | translate }}</mat-option>
+        @for (state of states; track state) {
+        <mat-option [value]="state">{{ stateKey(state) | translate }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-card class="!p-0 overflow-hidden">
+    @if (tenants() === undefined) {
+    <p class="p-8 text-center text-gray-500">{{ 'messages.loading' | translate }}</p>
+    } @else if (rows().length === 0) {
+    <div class="p-10 text-center">
+      <mat-icon class="!w-12 !h-12 !text-5xl text-gray-300">storefront</mat-icon>
+      <p class="mt-2 text-gray-500 dark:text-gray-400">{{ 'platform.tenants.empty' | translate }}</p>
+    </div>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400">
+          <tr>
+            <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.store' | translate }}</th>
+            <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.owner' | translate }}</th>
+            <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.plan' | translate }}</th>
+            <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.status' | translate }}</th>
+            <th class="px-5 py-3 text-right font-medium">{{ 'platform.tenants.paidUntil' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.tenant.id) {
+          <tr class="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40">
+            <td class="px-5 py-3">
+              <a [routerLink]="['/platform/tenants', row.tenant.id]" class="font-semibold text-gray-900 dark:text-white hover:text-brand-600">{{ row.tenant.name }}</a>
+              @if (row.tenant.phone) {
+              <div class="text-xs text-gray-500">{{ row.tenant.phone }}</div>
+              }
+            </td>
+            <td class="px-5 py-3">
+              <div>{{ row.tenant.ownerName || '—' }}</div>
+              <div class="text-xs text-gray-500">{{ row.tenant.ownerEmail }}</div>
+            </td>
+            <td class="px-5 py-3">{{ row.tenant.planName || '—' }}</td>
+            <td class="px-5 py-3">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="badge[row.info.state]">{{ stateKey(row.info.state) | translate }}</span>
+            </td>
+            <td class="px-5 py-3 text-right tabular-nums whitespace-nowrap">
+              @if (row.tenant.paidUntil) {
+              {{ row.tenant.paidUntil | date: 'dd.MM.yyyy' }}
+              @if (row.info.daysLeft !== null) {
+              <div class="text-xs text-gray-500">{{ row.info.daysLeft }} {{ 'subscription.daysShort' | translate }}</div>
+              }
+              } @else {
+              <span class="text-gray-400">{{ 'subscription.noExpiry' | translate }}</span>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </mat-card>
+</div>

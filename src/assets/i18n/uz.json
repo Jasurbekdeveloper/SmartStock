@@ -40,7 +40,8 @@
     "users": "Foydalanuvchilar",
     "settings": "Sozlamalar",
     "menu": "Menu",
-    "auditLog": "Amallar jurnali"
+    "auditLog": "Amallar jurnali",
+    "storeSettings": "Do'kon sozlamalari"
   },
   "products": {
     "title": "Mahsulotlar",
@@ -462,7 +463,9 @@
     "welcome": "Xush kelibsiz",
     "loginSubtitle": "Xodim akkauntingiz bilan kiring",
     "adminProvisionedOnly": "Yangi akkauntlarni faqat administrator yaratadi.",
-    "backToSite": "Saytga qaytish"
+    "backToSite": "Saytga qaytish",
+    "storeSuspended": "Do'kon to'xtatilgan. Hisobla administratori bilan bog'laning.",
+    "inactive": "Akkauntingiz o'chirilgan. Do'kon administratoriga murojaat qiling."
   },
   "users": {
     "title": "Foydalanuvchilarni boshqarish",
@@ -483,7 +486,11 @@
     "deactivate": "Faolsizlantirish",
     "confirmDeactivate": "Ushbu xodimni faolsizlantirasizmi? U endi tizimga kira olmaydi.",
     "employeeCreated": "Xodim muvaffaqiyatli qo'shildi",
-    "noUsersFound": "Xodimlar topilmadi"
+    "noUsersFound": "Xodimlar topilmadi",
+    "roleSuperadmin": "Super admin",
+    "emailInUse": "Bu elektron pochta allaqachon ro'yxatdan o'tgan",
+    "invalidEmail": "Elektron pochta noto'g'ri",
+    "weakPassword": "Parol kamida 6 belgidan iborat bo'lishi kerak"
   },
   "buttons": {
     "add": "Qo'shish",
@@ -554,134 +561,198 @@
     "cashRefunds": "Naqd qaytarilgan",
     "debtSaleHint": "Bu sotuvning bir qismi nasiyada — faqat to'langan qismigacha pul qaytariladi."
   },
-  "landing": {
-    "tagline": "Qurilish do'koni",
-    "viewSite": "Do'kon sayti",
-    "staffLogin": "Xodimlar uchun",
-    "toDashboard": "Boshqaruv paneli",
+  "telegram": {
+    "or": "yoki",
+    "loginHint": "Telegram orqali kirish uchun avval profil menyusidan Telegram'ni ulang.",
+    "menuItem": "Telegram'ni ulash",
+    "linkTitle": "Telegram orqali kirish",
+    "linkHelp": "Telegram akkauntingizni ulang — keyin parolsiz, bitta tugma bilan kira olasiz.",
+    "linked": "Telegram ulangan",
+    "unlink": "Uzish",
+    "linkedOk": "Telegram muvaffaqiyatli ulandi",
+    "notConfigured": "Telegram bot hali sozlanmagan. Tizim administratoriga murojaat qiling.",
+    "notLinked": "Bu Telegram akkaunt hech qaysi xodimga ulanmagan. Avval login va parol bilan kirib, Telegram'ni ulang.",
+    "taken": "Bu Telegram akkaunt boshqa xodimga ulangan",
+    "invalid": "Telegram ma'lumotlari tasdiqlanmadi. Qaytadan urinib ko'ring.",
+    "serviceUnavailable": "Telegram orqali kirish vaqtincha ishlamayapti. Login va parol bilan kiring."
+  },
+  "subscription": {
+    "title": "Obuna",
+    "subtitle": "Tarifingiz, to'langan muddat va to'lovlar tarixi",
+    "status": "Holat",
+    "plan": "Tarif",
+    "paidUntil": "Amal qilish muddati",
+    "staffUsage": "Xodimlar",
+    "productLimit": "Tovarlar limiti",
+    "payments": "To'lovlar tarixi",
+    "howToPayTitle": "Obunani qanday uzaytirish mumkin?",
+    "howToPayText": "Hisobla menejeri bilan bog'laning: to'lovni naqd, karta yoki o'tkazma orqali qabul qilamiz va muddat shu zahoti uzayadi.",
+    "details": "Batafsil",
+    "daysShort": "kun",
+    "month": "oy",
+    "monthShort": "oy",
+    "noExpiry": "Muddatsiz",
+    "userLimitReached": "Tarifingizdagi xodimlar limiti tugadi. Tarifni oshirish uchun Hisobla bilan bog'laning.",
+    "productLimitReached": "Tarifingizdagi tovarlar limiti tugadi. Tarifni oshirish uchun Hisobla bilan bog'laning.",
+    "readOnlyAction": "Obuna muddati tugagan: faqat ko'rish rejimi. Obunani uzaytiring.",
+    "state": {
+      "trial": "Sinov",
+      "active": "Faol",
+      "grace": "Muddati o'tgan",
+      "readonly": "Faqat o'qish",
+      "suspended": "To'xtatilgan"
+    },
+    "banner": {
+      "trial": "Sinov muddati davom etmoqda. Qoldi:",
+      "expiresSoon": "Obuna muddati tugashiga oz qoldi:",
+      "grace": "Obuna muddati tugadi. Do'kon hozircha ishlaydi, lekin to'lov qilinmasa faqat ko'rish rejimiga o'tadi:",
+      "readonly": "Obuna muddati tugagan: savdo va o'zgartirishlar yopildi, ma'lumotlarni ko'rish va eksport qilish mumkin.",
+      "suspended": "Do'kon to'xtatilgan. Hisobla administratori bilan bog'laning."
+    }
+  },
+  "onboarding": {
+    "title": "Do'koningizni sozlaymiz",
+    "subtitle": "Bir daqiqalik sozlash: do'kon ma'lumotlari cheklarda chiqadi.",
+    "storeSection": "Do'kon ma'lumotlari",
+    "pricesIncludeVat": "Narxlar QQS bilan ko'rsatilgan",
+    "pricesIncludeVatHint": "Ko'pchilik do'konlarda javon narxi QQSni o'z ichiga oladi — chekda QQS ajratib ko'rsatiladi.",
+    "passwordSection": "Yangi parol",
+    "passwordHint": "Sizga berilgan vaqtinchalik parolni o'zingiz biladigan parolga almashtiring (ixtiyoriy).",
+    "newPassword": "Yangi parol",
+    "later": "Keyinroq",
+    "finish": "Boshlash",
+    "reloginForPassword": "Parolni almashtirish uchun tizimdan chiqib, qayta kiring."
+  },
+  "platform": {
+    "badge": "Platforma",
     "nav": {
-      "catalog": "Mahsulotlar",
-      "why": "Afzalliklar",
-      "order": "Buyurtma",
-      "contact": "Aloqa"
+      "overview": "Umumiy",
+      "tenants": "Do'konlar",
+      "plans": "Tariflar",
+      "audit": "Jurnal"
     },
-    "hero": {
-      "eyebrow": "Ulgurji va chakana savdo",
-      "title1": "Qurilish uchun hamma narsa —",
-      "title2": "original va bir joyda",
-      "subtitle": "Sementdan tortib santexnikagacha: sifatli, sertifikatlangan qurilish mollari, adolatli narxlar va obyektgacha yetkazib berish.",
-      "order": "Buyurtma berish",
-      "browse": "Mahsulotlarni ko'rish",
-      "badgeTitle": "Obyektgacha yetkazamiz",
-      "badgeText": "Shahar bo'ylab, tez va ehtiyotkor"
+    "overview": {
+      "title": "Platforma",
+      "subtitle": "Barcha do'konlar va obunalar holati",
+      "totalStores": "Jami do'konlar",
+      "mrr": "Oylik tushum (MRR)",
+      "mrrHint": "To'lov qilib turgan faol do'konlarning tarif narxlari yig'indisi",
+      "attention": "E'tibor talab qiladi",
+      "allGood": "Yaqin 7 kunda muddati tugaydigan do'kon yo'q",
+      "recentPayments": "So'nggi to'lovlar"
     },
-    "stats": {
-      "assortment": "Assortiment",
-      "assortmentValue": "1000+",
-      "delivery": "Yetkazish",
-      "deliveryValue": "1 kun",
-      "quality": "Original"
+    "tenants": {
+      "title": "Do'konlar",
+      "subtitle": "Platformadagi barcha do'konlar va ularning obunasi",
+      "create": "Do'kon ochish",
+      "searchPlaceholder": "Nom, egasi, email yoki telefon bo'yicha qidirish",
+      "allStates": "Barcha holatlar",
+      "empty": "Do'kon topilmadi",
+      "store": "Do'kon",
+      "owner": "Egasi",
+      "plan": "Tarif",
+      "status": "Holat",
+      "paidUntil": "Muddat"
     },
-    "catalog": {
-      "title": "Qurilishning har bir bosqichi uchun",
-      "subtitle": "Poydevordan tomgacha — kerakli materiallarni bir joydan oling, vaqt va pulni tejang."
-    },
-    "cat": {
-      "cement": {
-        "title": "Sement va aralashmalar",
-        "text": "Sement, shpaklyovka, gips, plitka yelimi"
-      },
-      "bricks": {
-        "title": "G'isht va bloklar",
-        "text": "Pishgan g'isht, gazoblok, penoblok"
-      },
-      "metal": {
-        "title": "Armatura va metall",
-        "text": "Armatura, profil, truba, sim"
-      },
-      "paint": {
-        "title": "Bo'yoq va laklar",
-        "text": "Ichki va tashqi bo'yoqlar, gruntovka, lak"
-      },
-      "plumbing": {
-        "title": "Santexnika",
-        "text": "Quvurlar, fitinglar, kranlar, aksessuarlar"
-      },
-      "electrical": {
-        "title": "Elektr mollari",
-        "text": "Kabel, rozetka, avtomat, yoritish"
-      },
-      "tools": {
-        "title": "Asbob-uskunalar",
-        "text": "Qo'l va elektr asboblari, sarf materiallari"
-      },
-      "roofing": {
-        "title": "Tom yopish",
-        "text": "Profnastil, shifer, cherepitsa, izolyatsiya"
-      }
-    },
-    "why": {
-      "title": "Nega aynan bizdan xarid qilishadi",
-      "subtitle": "Ustalar va quruvchilar bizni sifat, narx va xizmat uchun tanlashadi."
-    },
-    "feat": {
-      "original": {
-        "title": "Faqat original mahsulot",
-        "text": "To'g'ridan-to'g'ri ishlab chiqaruvchi va rasmiy distribyutorlardan. Soxta tovar yo'q."
-      },
-      "prices": {
-        "title": "Adolatli narxlar",
-        "text": "Ulgurji xaridlarga maxsus narx va chegirmalar. Narx — chekda, yashirin to'lovsiz."
-      },
-      "delivery": {
-        "title": "Tez yetkazib berish",
-        "text": "Buyurtmangizni obyektingizgacha yetkazib, tushirib beramiz."
-      },
-      "advice": {
-        "title": "Mutaxassis maslahati",
-        "text": "Material tanlash va hisob-kitobda tajribali sotuvchilar yordam beradi."
-      },
-      "payment": {
-        "title": "Qulay to'lov",
-        "text": "Naqd, karta yoki aralash to'lov. Har bir xaridga chek."
-      },
-      "wholesale": {
-        "title": "Doimiy mijozlarga",
-        "text": "Quruvchi va ustalar uchun nasiya va individual shartlar."
-      }
-    },
-    "order": {
-      "title": "Buyurtma berish juda oson"
-    },
-    "step": {
-      "call": {
-        "title": "Qo'ng'iroq qiling yoki yozing",
-        "text": "Kerakli materiallar ro'yxatini telefon yoki Telegram orqali yuboring."
-      },
-      "prepare": {
-        "title": "Biz tayyorlaymiz",
-        "text": "Narx va mavjudlikni tasdiqlaymiz, buyurtmani yig'ib qo'yamiz."
-      },
-      "deliver": {
-        "title": "Olib keting yoki yetkazamiz",
-        "text": "Do'kondan olib keting yoki obyektingizga yetkazib beramiz."
-      }
-    },
-    "cta": {
-      "title": "Smeta bormi? Narxini hisoblab beramiz",
-      "text": "Ro'yxatni yuboring — bir necha daqiqada javob beramiz.",
-      "visit": "Do'konga keling"
-    },
-    "contact": {
-      "title": "Do'konimizga tashrif buyuring",
-      "address": "Manzil",
+    "create": {
+      "title": "Yangi do'kon",
+      "subtitle": "Do'kon va uning egasi uchun akkaunt bir vaqtda yaratiladi",
+      "storeSection": "Do'kon",
+      "storeName": "Do'kon nomi",
       "phone": "Telefon",
-      "hours": "Ish vaqti",
-      "askUs": "Telefon orqali so'rang",
-      "defaultHours": "Har kuni 8:00–19:00"
+      "noPlans": "Avval tarif yarating",
+      "trialDays": "Sinov muddati (kun)",
+      "trialHint": "0 — sinovsiz, darhol to'lov kutiladi",
+      "ownerSection": "Do'kon egasi (admin)",
+      "ownerName": "Ismi",
+      "tempPassword": "Vaqtinchalik parol",
+      "regenerate": "Yangi parol",
+      "passwordHint": "Birinchi kirishda egasi uni almashtiradi",
+      "submit": "Do'konni ochish",
+      "doneTitle": "Do'kon ochildi",
+      "doneText": "Quyidagi ma'lumotlarni do'kon egasiga yuboring.",
+      "credentialsFor": "Do'kon",
+      "loginUrl": "Kirish manzili",
+      "copy": "Nusxa olish",
+      "copied": "Nusxa olindi",
+      "openStore": "Do'kon kartasi",
+      "another": "Yana do'kon ochish"
     },
-    "footer": {
-      "rights": "Barcha huquqlar himoyalangan"
+    "detail": {
+      "info": "Ma'lumot",
+      "address": "Manzil",
+      "created": "Ochilgan",
+      "staff": "Xodimlar",
+      "productLimit": "Tovarlar limiti",
+      "setup": "Sozlash",
+      "setupPending": "Egasi hali kirmagan",
+      "setupDone": "Bajarilgan",
+      "subscription": "Obuna",
+      "changePlan": "Tarifni o'zgartirish",
+      "recordPayment": "To'lov qo'shish",
+      "newPaidUntil": "Yangi muddat",
+      "savePayment": "To'lovni saqlash",
+      "staffTitle": "Xodimlar va adminlar",
+      "addUser": "Xodim qo'shish",
+      "userCreated": "Akkaunt yaratildi. Login va parolni egasiga yuboring:",
+      "ownerBadge": "Egasi",
+      "paymentsTitle": "To'lovlar tarixi",
+      "suspend": "To'xtatish",
+      "activate": "Faollashtirish",
+      "confirmSuspend": "Do'kon xodimlari tizimga kira olmaydi. Ma'lumotlar saqlanib qoladi. Davom etasizmi?",
+      "confirmActivate": "Do'kon yana ishlay boshlaydi. Davom etasizmi?",
+      "planChanged": "Tarif o'zgartirildi",
+      "paymentSaved": "To'lov saqlandi, muddat uzaytirildi",
+      "statusChanged": "Holat o'zgartirildi",
+      "userUpdated": "Xodim yangilandi"
+    },
+    "payments": {
+      "none": "Hali to'lov yo'q",
+      "date": "Sana",
+      "amount": "Summa",
+      "months": "Muddat",
+      "method": "To'lov turi",
+      "note": "Izoh",
+      "paidUntil": "Amal qiladi",
+      "recordedBy": "Kiritgan",
+      "methods": {
+        "cash": "Naqd",
+        "card": "Karta",
+        "transfer": "O'tkazma"
+      }
+    },
+    "plans": {
+      "title": "Tariflar",
+      "subtitle": "Narx va limitlar. Do'konga tarif berilganda limitlar unga ko'chiriladi.",
+      "add": "Tarif qo'shish",
+      "name": "Nomi",
+      "price": "Oylik narx",
+      "maxUsers": "Xodimlar soni",
+      "maxProducts": "Tovarlar soni",
+      "zeroUnlimited": "0 — cheksiz",
+      "active": "Yangi do'konlarga taklif qilinsin",
+      "limitsNote": "Limit o'zgarsa, mavjud do'konlarga tarifni qayta tanlash orqali qo'llanadi.",
+      "empty": "Hali tarif yo'q",
+      "seed": "Namuna tariflarni yaratish (Start, Biznes, Pro)",
+      "hidden": "Yashirin",
+      "noPrice": "Narx kiritilmagan",
+      "saved": "Tarif saqlandi"
+    },
+    "audit": {
+      "title": "Platforma jurnali",
+      "subtitle": "Super admin amallari: do'kon ochish, to'lovlar, holat o'zgarishlari",
+      "empty": "Hali yozuv yo'q",
+      "action": "Amal",
+      "details": "Tafsilot",
+      "by": "Kim",
+      "actions": {
+        "tenant_create": "Do'kon ochildi",
+        "tenant_status": "Holat o'zgardi",
+        "tenant_plan": "Tarif o'zgardi",
+        "payment_record": "To'lov",
+        "tenant_user_create": "Xodim qo'shildi",
+        "tenant_user_active": "Xodim holati"
+      }
     }
   }
 }

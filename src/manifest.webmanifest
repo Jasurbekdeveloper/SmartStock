@@ -1,7 +1,7 @@
 {
-  "name": "Original qurilish do'koni — POS",
-  "short_name": "Original POS",
-  "description": "Original qurilish do'koni uchun savdo/ombor tizimi",
+  "name": "Hisobla — savdo va ombor",
+  "short_name": "Hisobla",
+  "description": "Do'konlar uchun kassa, ombor va qarz hisobi",
   "theme_color": "#ea580c",
   "background_color": "#ffffff",
   "display": "standalone",

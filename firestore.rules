@@ -115,9 +115,10 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // plans/{id}: subscription plans. Store admins read their plan's name/limits.
+    // plans/{id}: subscription plans. Public read: the marketing site lists the
+    // plans marked showOnSite (prices are not secret); store admins read their limits.
     match /plans/{id} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
@@ -140,6 +141,28 @@ service cloud.firestore {
       allow read: if isSuperAdmin();
       allow create: if isSuperAdmin() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // siteContent/main: marketing site texts, lists, contacts and section switches,
+    // edited in /platform/site. Public read: website/main.js fetches it over REST.
+    match /siteContent/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // leads/{id}: demo requests from the website, created only by the submitLead
+    // Cloud Function. The super admin works them: status and notes only.
+    match /leads/{id} {
+      allow read: if isSuperAdmin();
+      allow update: if isSuperAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'notes', 'updatedAt', 'updatedBy', 'tenantId']);
+      allow create, delete: if false;
+    }
+
+    // leadRateLimits/{ipHash}: submitLead's per-IP counter (Admin SDK only).
+    match /leadRateLimits/{id} {
+      allow read, write: if false;
     }
 
     // telegramLinks/{telegramId}: Telegram account -> uid, maintained only by the

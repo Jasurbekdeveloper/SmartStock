@@ -1,3 +1,5 @@
+import { LocalizedText } from './site-content';
+
 export type TenantStatus = 'trial' | 'active' | 'suspended' | 'cancelled';
 
 /** `tenants/{id}` — one store on the platform. Subscription fields (status, plan,
@@ -31,6 +33,12 @@ export interface Plan {
   maxUsers: number;
   maxProducts: number;
   active: boolean;
+  /** Listed in the website's pricing section (website/main.js reads plans publicly). */
+  showOnSite?: boolean;
+  /** Marked "Popular" on the website. */
+  highlighted?: boolean;
+  /** Extra website bullet points per language, one per line. */
+  siteFeatures?: LocalizedText;
   createdAt?: Date;
 }
 
@@ -66,7 +74,8 @@ export type PlatformAuditAction =
   | 'tenant_user_active'
   | 'tenant_edit'
   | 'tenant_owner'
-  | 'payment_void';
+  | 'payment_void'
+  | 'site_update';
 
 /** `platformAudit/{id}` — what the super admin did, immutable. */
 export interface PlatformAuditEntry {

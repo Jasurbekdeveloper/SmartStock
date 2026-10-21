@@ -48,7 +48,7 @@ export interface IntegrationSettings {
 export const DEFAULT_VAT_RATE = 0.12;
 export const DEFAULT_PRICES_INCLUDE_VAT = true;
 export const DEFAULT_CURRENCY_SYMBOL = "so'm";
-export const DEFAULT_STORE_NAME = 'Hisobla';
+export const DEFAULT_STORE_NAME = 'MarketHisob';
 export const DEFAULT_RECEIPT_PAPER_WIDTH: ReceiptPaperWidth = '80';
 
 /** `setDoc`, like `addDoc`, rejects explicit `undefined` values — optional fields left

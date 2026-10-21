@@ -11,7 +11,7 @@
 
       <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
         <mat-label>{{ 'form.barcode' | translate }}</mat-label>
-        <input matInput [(ngModel)]="p.barcode" name="barcode" />
+        <input matInput [(ngModel)]="p.barcode" name="barcode" (keydown.enter)="$event.preventDefault()" />
         <button
           mat-icon-button
           matSuffix

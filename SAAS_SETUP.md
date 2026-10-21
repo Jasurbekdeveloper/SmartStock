@@ -1,4 +1,4 @@
-# Hisobla SaaS — ishga tushirish
+# MarketHisob SaaS — ishga tushirish
 
 Ko'p do'konli rejim: super admin (`/platform`) do'kon ochadi, obunani boshqaradi; har bir do'kon admini o'z kabinetini boshqaradi.
 
@@ -59,3 +59,30 @@ Xodim avval login-parol bilan kiradi va profil menyusidan **Telegram'ni ulash** 
 | To'xtatilgan | super admin qo'lda | kirish yopiq |
 
 Tarif limitlari (`maxUsers`, `maxProducts`, 0 = cheksiz) xodim yoki tovar qo'shishda tekshiriladi.
+
+## 5. Domen: markethisob.uz
+
+Bitta Firebase loyihasida ikkita hosting sayti (`firebase.json` → `hosting` targetlari):
+
+| Target | Papka | Firebase sayti | Domen |
+|---|---|---|---|
+| `app` | `dist/SmartStock/browser` | `smartstock-d737f` | `app.markethisob.uz` |
+| `site` | `website/` | `markethisob` | `markethisob.uz`, `www.markethisob.uz` |
+
+### Bir marta (domen faollashishini kutmasdan)
+
+```bash
+firebase hosting:sites:create markethisob     # band bo'lsa boshqa ID tanlang va .firebaserc'dagi "site" ni o'zgartiring
+firebase deploy --only hosting:site           # sayt markethisob.web.app da ochiladi
+```
+
+### Domen faollashgach (cctld.uz moderatsiyasidan keyin)
+
+1. Firebase Console → Hosting → **markethisob** sayti → *Add custom domain* → `markethisob.uz` (keyin `www.markethisob.uz` ni unga redirect qiling).
+2. **smartstock-d737f** sayti → *Add custom domain* → `app.markethisob.uz`.
+3. Firebase bergan **TXT** (tasdiqlash) va **A** yozuvlarini Ahost → DNS boshqaruvi'ga kiriting. SSL 24 soatgacha o'zi chiqadi.
+4. Firebase Console → Authentication → Settings → **Authorized domains**: `app.markethisob.uz` qo'shing (busiz login ishlamaydi).
+5. @BotFather → `/setdomain` → `app.markethisob.uz`.
+6. Telegram xabaridagi panel havolasi: `functions/.env` faylida `APP_URL=https://app.markethisob.uz`, so'ng `firebase deploy --only functions`.
+
+Deploy: `firebase deploy --only hosting:app` (dastur), `--only hosting:site` (sayt), `--only hosting` (ikkalasi).

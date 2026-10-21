@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hisobla — do'kon uchun savdo va ombor tizimi</title>
-  <meta name="description" content="Hisobla — do'konlar uchun kassa, ombor, qarz daftari va statistika bitta tizimda. Offline ishlaydi, bulutda saqlanadi, o'zbek, rus va ingliz tillarida." />
-  <meta property="og:title" content="Hisobla — do'kon uchun savdo va ombor tizimi" />
+  <title>MarketHisob — do'kon uchun savdo va ombor tizimi</title>
+  <meta name="description" content="MarketHisob — do'konlar uchun kassa, ombor, qarz daftari va statistika bitta tizimda. Offline ishlaydi, bulutda saqlanadi, o'zbek, rus va ingliz tillarida." />
+  <meta property="og:title" content="MarketHisob — do'kon uchun savdo va ombor tizimi" />
   <meta property="og:description" content="Kassa, ombor, qarzlar va foyda hisobi bitta qulay dasturda." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="logo.svg" />
@@ -13,24 +13,33 @@
   <link rel="icon" href="logo.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!--
+    Everything visible here can be edited from the super admin panel (/platform/site):
+    main.js loads content.json (defaults) and the published siteContent/main document,
+    then fills [data-i18n] texts and [data-list] blocks. The Uzbek markup below is only
+    the first paint / no-JavaScript fallback.
+  -->
+
   <!-- ============ NAV ============ -->
   <header class="nav" id="top">
     <div class="container nav__inner">
-      <a href="#top" class="brand" aria-label="Hisobla">
+      <a href="#top" class="brand" aria-label="MarketHisob">
         <img src="logo.svg" alt="" width="36" height="36" />
-        <span>Hisobla</span>
+        <span>MarketHisob</span>
       </a>
 
       <nav class="nav__links" id="navLinks">
-        <a href="#features" data-i18n="nav.features">Imkoniyatlar</a>
-        <a href="#how" data-i18n="nav.how">Qanday ishlaydi</a>
-        <a href="#why" data-i18n="nav.why">Afzalliklar</a>
-        <a href="#faq" data-i18n="nav.faq">Savollar</a>
-        <a href="#contact" data-i18n="nav.contact">Aloqa</a>
+        <a href="#features" data-section-link="features" data-i18n="nav.features">Imkoniyatlar</a>
+        <a href="#how" data-section-link="how" data-i18n="nav.how">Qanday ishlaydi</a>
+        <a href="#why" data-section-link="why" data-i18n="nav.why">Afzalliklar</a>
+        <a href="#pricing" data-section-link="pricing" data-i18n="nav.pricing" hidden>Narxlar</a>
+        <a href="#faq" data-section-link="faq" data-i18n="nav.faq">Savollar</a>
+        <a href="#contact" data-section-link="contact" data-i18n="nav.contact">Aloqa</a>
       </nav>
 
       <div class="nav__actions">
@@ -39,7 +48,7 @@
           <button type="button" data-lang="ru">RU</button>
           <button type="button" data-lang="en">EN</button>
         </div>
-        <a href="#contact" class="btn btn--primary btn--sm hide-sm" data-i18n="nav.cta">Demo so'rash</a>
+        <a href="#contact" class="btn btn--primary btn--sm hide-sm" data-demo data-i18n="nav.cta">Demo so'rash</a>
         <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
@@ -54,9 +63,9 @@
         <div class="hero__copy">
           <span class="eyebrow" data-i18n="hero.eyebrow">Do'konlar uchun savdo va ombor tizimi</span>
           <h1 data-i18n="hero.title">Savdo, ombor va qarzlar — <em>bitta</em> tizimda</h1>
-          <p class="lead" data-i18n="hero.lead">Hisobla daftar va Excel o'rnini bosadi: kassada tez sotasiz, qoldiq o'zi kamayadi, kim qancha qarzdorligi va bugun qancha foyda qilganingiz doim ko'z oldingizda.</p>
+          <p class="lead" data-i18n="hero.lead">MarketHisob daftar va Excel o'rnini bosadi: kassada tez sotasiz, qoldiq o'zi kamayadi, kim qancha qarzdorligi va bugun qancha foyda qilganingiz doim ko'z oldingizda.</p>
           <div class="hero__cta">
-            <a href="#contact" class="btn btn--primary btn--lg" data-i18n="hero.cta1">Bepul demo olish</a>
+            <a href="#contact" class="btn btn--primary btn--lg" data-demo data-i18n="hero.cta1">Bepul demo olish</a>
             <a href="#features" class="btn btn--ghost btn--lg" data-i18n="hero.cta2">Imkoniyatlarni ko'rish</a>
           </div>
           <ul class="hero__ticks">
@@ -84,7 +93,7 @@
               <div class="kv kv--big"><span data-i18n="mock.toPay">To'lov</span><b>1 300 000 <small>so'm</small></b></div>
               <div class="mock__pay">
                 <span class="chip chip--on" data-i18n="mock.cash">Naqd</span>
-                <span class="chip" data-i18n="mock.card">Karta</span>
+                <span class="chip" data-i18n="mock.card">Online</span>
                 <span class="chip" data-i18n="mock.debt">Qarz</span>
               </div>
               <div class="mock__btn" data-i18n="mock.pay">To'lash · F4</div>
@@ -97,11 +106,11 @@
 
     <!-- ============ STRIP ============ -->
     <section class="strip">
-      <div class="container strip__grid">
-        <div><b data-i18n="strip.k1">Offline</b><span data-i18n="strip.v1">internet bo'lmasa ham sotuv davom etadi</span></div>
-        <div><b data-i18n="strip.k2">Bulutda</b><span data-i18n="strip.v2">ma'lumotlar Google Firebase'da xavfsiz saqlanadi</span></div>
-        <div><b data-i18n="strip.k3">3 rol</b><span data-i18n="strip.v3">admin, menejer va kassir — har kimga o'z huquqi</span></div>
-        <div><b data-i18n="strip.k4">0 o'rnatish</b><span data-i18n="strip.v4">brauzerda ochiladi, ilova kabi o'rnatsa ham bo'ladi</span></div>
+      <div class="container strip__grid" data-list="strip">
+        <div><b>Offline</b><span>internet bo'lmasa ham sotuv davom etadi</span></div>
+        <div><b>Bulutda</b><span>ma'lumotlar Google Firebase'da xavfsiz saqlanadi</span></div>
+        <div><b>3 rol</b><span>admin, menejer va kassir — har kimga o'z huquqi</span></div>
+        <div><b>0 o'rnatish</b><span>brauzerda ochiladi, ilova kabi o'rnatsa ham bo'ladi</span></div>
       </div>
     </section>
 
@@ -115,20 +124,20 @@
         <div class="compare">
           <div class="compare__col compare__col--bad">
             <h3 data-i18n="ps.badTitle">Hozir</h3>
-            <ul>
-              <li data-i18n="ps.bad1">Omborda nima qolgani faqat sanalganda ma'lum bo'ladi</li>
-              <li data-i18n="ps.bad2">Qarzlar daftarda, kim qancha to'lagani chalkash</li>
-              <li data-i18n="ps.bad3">Kun oxirida kassa bilan savdo mos kelmaydi</li>
-              <li data-i18n="ps.bad4">Qaysi tovar foyda keltirayotganini bilmaysiz</li>
+            <ul data-list="bad">
+              <li>Omborda nima qolgani faqat sanalganda ma'lum bo'ladi</li>
+              <li>Qarzlar daftarda, kim qancha to'lagani chalkash</li>
+              <li>Kun oxirida kassa bilan savdo mos kelmaydi</li>
+              <li>Qaysi tovar foyda keltirayotganini bilmaysiz</li>
             </ul>
           </div>
           <div class="compare__col compare__col--good">
-            <h3 data-i18n="ps.goodTitle">Hisobla bilan</h3>
-            <ul>
-              <li data-i18n="ps.good1">Har bir sotuvdan keyin qoldiq avtomatik yangilanadi</li>
-              <li data-i18n="ps.good2">Har bir mijozning qarzi va to'lov tarixi bir joyda</li>
-              <li data-i18n="ps.good3">Smena yopilganda Z-hisobot: naqd, karta, qaytarishlar</li>
-              <li data-i18n="ps.good4">Kunlik, oylik foyda va eng ko'p sotilgan tovarlar</li>
+            <h3 data-i18n="ps.goodTitle">MarketHisob bilan</h3>
+            <ul data-list="good">
+              <li>Har bir sotuvdan keyin qoldiq avtomatik yangilanadi</li>
+              <li>Har bir mijozning qarzi va to'lov tarixi bir joyda</li>
+              <li>Smena yopilganda Z-hisobot: naqd, online, qaytarishlar</li>
+              <li>Kunlik, oylik foyda va eng ko'p sotilgan tovarlar</li>
             </ul>
           </div>
         </div>
@@ -136,7 +145,7 @@
     </section>
 
     <!-- ============ FEATURES ============ -->
-    <section class="section section--tint" id="features">
+    <section class="section section--tint" id="features" data-section="features">
       <div class="container">
         <div class="section__head">
           <span class="eyebrow" data-i18n="f.eyebrow">Imkoniyatlar</span>
@@ -144,173 +153,112 @@
           <p data-i18n="f.lead">Alohida dasturlar, jadval va daftarlar kerak emas — barcha bo'limlar bir-biri bilan bog'langan.</p>
         </div>
 
-        <div class="features">
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M3 5h18v10H3zM7 19h10M12 15v4"/><path d="M7 9h4M7 12h7"/></svg></div>
-            <h3 data-i18n="f.pos.t">Tezkor kassa</h3>
-            <p data-i18n="f.pos.d">Shtrix-kod skaneri, klaviatura tugmalari (F4 — to'lov), chegirma, naqd + karta aralash to'lov va chek chop etish.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v10l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v10"/></svg></div>
-            <h3 data-i18n="f.stock.t">Ombor nazorati</h3>
-            <p data-i18n="f.stock.d">Kirim, chiqim, inventarizatsiya va harakatlar tarixi. Tannarx o'rtacha narx (AVCO) bo'yicha avtomatik hisoblanadi.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg></div>
-            <h3 data-i18n="f.debt.t">Qarz daftari</h3>
-            <p data-i18n="f.debt.d">Nasiyaga sotuv, qisman to'lovlar, har bir mijoz bo'yicha qoldiq va muddati o'tgan qarzlar ro'yxati.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
-            <h3 data-i18n="f.stats.t">Statistika va foyda</h3>
-            <p data-i18n="f.stats.d">Tushum, sof foyda, eng ko'p sotilgan tovarlar va kam qolgan qoldiqlar — kun, hafta, oy kesimida. Excel'ga eksport.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-            <h3 data-i18n="f.shift.t">Smenalar va Z-hisobot</h3>
-            <p data-i18n="f.shift.d">Kassir smenani ochadi va yopadi; tizim kassadagi naqd pulni kutilgan summa bilan solishtiradi.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M9 14l-5-5 5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></div>
-            <h3 data-i18n="f.ret.t">Qaytarishlar</h3>
-            <p data-i18n="f.ret.d">Tovar qaytarilganda pul qaytariladi, qoldiq tiklanadi va hisobotlar avtomatik to'g'rilanadi.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14a6.5 6.5 0 013.5 6"/></svg></div>
-            <h3 data-i18n="f.crm.t">Mijozlar va yetkazib beruvchilar</h3>
-            <p data-i18n="f.crm.d">Har bir mijozning xaridlari, yetkazib beruvchilardan olingan tovarlar va ular oldidagi qarzlar.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
-            <h3 data-i18n="f.users.t">Xodimlar va nazorat</h3>
-            <p data-i18n="f.users.d">Kassir tannarx va foydani ko'rmaydi. Har bir o'zgarish audit jurnaliga yoziladi: kim, qachon, nima qildi.</p>
-          </article>
-          <article class="feature">
-            <div class="feature__icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></svg></div>
-            <h3 data-i18n="f.import.t">Tovarlarni tez kiritish</h3>
-            <p data-i18n="f.import.d">Excel'dan import, bir nechta o'lchov birligi (dona, metr, kg, qop), kategoriyalar va shtrix-kod yorliqlari chop etish.</p>
-          </article>
+        <div class="features" data-list="features">
+          <article class="feature"><h3>Tezkor kassa</h3><p>Shtrix-kod skaneri, klaviatura tugmalari (F4 — to'lov), chegirma, naqd, online va aralash to'lov, chek chop etish.</p></article>
+          <article class="feature"><h3>Ombor nazorati</h3><p>Kirim, chiqim, inventarizatsiya va harakatlar tarixi. Tannarx o'rtacha narx (AVCO) bo'yicha avtomatik hisoblanadi.</p></article>
+          <article class="feature"><h3>Qarz daftari</h3><p>Nasiyaga sotuv, qisman to'lovlar, har bir mijoz bo'yicha qoldiq va muddati o'tgan qarzlar ro'yxati.</p></article>
+          <article class="feature"><h3>Statistika va foyda</h3><p>Tushum, sof foyda, eng ko'p sotilgan tovarlar va kam qolgan qoldiqlar — kun, hafta, oy kesimida. Excel'ga eksport.</p></article>
+          <article class="feature"><h3>Smenalar va Z-hisobot</h3><p>Kassir smenani ochadi va yopadi; tizim kassadagi naqd pulni kutilgan summa bilan solishtiradi.</p></article>
+          <article class="feature"><h3>Qaytarishlar</h3><p>Tovar qaytarilganda pul qaytariladi, qoldiq tiklanadi va hisobotlar avtomatik to'g'rilanadi.</p></article>
         </div>
       </div>
     </section>
 
     <!-- ============ HOW ============ -->
-    <section class="section" id="how">
+    <section class="section" id="how" data-section="how">
       <div class="container">
         <div class="section__head">
           <span class="eyebrow" data-i18n="how.eyebrow">Qanday ishlaydi</span>
           <h2 data-i18n="how.title">Bir kunda ishga tushadi</h2>
         </div>
-        <ol class="steps">
-          <li>
-            <span class="steps__n">1</span>
-            <h3 data-i18n="how.s1t">Ulanamiz</h3>
-            <p data-i18n="how.s1d">Do'koningiz uchun alohida tizim ochamiz va admin akkauntini beramiz.</p>
-          </li>
-          <li>
-            <span class="steps__n">2</span>
-            <h3 data-i18n="how.s2t">Tovarlarni kiritasiz</h3>
-            <p data-i18n="how.s2d">Mavjud Excel ro'yxatini yuklaysiz yoki tovarlarni skaner bilan qo'shasiz.</p>
-          </li>
-          <li>
-            <span class="steps__n">3</span>
-            <h3 data-i18n="how.s3t">Xodimlarni qo'shasiz</h3>
-            <p data-i18n="how.s3d">Kassir va menejerlarga login berasiz — har kim faqat o'z bo'limini ko'radi.</p>
-          </li>
-          <li>
-            <span class="steps__n">4</span>
-            <h3 data-i18n="how.s4t">Sotishni boshlaysiz</h3>
-            <p data-i18n="how.s4d">Kassa ishlaydi, hisobotlar o'zi to'planadi. Biz o'rgatamiz va yordam beramiz.</p>
-          </li>
+        <ol class="steps" data-list="steps">
+          <li><span class="steps__n">1</span><h3>Ulanamiz</h3><p>Do'koningiz uchun alohida tizim ochamiz va admin akkauntini beramiz.</p></li>
+          <li><span class="steps__n">2</span><h3>Tovarlarni kiritasiz</h3><p>Mavjud Excel ro'yxatini yuklaysiz yoki tovarlarni skaner bilan qo'shasiz.</p></li>
+          <li><span class="steps__n">3</span><h3>Xodimlarni qo'shasiz</h3><p>Kassir va menejerlarga login berasiz — har kim faqat o'z bo'limini ko'radi.</p></li>
+          <li><span class="steps__n">4</span><h3>Sotishni boshlaysiz</h3><p>Kassa ishlaydi, hisobotlar o'zi to'planadi. Biz o'rgatamiz va yordam beramiz.</p></li>
         </ol>
       </div>
     </section>
 
     <!-- ============ WHY ============ -->
-    <section class="section section--dark" id="why">
+    <section class="section section--dark" id="why" data-section="why">
       <div class="container why">
         <div class="why__copy">
-          <span class="eyebrow eyebrow--light" data-i18n="why.eyebrow">Nega Hisobla</span>
+          <span class="eyebrow eyebrow--light" data-i18n="why.eyebrow">Nega MarketHisob</span>
           <h2 data-i18n="why.title">O'zbekistondagi do'konlar uchun yaratilgan</h2>
-          <p data-i18n="why.lead">Xorijiy dasturlarni moslashtirish shart emas — Hisobla mahalliy savdoning odatlarini hisobga oladi.</p>
+          <p data-i18n="why.lead">Xorijiy dasturlarni moslashtirish shart emas — MarketHisob mahalliy savdoning odatlarini hisobga oladi.</p>
         </div>
-        <ul class="why__list">
-          <li><b data-i18n="why.p1t">So'm va QQS</b><span data-i18n="why.p1d">Narxlar QQS bilan yoki QQSsiz — chekda soliq to'g'ri ajratiladi.</span></li>
-          <li><b data-i18n="why.p2t">Nasiya savdo</b><span data-i18n="why.p2d">Qarzga sotish — kassaning oddiy to'lov turi, alohida daftar kerak emas.</span></li>
-          <li><b data-i18n="why.p3t">Internetga bog'liq emas</b><span data-i18n="why.p3d">Aloqa uzilsa sotuv to'xtamaydi; internet qaytganda ma'lumotlar o'zi sinxronlanadi.</span></li>
-          <li><b data-i18n="why.p4t">To'rt til</b><span data-i18n="why.p4d">O'zbek (lotin va kirill), rus va ingliz — har bir xodim o'z tilida ishlaydi.</span></li>
-          <li><b data-i18n="why.p5t">Har qanday qurilma</b><span data-i18n="why.p5d">Kompyuter, planshet yoki telefon — qimmat kassa apparati shart emas.</span></li>
-          <li><b data-i18n="why.p6t">Ma'lumotlar xavfsiz</b><span data-i18n="why.p6d">Bulutda zaxira, rollar bo'yicha huquqlar va o'zgarishlar jurnali.</span></li>
+        <ul class="why__list" data-list="why">
+          <li><b>So'm va QQS</b><span>Narxlar QQS bilan yoki QQSsiz — chekda soliq to'g'ri ajratiladi.</span></li>
+          <li><b>Nasiya savdo</b><span>Qarzga sotish — kassaning oddiy to'lov turi, alohida daftar kerak emas.</span></li>
+          <li><b>Internetga bog'liq emas</b><span>Aloqa uzilsa sotuv to'xtamaydi; internet qaytganda ma'lumotlar o'zi sinxronlanadi.</span></li>
+          <li><b>Har qanday qurilma</b><span>Kompyuter, planshet yoki telefon — qimmat kassa apparati shart emas.</span></li>
         </ul>
       </div>
     </section>
 
     <!-- ============ FOR WHOM ============ -->
-    <section class="section">
+    <section class="section" data-section="who">
       <div class="container">
         <div class="section__head">
           <span class="eyebrow" data-i18n="who.eyebrow">Kimlar uchun</span>
           <h2 data-i18n="who.title">Tovar sotadigan har qanday do'kon</h2>
         </div>
-        <div class="tags">
-          <span data-i18n="who.t1">Qurilish mollari</span>
-          <span data-i18n="who.t2">Xo'jalik mollari</span>
-          <span data-i18n="who.t3">Oziq-ovqat va minimarket</span>
-          <span data-i18n="who.t4">Avto ehtiyot qismlar</span>
-          <span data-i18n="who.t5">Elektr va santexnika</span>
-          <span data-i18n="who.t6">Kiyim va poyabzal</span>
-          <span data-i18n="who.t7">Ulgurji savdo</span>
-          <span data-i18n="who.t8">Dorixona va kosmetika</span>
+        <div class="tags" data-list="who">
+          <span>Qurilish mollari</span>
+          <span>Xo'jalik mollari</span>
+          <span>Oziq-ovqat va minimarket</span>
+          <span>Avto ehtiyot qismlar</span>
         </div>
       </div>
     </section>
 
+    <!-- ============ PRICING (plans come from the super admin "Tariflar" page) ============ -->
+    <section class="section section--tint" id="pricing" data-section="pricing" hidden>
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow" data-i18n="pricing.eyebrow">Narxlar</span>
+          <h2 data-i18n="pricing.title">Do'koningizga mos tarif</h2>
+          <p data-i18n="pricing.lead">Barcha tariflarda kassa, ombor, qarzlar va hisobotlar bor. Farqi — xodimlar va tovarlar soni.</p>
+        </div>
+        <div class="pricing" id="pricingGrid"></div>
+      </div>
+    </section>
+
     <!-- ============ FAQ ============ -->
-    <section class="section section--tint" id="faq">
+    <section class="section" id="faq" data-section="faq">
       <div class="container container--narrow">
         <div class="section__head">
           <span class="eyebrow" data-i18n="faq.eyebrow">Savollar</span>
           <h2 data-i18n="faq.title">Ko'p beriladigan savollar</h2>
         </div>
-        <div class="faq">
+        <div class="faq" data-list="faq">
           <details>
-            <summary data-i18n="faq.q1">Kompyuterga biror narsa o'rnatish kerakmi?</summary>
-            <p data-i18n="faq.a1">Yo'q. Hisobla brauzerda ochiladi. Xohlasangiz uni bir bosishda ilova sifatida o'rnatib, ish stolidan ochishingiz mumkin.</p>
+            <summary>Kompyuterga biror narsa o'rnatish kerakmi?</summary>
+            <p>Yo'q. MarketHisob brauzerda ochiladi. Xohlasangiz uni bir bosishda ilova sifatida o'rnatib, ish stolidan ochishingiz mumkin.</p>
           </details>
           <details>
-            <summary data-i18n="faq.q2">Internet o'chib qolsa nima bo'ladi?</summary>
-            <p data-i18n="faq.a2">Kassa ishlashda davom etadi. Sotuvlar qurilmada saqlanadi va internet qaytishi bilan avtomatik bulutga yuboriladi.</p>
-          </details>
-          <details>
-            <summary data-i18n="faq.q3">Qanday uskunalar kerak?</summary>
-            <p data-i18n="faq.a3">Istalgan kompyuter yoki planshet. Shtrix-kod skaneri va chek printeri ixtiyoriy — oddiy USB qurilmalar mos keladi. Telefon kamerasi ham skaner bo'la oladi.</p>
-          </details>
-          <details>
-            <summary data-i18n="faq.q4">Mavjud tovarlar ro'yxatini ko'chirsa bo'ladimi?</summary>
-            <p data-i18n="faq.a4">Ha. Excel faylni yuklaysiz — nomi, narxi, qoldig'i va shtrix-kodi bilan tovarlar avtomatik yaratiladi.</p>
-          </details>
-          <details>
-            <summary data-i18n="faq.q5">Ma'lumotlarim kimga ko'rinadi?</summary>
-            <p data-i18n="faq.a5">Faqat siz va siz qo'shgan xodimlarga. Har bir do'konning ma'lumotlari alohida saqlanadi, kassir esa tannarx va foydani ko'rmaydi.</p>
-          </details>
-          <details>
-            <summary data-i18n="faq.q6">Narxi qancha?</summary>
-            <p data-i18n="faq.a6">Narx do'kon hajmi va kassalar soniga bog'liq. Bog'laning — bepul demo ko'rsatamiz va mos tarifni taklif qilamiz.</p>
+            <summary>Internet o'chib qolsa nima bo'ladi?</summary>
+            <p>Kassa ishlashda davom etadi. Sotuvlar qurilmada saqlanadi va internet qaytishi bilan avtomatik bulutga yuboriladi.</p>
           </details>
         </div>
       </div>
     </section>
 
     <!-- ============ CONTACT ============ -->
-    <section class="section" id="contact">
+    <section class="section" id="contact" data-section="contact">
       <div class="container">
         <div class="cta">
           <div>
             <h2 data-i18n="cta.title">Do'koningizda sinab ko'ring</h2>
-            <p data-i18n="cta.lead">Qo'ng'iroq qiling yoki Telegram'da yozing — 15 daqiqada tizimni ko'rsatamiz va savollaringizga javob beramiz.</p>
+            <p data-i18n="cta.lead">Ariza qoldiring, qo'ng'iroq qiling yoki Telegram'da yozing — 15 daqiqada tizimni ko'rsatamiz va savollaringizga javob beramiz.</p>
           </div>
           <div class="cta__actions">
-            <a class="btn btn--light btn--lg" data-contact="phone" href="#">
+            <button type="button" class="btn btn--light btn--lg" data-demo>
+              <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>
+              <span data-i18n="cta.demo">Demo so'rash</span>
+            </button>
+            <a class="btn btn--outline-light btn--lg" data-contact="phone" href="#">
               <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg>
               <span data-contact-label="phone"></span>
             </a>
@@ -328,12 +276,88 @@
     <div class="container footer__inner">
       <a href="#top" class="brand brand--small">
         <img src="logo.svg" alt="" width="28" height="28" />
-        <span>Hisobla</span>
+        <span>MarketHisob</span>
       </a>
       <p data-i18n="footer.tag">Do'kon uchun savdo, ombor va qarz hisobi.</p>
-      <p class="footer__copy">© <span id="year"></span> Hisobla</p>
+      <p class="footer__contacts">
+        <a data-contact="phone" href="#"><span data-contact-label="phone"></span></a>
+        <a data-contact="email" href="#" hidden><span data-contact-label="email"></span></a>
+      </p>
+      <p class="footer__copy">© <span id="year"></span> MarketHisob</p>
     </div>
   </footer>
+
+  <!-- Sticky call-to-action on phones -->
+  <div class="mobile-cta">
+    <button type="button" class="btn btn--primary" data-demo><span data-i18n="nav.cta">Demo so'rash</span></button>
+    <a class="btn btn--ghost" data-contact="phone" href="#" aria-label="Phone">
+      <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg>
+    </a>
+  </div>
+
+  <!-- ============ DEMO REQUEST ============ -->
+  <dialog class="modal" id="demoDialog" aria-labelledby="demoTitle">
+    <form class="modal__card" id="demoForm" method="dialog" novalidate>
+      <button type="button" class="modal__x" data-close aria-label="Close">×</button>
+
+      <div class="modal__body" data-step="form">
+        <h2 id="demoTitle" data-i18n="demo.title">Bepul demo so'rash</h2>
+        <p class="modal__lead" data-i18n="demo.lead">Ma'lumotlaringizni qoldiring — tez orada qo'ng'iroq qilib, tizimni ko'rsatamiz.</p>
+        <p class="modal__plan" id="demoPlan" hidden><span data-i18n="demo.plan">Tanlangan tarif</span>: <b></b></p>
+
+        <div class="fields">
+          <label class="field">
+            <span><span data-i18n="demo.name">Ismingiz</span> *</span>
+            <input name="name" autocomplete="name" maxlength="80" required />
+          </label>
+          <label class="field">
+            <span><span data-i18n="demo.phone">Telefon raqam</span> *</span>
+            <input name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="+998 90 123 45 67" required />
+          </label>
+          <label class="field">
+            <span data-i18n="demo.store">Do'kon nomi</span>
+            <input name="storeName" maxlength="100" />
+          </label>
+          <label class="field">
+            <span data-i18n="demo.city">Shahar / tuman</span>
+            <input name="city" maxlength="80" />
+          </label>
+          <label class="field">
+            <span data-i18n="demo.type">Do'kon turi</span>
+            <select name="storeType" id="demoType"></select>
+          </label>
+          <label class="field">
+            <span data-i18n="demo.registers">Kassalar soni</span>
+            <select name="registers">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4+">4+</option>
+            </select>
+          </label>
+          <label class="field field--wide">
+            <span data-i18n="demo.message">Izoh (ixtiyoriy)</span>
+            <textarea name="message" rows="3" maxlength="1000"></textarea>
+          </label>
+          <!-- Honeypot: people never see or fill this field; bots usually do. -->
+          <label class="hp" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <p class="modal__error" id="demoError" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--lg modal__submit" id="demoSubmit">
+          <span data-i18n="demo.submit">Yuborish</span>
+        </button>
+        <p class="modal__note" data-i18n="demo.privacy">Ma'lumotlaringiz faqat siz bilan bog'lanish uchun ishlatiladi.</p>
+      </div>
+
+      <div class="modal__body modal__done" data-step="done" hidden>
+        <div class="modal__check">✓</div>
+        <h2 data-i18n="demo.successTitle">Rahmat! Arizangiz qabul qilindi</h2>
+        <p class="modal__lead" data-i18n="demo.successText">Tez orada siz bilan bog'lanamiz. Shoshilinch bo'lsa — Telegram'da yozing.</p>
+        <button type="button" class="btn btn--ghost btn--lg" data-close><span data-i18n="demo.close">Yopish</span></button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="main.js"></script>
 </body>

@@ -145,7 +145,7 @@
     "clearCartConfirm": "Savatni tozalashga ishonchingiz komilmi?",
     "proceedToPay": "TO'LASHGA O'TISH",
     "cash": "Naqd",
-    "card": "Karta",
+    "card": "Online",
     "debit": "Nasiya",
     "amountDue": "To'lanishi kerak",
     "insufficientAmount": "To'lov miqdori yetarli emas",
@@ -184,7 +184,7 @@
     "sum": "So'm",
     "cashReceived": "Olingan naqd pul",
     "prepayment": "Oldindan to'lov (naqd)",
-    "cardFullHint": "To'liq summa karta orqali to'lanadi",
+    "cardFullHint": "To'liq summa online to'lanadi: karta terminali, Click, Payme, Uzum yoki o'tkazma",
     "debtWillBeCreated": "Nasiyaga yoziladi",
     "currentDebt": "Joriy qarzi",
     "completeSale": "Sotuvni yakunlash",
@@ -466,7 +466,7 @@
     "loginSubtitle": "Xodim akkauntingiz bilan kiring",
     "adminProvisionedOnly": "Yangi akkauntlarni faqat administrator yaratadi.",
     "backToSite": "Saytga qaytish",
-    "storeSuspended": "Do'kon to'xtatilgan. Hisobla administratori bilan bog'laning.",
+    "storeSuspended": "Do'kon to'xtatilgan. MarketHisob administratori bilan bog'laning.",
     "inactive": "Akkauntingiz o'chirilgan. Do'kon administratoriga murojaat qiling."
   },
   "users": {
@@ -588,14 +588,14 @@
     "productLimit": "Tovarlar limiti",
     "payments": "To'lovlar tarixi",
     "howToPayTitle": "Obunani qanday uzaytirish mumkin?",
-    "howToPayText": "Hisobla menejeri bilan bog'laning: to'lovni naqd, karta yoki o'tkazma orqali qabul qilamiz va muddat shu zahoti uzayadi.",
+    "howToPayText": "MarketHisob menejeri bilan bog'laning: to'lovni naqd, karta yoki o'tkazma orqali qabul qilamiz va muddat shu zahoti uzayadi.",
     "details": "Batafsil",
     "daysShort": "kun",
     "month": "oy",
     "monthShort": "oy",
     "noExpiry": "Muddatsiz",
-    "userLimitReached": "Tarifingizdagi xodimlar limiti tugadi. Tarifni oshirish uchun Hisobla bilan bog'laning.",
-    "productLimitReached": "Tarifingizdagi tovarlar limiti tugadi. Tarifni oshirish uchun Hisobla bilan bog'laning.",
+    "userLimitReached": "Tarifingizdagi xodimlar limiti tugadi. Tarifni oshirish uchun MarketHisob bilan bog'laning.",
+    "productLimitReached": "Tarifingizdagi tovarlar limiti tugadi. Tarifni oshirish uchun MarketHisob bilan bog'laning.",
     "readOnlyAction": "Obuna muddati tugagan: faqat ko'rish rejimi. Obunani uzaytiring.",
     "state": {
       "trial": "Sinov",
@@ -609,7 +609,7 @@
       "expiresSoon": "Obuna muddati tugashiga oz qoldi:",
       "grace": "Obuna muddati tugadi. Do'kon hozircha ishlaydi, lekin to'lov qilinmasa faqat ko'rish rejimiga o'tadi:",
       "readonly": "Obuna muddati tugagan: savdo va o'zgartirishlar yopildi, ma'lumotlarni ko'rish va eksport qilish mumkin.",
-      "suspended": "Do'kon to'xtatilgan. Hisobla administratori bilan bog'laning."
+      "suspended": "Do'kon to'xtatilgan. MarketHisob administratori bilan bog'laning."
     }
   },
   "onboarding": {
@@ -631,7 +631,9 @@
       "overview": "Umumiy",
       "tenants": "Do'konlar",
       "plans": "Tariflar",
-      "audit": "Jurnal"
+      "audit": "Jurnal",
+      "leads": "Arizalar",
+      "site": "Sayt"
     },
     "overview": {
       "title": "Platforma",
@@ -747,7 +749,13 @@
       "seed": "Namuna tariflarni yaratish (Start, Biznes, Pro)",
       "hidden": "Yashirin",
       "noPrice": "Narx kiritilmagan",
-      "saved": "Tarif saqlandi"
+      "saved": "Tarif saqlandi",
+      "website": "Reklama saytida",
+      "showOnSite": "Saytda ko'rsatish",
+      "highlighted": "\"Ommabop\" belgisi",
+      "siteFeatures": "Qo'shimcha afzalliklar",
+      "siteFeaturesHint": "Har bir qatorga bitta afzallik. Xodimlar va tovarlar soni avtomatik qo'shiladi. Til bo'sh bo'lsa o'zbekchasi ko'rsatiladi.",
+      "onSite": "Saytda"
     },
     "audit": {
       "title": "Platforma jurnali",
@@ -765,8 +773,114 @@
         "tenant_user_active": "Xodim holati",
         "tenant_edit": "Do'kon tahrirlandi",
         "tenant_owner": "Egasi almashdi",
-        "payment_void": "To'lov bekor qilindi"
+        "payment_void": "To'lov bekor qilindi",
+        "site_update": "Sayt yangilandi"
       }
+    },
+    "site": {
+      "title": "Reklama sayti",
+      "subtitle": "Saytdagi barcha matnlar, ro'yxatlar, aloqa va bo'limlar. Saqlangach saytda darhol ko'rinadi — qayta build kerak emas.",
+      "lastUpdated": "Oxirgi saqlash",
+      "editingLang": "Tahrir tili",
+      "tabs": {
+        "general": "Aloqa va bo'limlar",
+        "texts": "Matnlar",
+        "lists": "Ro'yxatlar"
+      },
+      "contact": "Aloqa",
+      "phone": "Telefon",
+      "telegramHint": "Username (@siz) yoki kanal nomi",
+      "sectionsTitle": "Bo'limlar",
+      "sectionsHint": "O'chirilgan bo'lim saytda ham, menyuda ham ko'rinmaydi.",
+      "sections": {
+        "features": "Imkoniyatlar",
+        "how": "Qanday ishlaydi",
+        "why": "Afzalliklar",
+        "who": "Kimlar uchun",
+        "pricing": "Narxlar",
+        "faq": "Savollar",
+        "contact": "Aloqa"
+      },
+      "pricingHint": "Narxlar bo'limida \"Saytda ko'rsatish\" yoqilgan tariflar chiqadi. Narxni o'zgartirish:",
+      "groups": {
+        "meta": "Sahifa sarlavhasi (Google)",
+        "nav": "Menyu",
+        "hero": "Bosh ekran",
+        "mock": "Kassa rasmi",
+        "ps": "Muammo / yechim",
+        "features": "Imkoniyatlar",
+        "how": "Qanday ishlaydi",
+        "why": "Afzalliklar",
+        "who": "Kimlar uchun",
+        "pricing": "Narxlar",
+        "faq": "Savollar",
+        "cta": "Aloqa va pastki qism",
+        "demo": "Demo so'rash oynasi"
+      },
+      "textsHint": "Bo'sh qoldirilgan matn o'rniga standart matn ko'rsatiladi. <em>so'z</em> — rangli ajratish.",
+      "resetText": "Standart matnga qaytarish",
+      "lists": {
+        "strip": "Qisqa afzalliklar (bosh ekran ostida)",
+        "bad": "\"Hozir\" muammolari",
+        "good": "\"MarketHisob bilan\" yechimlari",
+        "features": "Imkoniyatlar kartalari",
+        "steps": "Qadamlar",
+        "why": "Afzalliklar",
+        "who": "Do'kon turlari",
+        "faq": "Savol-javoblar"
+      },
+      "icon": "Belgi",
+      "itemTitle": "Sarlavha",
+      "itemText": "Matn",
+      "question": "Savol",
+      "answer": "Javob",
+      "missingLang": "Bu tilda yozilmagan — o'zbekchasi ko'rsatiladi",
+      "moveUp": "Yuqoriga",
+      "moveDown": "Pastga",
+      "remove": "O'chirish",
+      "addItem": "Qo'shish",
+      "resetList": "Standartga qaytarish",
+      "resetListConfirm": "Bu ro'yxat standart holatiga qaytarilsinmi? Saqlamaguningizcha saytga ta'sir qilmaydi.",
+      "unsaved": "Saqlanmagan o'zgarishlar bor",
+      "allSaved": "Hammasi saqlangan",
+      "save": "Saytga chiqarish",
+      "saved": "Sayt yangilandi"
+    },
+    "leads": {
+      "title": "Arizalar",
+      "subtitle": "Saytdan kelgan demo so'rovlar. Yangi ariza kelganda Telegram'ga xabar keladi.",
+      "empty": "Hozircha ariza yo'q",
+      "all": "Hammasi",
+      "status": {
+        "new": "Yangi",
+        "contacted": "Bog'lanildi",
+        "demo": "Demo ko'rsatildi",
+        "won": "Mijoz bo'ldi",
+        "lost": "Rad etdi"
+      },
+      "statusLabel": "Holat",
+      "store": "Do'kon",
+      "city": "Shahar",
+      "storeType": "Turi",
+      "registers": "Kassalar",
+      "plan": "Tarif",
+      "lang": "Til",
+      "notes": "Izoh (faqat sizga ko'rinadi)",
+      "notesSaved": "Izoh saqlandi",
+      "call": "Qo'ng'iroq",
+      "openStore": "Do'kon ochish",
+      "storeOpened": "Do'kon ochilgan",
+      "notNotified": "Telegram'ga yuborilmadi",
+      "notNotifiedHint": "Profil menyusidan Telegram'ni ulang va botga /start yozing",
+      "test": "Telegram sinov xabari",
+      "testHint": "Telegram'ni ulagan barcha super adminlarga namunaviy ariza yuboradi",
+      "testSent": "Sinov xabari Telegram'ga yuborildi",
+      "testNone": "Hech kimga yuborilmadi: profil menyusidan Telegram'ni ulang va botga /start yozing",
+      "testFailed": "Yuborib bo'lmadi: Cloud Functions deploy qilinganini va bot tokenini tekshiring"
     }
+  },
+  "scanner": {
+    "hint": "Shtrix-kodni ramka ichiga to'liq sig'diring, 10–20 sm masofada, yorug' joyda tuting. Doimiy ish uchun USB skaner tezroq.",
+    "camera": "Kamera"
   }
 }

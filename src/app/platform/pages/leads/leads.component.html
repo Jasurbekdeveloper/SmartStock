@@ -1,0 +1,107 @@
+<div class="space-y-5">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="page-title">{{ 'platform.leads.title' | translate }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.leads.subtitle' | translate }}</p>
+    </div>
+    <button mat-stroked-button [disabled]="testing()" (click)="sendTest()" [matTooltip]="'platform.leads.testHint' | translate">
+      <mat-icon>send</mat-icon>
+      {{ 'platform.leads.test' | translate }}
+    </button>
+  </div>
+
+  <!-- Status filter -->
+  <div class="flex flex-wrap gap-2">
+    <button type="button" class="px-3 py-1.5 rounded-full text-sm border"
+      [class]="filter() === 'all' ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900' : 'border-gray-300 dark:border-gray-600'"
+      (click)="filter.set('all')">
+      {{ 'platform.leads.all' | translate }} · {{ counts()['all'] }}
+    </button>
+    @for (s of statuses; track s) {
+    <button type="button" class="px-3 py-1.5 rounded-full text-sm border"
+      [class]="filter() === s ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900' : 'border-gray-300 dark:border-gray-600'"
+      (click)="filter.set(s)">
+      {{ 'platform.leads.status.' + s | translate }} · {{ counts()[s] || 0 }}
+    </button>
+    }
+  </div>
+
+  @if (leads() === undefined) {
+  <p class="p-8 text-center text-gray-500">{{ 'messages.loading' | translate }}</p>
+  } @else if (visible().length === 0) {
+  <mat-card class="!p-8 text-center">
+    <mat-icon class="!w-12 !h-12 !text-5xl text-gray-300">mark_email_unread</mat-icon>
+    <p class="mt-2 text-gray-500 dark:text-gray-400">{{ 'platform.leads.empty' | translate }}</p>
+  </mat-card>
+  } @else {
+  <div class="grid gap-4 lg:grid-cols-2">
+    @for (lead of visible(); track lead.id) {
+    <mat-card class="!p-5" [style.border-left]="lead.status === 'new' ? '4px solid #f97316' : null">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="text-lg font-bold truncate">{{ lead.name }}</h2>
+          <a [href]="tel(lead.phone)" class="text-orange-600 dark:text-orange-400 font-semibold tabular-nums">{{ lead.phone }}</a>
+          <p class="text-xs text-gray-500 mt-0.5">{{ lead.createdAt | date: 'dd.MM.yyyy HH:mm' }}</p>
+        </div>
+        <span class="shrink-0 text-xs px-2 py-1 rounded-full" [class]="badge[lead.status]">{{ 'platform.leads.status.' + lead.status | translate }}</span>
+      </div>
+
+      <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        @if (lead.storeName) {
+        <dt class="text-gray-500">{{ 'platform.leads.store' | translate }}</dt><dd>{{ lead.storeName }}</dd>
+        }
+        @if (lead.city) {
+        <dt class="text-gray-500">{{ 'platform.leads.city' | translate }}</dt><dd>{{ lead.city }}</dd>
+        }
+        @if (lead.storeType) {
+        <dt class="text-gray-500">{{ 'platform.leads.storeType' | translate }}</dt><dd>{{ lead.storeType }}</dd>
+        }
+        @if (lead.registers) {
+        <dt class="text-gray-500">{{ 'platform.leads.registers' | translate }}</dt><dd>{{ lead.registers }}</dd>
+        }
+        @if (lead.plan) {
+        <dt class="text-gray-500">{{ 'platform.leads.plan' | translate }}</dt><dd>{{ lead.plan }}</dd>
+        }
+        @if (lead.lang) {
+        <dt class="text-gray-500">{{ 'platform.leads.lang' | translate }}</dt><dd>{{ lead.lang.toUpperCase() }}</dd>
+        }
+      </dl>
+      @if (lead.message) {
+      <p class="mt-3 text-sm rounded-lg bg-gray-50 dark:bg-gray-800 p-3 whitespace-pre-line">{{ lead.message }}</p>
+      }
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] items-start">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'platform.leads.notes' | translate }}</mat-label>
+          <textarea matInput rows="2" [ngModel]="notes(lead)" (ngModelChange)="editNotes(lead, $event)"></textarea>
+          @if (notesChanged(lead)) {
+          <button mat-icon-button matSuffix type="button" (click)="saveNotes(lead)" [attr.aria-label]="'common.save' | translate"><mat-icon>save</mat-icon></button>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="sm:w-44">
+          <mat-label>{{ 'platform.leads.statusLabel' | translate }}</mat-label>
+          <mat-select [value]="lead.status" (selectionChange)="setStatus(lead, $event.value)">
+            @for (s of statuses; track s) {
+            <mat-option [value]="s">{{ 'platform.leads.status.' + s | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="mt-3 flex flex-wrap gap-2">
+        <a mat-flat-button color="primary" [href]="tel(lead.phone)"><mat-icon>call</mat-icon>{{ 'platform.leads.call' | translate }}</a>
+        <a mat-stroked-button [href]="telegram(lead.phone)" target="_blank" rel="noopener"><mat-icon>send</mat-icon>Telegram</a>
+        @if (lead.tenantId) {
+        <span class="text-xs text-emerald-600 self-center">{{ 'platform.leads.storeOpened' | translate }}</span>
+        } @else {
+        <button mat-button type="button" (click)="openStore(lead)"><mat-icon>add_business</mat-icon>{{ 'platform.leads.openStore' | translate }}</button>
+        }
+        @if (lead.notified === 0) {
+        <span class="text-xs text-amber-600 self-center" [matTooltip]="'platform.leads.notNotifiedHint' | translate">{{ 'platform.leads.notNotified' | translate }}</span>
+        }
+      </div>
+    </mat-card>
+    }
+  </div>
+  }
+</div>

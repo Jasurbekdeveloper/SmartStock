@@ -12,6 +12,7 @@ import { PlatformService } from '../../../core/services/platform.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { Plan } from '../../../core/models/saas';
+import { SITE_LANGS } from '../../../core/models/site-content';
 import { money } from '../../platform-ui';
 
 @Component({
@@ -47,11 +48,25 @@ export class PlansComponent {
     priceMonthly: [0, [Validators.required, Validators.min(0)]],
     maxUsers: [0, [Validators.required, Validators.min(0)]],
     maxProducts: [0, [Validators.required, Validators.min(0)]],
-    active: [true]
+    active: [true],
+    showOnSite: [false],
+    highlighted: [false],
+    siteFeatures: this.fb.nonNullable.group({ uz: [''], ru: [''], en: [''] })
   });
 
+  readonly siteLangs = SITE_LANGS;
+
   startNew() {
-    this.form.reset({ name: '', priceMonthly: 0, maxUsers: 3, maxProducts: 1000, active: true });
+    this.form.reset({
+      name: '',
+      priceMonthly: 0,
+      maxUsers: 3,
+      maxProducts: 1000,
+      active: true,
+      showOnSite: false,
+      highlighted: false,
+      siteFeatures: { uz: '', ru: '', en: '' }
+    });
     this.editingId.set('');
   }
 
@@ -61,7 +76,10 @@ export class PlansComponent {
       priceMonthly: plan.priceMonthly,
       maxUsers: plan.maxUsers,
       maxProducts: plan.maxProducts,
-      active: plan.active
+      active: plan.active,
+      showOnSite: plan.showOnSite ?? false,
+      highlighted: plan.highlighted ?? false,
+      siteFeatures: { uz: plan.siteFeatures?.uz ?? '', ru: plan.siteFeatures?.ru ?? '', en: plan.siteFeatures?.en ?? '' }
     });
     this.editingId.set(plan.id);
   }

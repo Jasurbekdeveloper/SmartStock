@@ -27,7 +27,7 @@
         <mat-icon>payments</mat-icon>{{ 'pos.cash' | translate }}
       </button>
       <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'card'" (click)="setTender('card')">
-        <mat-icon>credit_card</mat-icon>{{ 'pos.card' | translate }}
+        <mat-icon>contactless</mat-icon>{{ 'pos.card' | translate }}
       </button>
       <button type="button" class="pay__tender" [class.pay__tender--on]="tender() === 'mixed'" (click)="setTender('mixed')">
         <mat-icon>call_split</mat-icon>{{ 'pos.mixed' | translate }}
@@ -56,7 +56,7 @@
     @if (tender() === 'mixed') {
     <mat-form-field appearance="outline" class="w-full mt-3" subscriptSizing="dynamic">
       <mat-label>{{ 'pos.card' | translate }}</mat-label>
-      <mat-icon matPrefix class="mx-2">credit_card</mat-icon>
+      <mat-icon matPrefix class="mx-2">contactless</mat-icon>
       <input matInput type="number" min="0" step="any" [ngModel]="cardInput()" (ngModelChange)="setCard($event)" />
     </mat-form-field>
     }

@@ -145,7 +145,7 @@
     "clearCartConfirm": "Are you sure you want to clear the cart?",
     "proceedToPay": "PROCEED TO PAY",
     "cash": "Cash",
-    "card": "Card",
+    "card": "Online",
     "debit": "On credit",
     "amountDue": "Amount Due",
     "insufficientAmount": "Paid amount is not enough",
@@ -184,7 +184,7 @@
     "sum": "Amount",
     "cashReceived": "Cash received",
     "prepayment": "Prepayment (cash)",
-    "cardFullHint": "The full amount is paid by card",
+    "cardFullHint": "The full amount is paid online: card terminal, Click, Payme, Uzum or transfer",
     "debtWillBeCreated": "Goes on credit",
     "currentDebt": "Current debt",
     "completeSale": "Complete sale",
@@ -466,7 +466,7 @@
     "loginSubtitle": "Sign in with your staff account",
     "adminProvisionedOnly": "Only an administrator can create new accounts.",
     "backToSite": "Back to website",
-    "storeSuspended": "This store is suspended. Contact the Hisobla administrator.",
+    "storeSuspended": "This store is suspended. Contact the MarketHisob administrator.",
     "inactive": "Your account is disabled. Contact your store administrator."
   },
   "users": {
@@ -588,14 +588,14 @@
     "productLimit": "Product limit",
     "payments": "Payment history",
     "howToPayTitle": "How do I renew?",
-    "howToPayText": "Contact your Hisobla manager: we accept cash, card or bank transfer and extend the period right away.",
+    "howToPayText": "Contact your MarketHisob manager: we accept cash, card or bank transfer and extend the period right away.",
     "details": "Details",
     "daysShort": "days",
     "month": "month",
     "monthShort": "mo",
     "noExpiry": "No expiry",
-    "userLimitReached": "You've reached your plan's staff limit. Contact Hisobla to upgrade.",
-    "productLimitReached": "You've reached your plan's product limit. Contact Hisobla to upgrade.",
+    "userLimitReached": "You've reached your plan's staff limit. Contact MarketHisob to upgrade.",
+    "productLimitReached": "You've reached your plan's product limit. Contact MarketHisob to upgrade.",
     "readOnlyAction": "Subscription expired: view-only mode. Please renew.",
     "state": {
       "trial": "Trial",
@@ -609,7 +609,7 @@
       "expiresSoon": "Your subscription ends soon. Remaining:",
       "grace": "Your subscription has expired. The store still works, but without payment it becomes view-only in:",
       "readonly": "Subscription expired: sales and changes are locked; you can still view and export data.",
-      "suspended": "This store is suspended. Contact the Hisobla administrator."
+      "suspended": "This store is suspended. Contact the MarketHisob administrator."
     }
   },
   "onboarding": {
@@ -631,7 +631,9 @@
       "overview": "Overview",
       "tenants": "Stores",
       "plans": "Plans",
-      "audit": "Log"
+      "audit": "Log",
+      "leads": "Leads",
+      "site": "Website"
     },
     "overview": {
       "title": "Platform",
@@ -747,7 +749,13 @@
       "seed": "Create sample plans (Start, Biznes, Pro)",
       "hidden": "Hidden",
       "noPrice": "No price set",
-      "saved": "Plan saved"
+      "saved": "Plan saved",
+      "website": "On the marketing site",
+      "showOnSite": "Show on website",
+      "highlighted": "“Popular” badge",
+      "siteFeatures": "Extra benefits",
+      "siteFeaturesHint": "One benefit per line. Staff and product limits are added automatically. An empty language falls back to Uzbek.",
+      "onSite": "On site"
     },
     "audit": {
       "title": "Platform log",
@@ -765,8 +773,114 @@
         "tenant_user_active": "Staff status",
         "tenant_edit": "Store edited",
         "tenant_owner": "Owner changed",
-        "payment_void": "Payment cancelled"
+        "payment_void": "Payment cancelled",
+        "site_update": "Website updated"
       }
+    },
+    "site": {
+      "title": "Marketing website",
+      "subtitle": "Every text, list, contact and section of the site. Changes show on the site right after saving — no rebuild needed.",
+      "lastUpdated": "Last saved",
+      "editingLang": "Editing language",
+      "tabs": {
+        "general": "Contacts & sections",
+        "texts": "Texts",
+        "lists": "Lists"
+      },
+      "contact": "Contacts",
+      "phone": "Phone",
+      "telegramHint": "Username (without @) or channel name",
+      "sectionsTitle": "Sections",
+      "sectionsHint": "A disabled section is hidden on the page and in the menu.",
+      "sections": {
+        "features": "Features",
+        "how": "How it works",
+        "why": "Why us",
+        "who": "Who it’s for",
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "contact": "Contact"
+      },
+      "pricingHint": "The pricing section lists plans with “Show on website” turned on. Change prices in",
+      "groups": {
+        "meta": "Page title (Google)",
+        "nav": "Menu",
+        "hero": "Hero",
+        "mock": "Checkout picture",
+        "ps": "Problem / solution",
+        "features": "Features",
+        "how": "How it works",
+        "why": "Why us",
+        "who": "Who it’s for",
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "cta": "Contact & footer",
+        "demo": "Demo request dialog"
+      },
+      "textsHint": "An empty text shows the default. <em>word</em> highlights in color.",
+      "resetText": "Restore default text",
+      "lists": {
+        "strip": "Short benefits (under the hero)",
+        "bad": "“Today” problems",
+        "good": "“With MarketHisob” solutions",
+        "features": "Feature cards",
+        "steps": "Steps",
+        "why": "Benefits",
+        "who": "Store types",
+        "faq": "Questions & answers"
+      },
+      "icon": "Icon",
+      "itemTitle": "Title",
+      "itemText": "Text",
+      "question": "Question",
+      "answer": "Answer",
+      "missingLang": "Not written in this language — Uzbek is shown",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove",
+      "addItem": "Add",
+      "resetList": "Restore defaults",
+      "resetListConfirm": "Restore this list to its defaults? The site doesn’t change until you save.",
+      "unsaved": "You have unsaved changes",
+      "allSaved": "All changes saved",
+      "save": "Publish to website",
+      "saved": "Website updated"
+    },
+    "leads": {
+      "title": "Leads",
+      "subtitle": "Demo requests from the website. Each new one is sent to Telegram.",
+      "empty": "No leads yet",
+      "all": "All",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "demo": "Demo shown",
+        "won": "Became a customer",
+        "lost": "Declined"
+      },
+      "statusLabel": "Status",
+      "store": "Store",
+      "city": "City",
+      "storeType": "Type",
+      "registers": "Tills",
+      "plan": "Plan",
+      "lang": "Language",
+      "notes": "Note (only you see it)",
+      "notesSaved": "Note saved",
+      "call": "Call",
+      "openStore": "Open store",
+      "storeOpened": "Store opened",
+      "notNotified": "Not sent to Telegram",
+      "notNotifiedHint": "Link Telegram from the profile menu and send /start to the bot",
+      "test": "Telegram test message",
+      "testHint": "Sends a sample lead to every super admin who linked Telegram",
+      "testSent": "Test message sent to Telegram",
+      "testNone": "Sent to nobody: link Telegram from the profile menu and send /start to the bot",
+      "testFailed": "Couldn’t send: check that Cloud Functions are deployed and the bot token is set"
     }
+  },
+  "scanner": {
+    "hint": "Fit the whole barcode inside the frame, 10–20 cm away, in good light. For everyday use a USB scanner is faster.",
+    "camera": "Camera"
   }
 }

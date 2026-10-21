@@ -10,7 +10,7 @@
 
       <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
         <mat-label>{{ 'form.barcode' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.barcode" name="barcode" [placeholder]="'form.enterBarcode' | translate" />
+        <input matInput [(ngModel)]="product.barcode" name="barcode" (keydown.enter)="$event.preventDefault()" [placeholder]="'form.enterBarcode' | translate" />
         <button
           mat-icon-button
           matSuffix
@@ -134,7 +134,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'form.barcode' | translate }}</mat-label>
-          <input matInput [(ngModel)]="variant.barcode" [name]="'variantBarcode' + i" />
+          <input matInput [(ngModel)]="variant.barcode" [name]="'variantBarcode' + i" (keydown.enter)="$event.preventDefault()" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'products.color' | translate }}</mat-label>

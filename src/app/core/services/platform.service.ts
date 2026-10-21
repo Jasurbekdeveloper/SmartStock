@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, map } from 'rxjs';
 import {
   Firestore,
   Timestamp,
@@ -11,10 +11,12 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
   writeBatch
 } from 'firebase/firestore';
-import { FIRESTORE } from '../firebase/firebase.providers';
+import { Functions, httpsCallable } from 'firebase/functions';
+import { FIREBASE_FUNCTIONS, FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { createAuthAccount } from '../firebase/create-auth-account';
 import {
@@ -28,6 +30,7 @@ import {
   TenantStatus,
   extendPaidUntil
 } from '../models/saas';
+import { Lead, LeadStatus, SiteContent, mergeSiteContent, serializeSiteContent } from '../models/site-content';
 import { AppUser, AuthService, StoreRole } from './auth.service';
 import { DEFAULT_PRICES_INCLUDE_VAT, DEFAULT_VAT_RATE } from './settings.service';
 
@@ -72,6 +75,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export class PlatformService {
   private firestore: Firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private functions: Functions = inject(FIREBASE_FUNCTIONS);
 
   getTenants(): Observable<Tenant[]> {
     return fromCollectionQuery<Tenant>(query(collection(this.firestore, 'tenants'), orderBy('createdAt', 'desc')));
@@ -117,6 +121,52 @@ export class PlatformService {
       batch.set(doc(collection(this.firestore, 'plans')), { ...plan, createdAt: serverTimestamp() });
     }
     return from(batch.commit());
+  }
+
+  /** Website content as the editor sees it: defaults from website/content.json
+   *  overlaid with the published siteContent/main document. */
+  getSiteContent(): Observable<SiteContent> {
+    return fromDocRef<Partial<SiteContent>>(doc(this.firestore, 'siteContent', 'main')).pipe(
+      map((remote) => ({
+        ...mergeSiteContent(remote),
+        updatedAt: remote?.updatedAt,
+        updatedBy: remote?.updatedBy
+      }))
+    );
+  }
+
+  /** Publishes the whole content; the website picks it up on the next page load. */
+  saveSiteContent(content: SiteContent): Observable<void> {
+    const user = this.authService.getCurrentUser();
+    const batch = writeBatch(this.firestore);
+    batch.set(doc(this.firestore, 'siteContent', 'main'), {
+      ...serializeSiteContent(content),
+      updatedAt: serverTimestamp(),
+      updatedBy: user?.displayName || user?.email || ''
+    });
+    this.addAudit(batch, 'site_update', '', '', '');
+    return from(batch.commit());
+  }
+
+  getLeads(max = 300): Observable<Lead[]> {
+    return fromCollectionQuery<Lead>(query(collection(this.firestore, 'leads'), orderBy('createdAt', 'desc'), limit(max)));
+  }
+
+  updateLead(id: string, changes: { status?: LeadStatus; notes?: string; tenantId?: string }): Observable<void> {
+    const user = this.authService.getCurrentUser();
+    return from(
+      updateDoc(doc(this.firestore, 'leads', id), {
+        ...changes,
+        updatedAt: serverTimestamp(),
+        updatedBy: user?.displayName || user?.email || ''
+      })
+    );
+  }
+
+  /** Sends a sample lead to every super admin who linked Telegram; resolves to how many got it. */
+  async testLeadNotification(): Promise<number> {
+    const call = httpsCallable<void, { sent: number }>(this.functions, 'testLeadNotification');
+    return (await call()).data.sent;
   }
 
   /** Creates the owner's login, then the store, its owner profile and default settings

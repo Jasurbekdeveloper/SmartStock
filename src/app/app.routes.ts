@@ -71,6 +71,14 @@ export const routes: Routes = [
         loadComponent: () => import('./platform/pages/plans/plans.component').then((m) => m.PlansComponent)
       },
       {
+        path: 'leads',
+        loadComponent: () => import('./platform/pages/leads/leads.component').then((m) => m.LeadsComponent)
+      },
+      {
+        path: 'site',
+        loadComponent: () => import('./platform/pages/site/site-editor.component').then((m) => m.SiteEditorComponent)
+      },
+      {
         path: 'audit',
         loadComponent: () =>
           import('./platform/pages/audit/platform-audit.component').then((m) => m.PlatformAuditComponent)

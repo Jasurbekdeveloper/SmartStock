@@ -35,6 +35,23 @@
       <div class="flex items-center h-14">
         <mat-slide-toggle formControlName="active">{{ 'platform.plans.active' | translate }}</mat-slide-toggle>
       </div>
+
+      <div class="sm:col-span-2 xl:col-span-5 mt-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <p class="font-semibold flex items-center gap-2"><mat-icon class="text-gray-400">language</mat-icon>{{ 'platform.plans.website' | translate }}</p>
+        <div class="flex flex-wrap gap-6 my-3">
+          <mat-slide-toggle formControlName="showOnSite">{{ 'platform.plans.showOnSite' | translate }}</mat-slide-toggle>
+          <mat-slide-toggle formControlName="highlighted">{{ 'platform.plans.highlighted' | translate }}</mat-slide-toggle>
+        </div>
+        <div formGroupName="siteFeatures" class="grid gap-3 md:grid-cols-3">
+          @for (lang of siteLangs; track lang) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'platform.plans.siteFeatures' | translate }} ({{ lang.toUpperCase() }})</mat-label>
+            <textarea matInput rows="4" [formControlName]="lang"></textarea>
+          </mat-form-field>
+          }
+        </div>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ 'platform.plans.siteFeaturesHint' | translate }}</p>
+      </div>
       <div class="sm:col-span-2 xl:col-span-5 flex justify-end gap-2 mt-2">
         <button mat-button type="button" (click)="editingId.set(null)">{{ 'common.cancel' | translate }}</button>
         <button mat-flat-button color="primary" type="submit" [disabled]="saving()">{{ 'common.save' | translate }}</button>
@@ -61,6 +78,9 @@
           <h2 class="text-lg font-bold">{{ plan.name }}</h2>
           @if (!plan.active) {
           <span class="text-xs text-gray-500">{{ 'platform.plans.hidden' | translate }}</span>
+          }
+          @if (plan.showOnSite) {
+          <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">{{ 'platform.plans.onSite' | translate }}</span>
           }
         </div>
         <button mat-icon-button (click)="edit(plan)" [attr.aria-label]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>

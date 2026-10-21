@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +46,10 @@ export class TenantCreateComponent {
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
+  private route = inject(ActivatedRoute);
+
+  /** Set when opened from a website demo request (leads page). */
+  private leadId = this.route.snapshot.queryParamMap.get('lead');
 
   plans = toSignal(this.platform.getPlans(), { initialValue: [] });
   activePlans = computed(() => this.plans().filter((p) => p.active));
@@ -66,6 +70,14 @@ export class TenantCreateComponent {
   });
 
   constructor() {
+    // Prefill from a website demo request.
+    const params = this.route.snapshot.queryParamMap;
+    this.form.patchValue({
+      storeName: params.get('storeName') ?? '',
+      phone: params.get('phone') ?? '',
+      ownerName: params.get('ownerName') ?? ''
+    });
+
     // Preselect the cheapest active plan once plans load.
     effect(() => {
       const first = this.activePlans()[0];
@@ -103,6 +115,10 @@ export class TenantCreateComponent {
       .subscribe({
         next: (tenantId) => {
           this.submitting.set(false);
+          if (this.leadId) {
+            this.platform.updateLead(this.leadId, { status: 'won', tenantId }).subscribe({ error: (err) => console.error(err) });
+            this.leadId = null;
+          }
           this.created.set({ tenantId, storeName: value.storeName.trim(), email: value.ownerEmail.trim(), password: value.ownerPassword });
         },
         error: (err) => {

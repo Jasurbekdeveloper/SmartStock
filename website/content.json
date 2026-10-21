@@ -1,0 +1,907 @@
+{
+  "contact": {
+    "phone": "+998 94 686 44 22",
+    "telegram": "JasurbekDeveloper",
+    "email": ""
+  },
+  "sections": {
+    "features": true,
+    "how": true,
+    "why": true,
+    "who": true,
+    "pricing": true,
+    "faq": true,
+    "contact": true
+  },
+  "texts": {
+    "nav.features": {
+      "uz": "Imkoniyatlar",
+      "ru": "Возможности",
+      "en": "Features"
+    },
+    "nav.how": {
+      "uz": "Qanday ishlaydi",
+      "ru": "Как это работает",
+      "en": "How it works"
+    },
+    "nav.why": {
+      "uz": "Afzalliklar",
+      "ru": "Преимущества",
+      "en": "Why us"
+    },
+    "nav.faq": {
+      "uz": "Savollar",
+      "ru": "Вопросы",
+      "en": "FAQ"
+    },
+    "nav.contact": {
+      "uz": "Aloqa",
+      "ru": "Контакты",
+      "en": "Contact"
+    },
+    "nav.cta": {
+      "uz": "Demo so'rash",
+      "ru": "Запросить демо",
+      "en": "Request a demo"
+    },
+    "hero.eyebrow": {
+      "uz": "Do'konlar uchun savdo va ombor tizimi",
+      "ru": "Система продаж и склада для магазинов",
+      "en": "Point of sale and inventory for retail stores"
+    },
+    "hero.title": {
+      "uz": "Savdo, ombor va qarzlar — <em>bitta</em> tizimda",
+      "ru": "Продажи, склад и долги — в <em>одной</em> системе",
+      "en": "Sales, stock and debts — in <em>one</em> system"
+    },
+    "hero.lead": {
+      "uz": "MarketHisob daftar va Excel o'rnini bosadi: kassada tez sotasiz, qoldiq o'zi kamayadi, kim qancha qarzdorligi va bugun qancha foyda qilganingiz doim ko'z oldingizda.",
+      "ru": "MarketHisob заменяет тетрадь и Excel: быстро продаёте на кассе, остаток списывается сам, а кто сколько должен и сколько вы заработали сегодня — всегда перед глазами.",
+      "en": "MarketHisob replaces the notebook and the spreadsheet: sell fast at the till, stock updates itself, and who owes you what and today’s profit are always in front of you."
+    },
+    "hero.cta1": {
+      "uz": "Bepul demo olish",
+      "ru": "Получить бесплатное демо",
+      "en": "Get a free demo"
+    },
+    "hero.cta2": {
+      "uz": "Imkoniyatlarni ko'rish",
+      "ru": "Смотреть возможности",
+      "en": "See the features"
+    },
+    "hero.tick1": {
+      "uz": "Internet uzilsa ham ishlaydi",
+      "ru": "Работает даже без интернета",
+      "en": "Keeps working offline"
+    },
+    "hero.tick2": {
+      "uz": "Kompyuter, planshet va telefonda",
+      "ru": "На компьютере, планшете и телефоне",
+      "en": "On desktop, tablet and phone"
+    },
+    "hero.tick3": {
+      "uz": "O'zbek, rus va ingliz tillarida",
+      "ru": "На узбекском, русском и английском",
+      "en": "In Uzbek, Russian and English"
+    },
+    "mock.title": {
+      "uz": "Kassa — 1-smena",
+      "ru": "Касса — смена 1",
+      "en": "Checkout — shift 1"
+    },
+    "mock.search": {
+      "uz": "Shtrix-kod yoki nom bo'yicha qidirish…",
+      "ru": "Поиск по штрих-коду или названию…",
+      "en": "Search by barcode or name…"
+    },
+    "mock.subtotal": {
+      "uz": "Jami",
+      "ru": "Итого",
+      "en": "Subtotal"
+    },
+    "mock.discount": {
+      "uz": "Chegirma",
+      "ru": "Скидка",
+      "en": "Discount"
+    },
+    "mock.vat": {
+      "uz": "shu jumladan QQS 12%",
+      "ru": "в т.ч. НДС 12%",
+      "en": "incl. VAT 12%"
+    },
+    "mock.toPay": {
+      "uz": "To'lov",
+      "ru": "К оплате",
+      "en": "To pay"
+    },
+    "mock.cash": {
+      "uz": "Naqd",
+      "ru": "Наличные",
+      "en": "Cash"
+    },
+    "mock.card": {
+      "uz": "Online",
+      "ru": "Онлайн",
+      "en": "Online"
+    },
+    "mock.debt": {
+      "uz": "Qarz",
+      "ru": "В долг",
+      "en": "On credit"
+    },
+    "mock.pay": {
+      "uz": "To'lash · F4",
+      "ru": "Оплатить · F4",
+      "en": "Pay · F4"
+    },
+    "mock.toast": {
+      "uz": "Chek №A-1042 saqlandi, qoldiq yangilandi",
+      "ru": "Чек №A-1042 сохранён, остаток обновлён",
+      "en": "Receipt #A-1042 saved, stock updated"
+    },
+    "ps.eyebrow": {
+      "uz": "Tanish holatmi?",
+      "ru": "Знакомая ситуация?",
+      "en": "Sound familiar?"
+    },
+    "ps.title": {
+      "uz": "Daftar bilan hisob — yo'qolgan pul",
+      "ru": "Учёт в тетради — потерянные деньги",
+      "en": "Paper bookkeeping is money lost"
+    },
+    "ps.badTitle": {
+      "uz": "Hozir",
+      "ru": "Сейчас",
+      "en": "Today"
+    },
+    "ps.goodTitle": {
+      "uz": "MarketHisob bilan",
+      "ru": "С MarketHisob",
+      "en": "With MarketHisob"
+    },
+    "f.eyebrow": {
+      "uz": "Imkoniyatlar",
+      "ru": "Возможности",
+      "en": "Features"
+    },
+    "f.title": {
+      "uz": "Do'kon uchun kerak bo'lgan hamma narsa",
+      "ru": "Всё, что нужно магазину",
+      "en": "Everything a store needs"
+    },
+    "f.lead": {
+      "uz": "Alohida dasturlar, jadval va daftarlar kerak emas — barcha bo'limlar bir-biri bilan bog'langan.",
+      "ru": "Не нужны отдельные программы, таблицы и тетради — все разделы связаны между собой.",
+      "en": "No separate apps, spreadsheets or notebooks — every module is connected."
+    },
+    "how.eyebrow": {
+      "uz": "Qanday ishlaydi",
+      "ru": "Как это работает",
+      "en": "How it works"
+    },
+    "how.title": {
+      "uz": "Bir kunda ishga tushadi",
+      "ru": "Запуск за один день",
+      "en": "Up and running in a day"
+    },
+    "why.eyebrow": {
+      "uz": "Nega MarketHisob",
+      "ru": "Почему MarketHisob",
+      "en": "Why MarketHisob"
+    },
+    "why.title": {
+      "uz": "O'zbekistondagi do'konlar uchun yaratilgan",
+      "ru": "Создано для магазинов Узбекистана",
+      "en": "Built for stores in Uzbekistan"
+    },
+    "why.lead": {
+      "uz": "Xorijiy dasturlarni moslashtirish shart emas — MarketHisob mahalliy savdoning odatlarini hisobga oladi.",
+      "ru": "Не нужно адаптировать зарубежные программы — MarketHisob учитывает особенности местной торговли.",
+      "en": "No need to bend foreign software to fit — MarketHisob follows how local retail actually works."
+    },
+    "who.eyebrow": {
+      "uz": "Kimlar uchun",
+      "ru": "Для кого",
+      "en": "Who it’s for"
+    },
+    "who.title": {
+      "uz": "Tovar sotadigan har qanday do'kon",
+      "ru": "Для любого магазина, который продаёт товар",
+      "en": "Any store that sells goods"
+    },
+    "faq.eyebrow": {
+      "uz": "Savollar",
+      "ru": "Вопросы",
+      "en": "FAQ"
+    },
+    "faq.title": {
+      "uz": "Ko'p beriladigan savollar",
+      "ru": "Частые вопросы",
+      "en": "Frequently asked questions"
+    },
+    "cta.title": {
+      "uz": "Do'koningizda sinab ko'ring",
+      "ru": "Попробуйте в своём магазине",
+      "en": "Try it in your store"
+    },
+    "cta.lead": {
+      "uz": "Ariza qoldiring, qo'ng'iroq qiling yoki Telegram'da yozing — 15 daqiqada tizimni ko'rsatamiz va savollaringizga javob beramiz.",
+      "ru": "Оставьте заявку, позвоните или напишите в Telegram — за 15 минут покажем систему и ответим на вопросы.",
+      "en": "Leave a request, call us or message on Telegram — we’ll walk you through the system in 15 minutes and answer your questions."
+    },
+    "footer.tag": {
+      "uz": "Do'kon uchun savdo, ombor va qarz hisobi.",
+      "ru": "Учёт продаж, склада и долгов для магазина.",
+      "en": "Sales, inventory and debt tracking for stores."
+    },
+    "meta.title": {
+      "uz": "MarketHisob — do'kon uchun savdo va ombor tizimi",
+      "ru": "MarketHisob — система продаж и склада для магазина",
+      "en": "MarketHisob — point of sale and inventory for stores"
+    },
+    "meta.desc": {
+      "uz": "MarketHisob — do'konlar uchun kassa, ombor, qarz daftari va statistika bitta tizimda. Offline ishlaydi, bulutda saqlanadi, o'zbek, rus va ingliz tillarida.",
+      "ru": "MarketHisob — касса, склад, книга долгов и статистика в одной системе. Работает офлайн, хранит данные в облаке.",
+      "en": "MarketHisob — checkout, inventory, debt book and analytics in one system. Works offline, backed up in the cloud."
+    },
+    "nav.pricing": {
+      "uz": "Narxlar",
+      "ru": "Цены",
+      "en": "Pricing"
+    },
+    "cta.demo": {
+      "uz": "Demo so'rash",
+      "ru": "Запросить демо",
+      "en": "Request a demo"
+    },
+    "pricing.eyebrow": {
+      "uz": "Narxlar",
+      "ru": "Цены",
+      "en": "Pricing"
+    },
+    "pricing.title": {
+      "uz": "Do'koningizga mos tarif",
+      "ru": "Тариф под ваш магазин",
+      "en": "A plan that fits your store"
+    },
+    "pricing.lead": {
+      "uz": "Barcha tariflarda kassa, ombor, qarzlar va hisobotlar bor. Farqi — xodimlar va tovarlar soni.",
+      "ru": "Во всех тарифах есть касса, склад, долги и отчёты. Отличаются они количеством сотрудников и товаров.",
+      "en": "Every plan includes checkout, inventory, debts and reports. They differ by number of staff and products."
+    },
+    "pricing.perMonth": {
+      "uz": "so'm / oy",
+      "ru": "сум / мес",
+      "en": "som / month"
+    },
+    "pricing.onRequest": {
+      "uz": "Kelishiladi",
+      "ru": "По договорённости",
+      "en": "On request"
+    },
+    "pricing.users": {
+      "uz": "{n} ta xodim",
+      "ru": "{n} сотрудников",
+      "en": "{n} staff accounts"
+    },
+    "pricing.usersUnlimited": {
+      "uz": "Cheksiz xodimlar",
+      "ru": "Без ограничения сотрудников",
+      "en": "Unlimited staff"
+    },
+    "pricing.products": {
+      "uz": "{n} tagacha tovar",
+      "ru": "До {n} товаров",
+      "en": "Up to {n} products"
+    },
+    "pricing.productsUnlimited": {
+      "uz": "Cheksiz tovarlar",
+      "ru": "Без ограничения товаров",
+      "en": "Unlimited products"
+    },
+    "pricing.popular": {
+      "uz": "Ommabop",
+      "ru": "Популярный",
+      "en": "Popular"
+    },
+    "pricing.cta": {
+      "uz": "Demo so'rash",
+      "ru": "Запросить демо",
+      "en": "Request a demo"
+    },
+    "demo.title": {
+      "uz": "Bepul demo so'rash",
+      "ru": "Запросить бесплатное демо",
+      "en": "Request a free demo"
+    },
+    "demo.lead": {
+      "uz": "Ma'lumotlaringizni qoldiring — tez orada qo'ng'iroq qilib, tizimni ko'rsatamiz.",
+      "ru": "Оставьте контакты — мы скоро позвоним и покажем систему.",
+      "en": "Leave your details — we’ll call you shortly and show you the system."
+    },
+    "demo.name": {
+      "uz": "Ismingiz",
+      "ru": "Ваше имя",
+      "en": "Your name"
+    },
+    "demo.phone": {
+      "uz": "Telefon raqam",
+      "ru": "Телефон",
+      "en": "Phone number"
+    },
+    "demo.store": {
+      "uz": "Do'kon nomi",
+      "ru": "Название магазина",
+      "en": "Store name"
+    },
+    "demo.city": {
+      "uz": "Shahar / tuman",
+      "ru": "Город / район",
+      "en": "City / district"
+    },
+    "demo.type": {
+      "uz": "Do'kon turi",
+      "ru": "Тип магазина",
+      "en": "Store type"
+    },
+    "demo.typeOther": {
+      "uz": "Boshqa",
+      "ru": "Другое",
+      "en": "Other"
+    },
+    "demo.registers": {
+      "uz": "Kassalar soni",
+      "ru": "Количество касс",
+      "en": "Number of tills"
+    },
+    "demo.message": {
+      "uz": "Izoh (ixtiyoriy)",
+      "ru": "Комментарий (необязательно)",
+      "en": "Comment (optional)"
+    },
+    "demo.plan": {
+      "uz": "Tanlangan tarif",
+      "ru": "Выбранный тариф",
+      "en": "Selected plan"
+    },
+    "demo.submit": {
+      "uz": "Yuborish",
+      "ru": "Отправить",
+      "en": "Send"
+    },
+    "demo.sending": {
+      "uz": "Yuborilmoqda…",
+      "ru": "Отправка…",
+      "en": "Sending…"
+    },
+    "demo.successTitle": {
+      "uz": "Rahmat! Arizangiz qabul qilindi",
+      "ru": "Спасибо! Заявка принята",
+      "en": "Thank you! Request received"
+    },
+    "demo.successText": {
+      "uz": "Tez orada siz bilan bog'lanamiz. Shoshilinch bo'lsa — Telegram'da yozing.",
+      "ru": "Мы скоро с вами свяжемся. Если срочно — напишите в Telegram.",
+      "en": "We’ll be in touch soon. If it’s urgent, message us on Telegram."
+    },
+    "demo.error": {
+      "uz": "Yuborib bo'lmadi. Internetni tekshiring yoki Telegram orqali yozing.",
+      "ru": "Не удалось отправить. Проверьте интернет или напишите в Telegram.",
+      "en": "Couldn’t send. Check your connection or message us on Telegram."
+    },
+    "demo.invalid": {
+      "uz": "Ism va telefon raqamini to'g'ri kiriting.",
+      "ru": "Укажите имя и корректный номер телефона.",
+      "en": "Please enter your name and a valid phone number."
+    },
+    "demo.privacy": {
+      "uz": "Ma'lumotlaringiz faqat siz bilan bog'lanish uchun ishlatiladi.",
+      "ru": "Данные используются только для связи с вами.",
+      "en": "Your details are used only to contact you."
+    },
+    "demo.close": {
+      "uz": "Yopish",
+      "ru": "Закрыть",
+      "en": "Close"
+    }
+  },
+  "lists": {
+    "strip": [
+      {
+        "title": {
+          "uz": "Offline",
+          "ru": "Офлайн",
+          "en": "Offline"
+        },
+        "text": {
+          "uz": "internet bo'lmasa ham sotuv davom etadi",
+          "ru": "продажи продолжаются без интернета",
+          "en": "sales continue without internet"
+        }
+      },
+      {
+        "title": {
+          "uz": "Bulutda",
+          "ru": "В облаке",
+          "en": "Cloud"
+        },
+        "text": {
+          "uz": "ma'lumotlar Google Firebase'da xavfsiz saqlanadi",
+          "ru": "данные надёжно хранятся в Google Firebase",
+          "en": "data is stored safely in Google Firebase"
+        }
+      },
+      {
+        "title": {
+          "uz": "3 rol",
+          "ru": "3 роли",
+          "en": "3 roles"
+        },
+        "text": {
+          "uz": "admin, menejer va kassir — har kimga o'z huquqi",
+          "ru": "админ, менеджер и кассир — у каждого свои права",
+          "en": "admin, manager and cashier — each with their own rights"
+        }
+      },
+      {
+        "title": {
+          "uz": "0 o'rnatish",
+          "ru": "0 установки",
+          "en": "Zero install"
+        },
+        "text": {
+          "uz": "brauzerda ochiladi, ilova kabi o'rnatsa ham bo'ladi",
+          "ru": "открывается в браузере, можно установить как приложение",
+          "en": "runs in the browser, installable as an app"
+        }
+      }
+    ],
+    "bad": [
+      {
+        "title": {
+          "uz": "Omborda nima qolgani faqat sanalganda ma'lum bo'ladi",
+          "ru": "Что осталось на складе, известно только после пересчёта",
+          "en": "You only know what’s in stock after a full count"
+        }
+      },
+      {
+        "title": {
+          "uz": "Qarzlar daftarda, kim qancha to'lagani chalkash",
+          "ru": "Долги в тетради, кто сколько вернул — непонятно",
+          "en": "Debts live in a notebook — who paid what is a mess"
+        }
+      },
+      {
+        "title": {
+          "uz": "Kun oxirida kassa bilan savdo mos kelmaydi",
+          "ru": "В конце дня касса не сходится с продажами",
+          "en": "At closing, the cash drawer doesn’t match sales"
+        }
+      },
+      {
+        "title": {
+          "uz": "Qaysi tovar foyda keltirayotganini bilmaysiz",
+          "ru": "Неизвестно, какой товар приносит прибыль",
+          "en": "You don’t know which products actually make money"
+        }
+      }
+    ],
+    "good": [
+      {
+        "title": {
+          "uz": "Har bir sotuvdan keyin qoldiq avtomatik yangilanadi",
+          "ru": "После каждой продажи остаток обновляется автоматически",
+          "en": "Stock updates automatically after every sale"
+        }
+      },
+      {
+        "title": {
+          "uz": "Har bir mijozning qarzi va to'lov tarixi bir joyda",
+          "ru": "Долг и история оплат каждого клиента в одном месте",
+          "en": "Every customer’s debt and payment history in one place"
+        }
+      },
+      {
+        "title": {
+          "uz": "Smena yopilganda Z-hisobot: naqd, karta, qaytarishlar",
+          "ru": "При закрытии смены Z-отчёт: наличные, карта, возвраты",
+          "en": "Z-report at shift close: cash, card and refunds"
+        }
+      },
+      {
+        "title": {
+          "uz": "Kunlik, oylik foyda va eng ko'p sotilgan tovarlar",
+          "ru": "Дневная и месячная прибыль, самые продаваемые товары",
+          "en": "Daily and monthly profit, best-selling products"
+        }
+      }
+    ],
+    "features": [
+      {
+        "icon": "pos",
+        "title": {
+          "uz": "Tezkor kassa",
+          "ru": "Быстрая касса",
+          "en": "Fast checkout"
+        },
+        "text": {
+          "uz": "Shtrix-kod skaneri, klaviatura tugmalari (F4 — to'lov), chegirma, naqd, online va aralash to'lov, chek chop etish.",
+          "ru": "Сканер штрих-кодов, горячие клавиши (F4 — оплата), скидки, оплата наличными, онлайн или смешанная, печать чека.",
+          "en": "Barcode scanner, keyboard shortcuts (F4 to pay), discounts, cash, online or split payments and receipt printing."
+        }
+      },
+      {
+        "icon": "stock",
+        "title": {
+          "uz": "Ombor nazorati",
+          "ru": "Складской учёт",
+          "en": "Inventory control"
+        },
+        "text": {
+          "uz": "Kirim, chiqim, inventarizatsiya va harakatlar tarixi. Tannarx o'rtacha narx (AVCO) bo'yicha avtomatik hisoblanadi.",
+          "ru": "Приход, расход, инвентаризация и история движений. Себестоимость считается автоматически по средней цене (AVCO).",
+          "en": "Stock in, stock out, adjustments and movement history. Cost is calculated automatically using weighted average (AVCO)."
+        }
+      },
+      {
+        "icon": "debt",
+        "title": {
+          "uz": "Qarz daftari",
+          "ru": "Книга долгов",
+          "en": "Debt book"
+        },
+        "text": {
+          "uz": "Nasiyaga sotuv, qisman to'lovlar, har bir mijoz bo'yicha qoldiq va muddati o'tgan qarzlar ro'yxati.",
+          "ru": "Продажа в долг, частичные оплаты, остаток по каждому клиенту и список просроченных долгов.",
+          "en": "Sell on credit, accept partial payments, see balances per customer and overdue debts."
+        }
+      },
+      {
+        "icon": "stats",
+        "title": {
+          "uz": "Statistika va foyda",
+          "ru": "Статистика и прибыль",
+          "en": "Analytics and profit"
+        },
+        "text": {
+          "uz": "Tushum, sof foyda, eng ko'p sotilgan tovarlar va kam qolgan qoldiqlar — kun, hafta, oy kesimida. Excel'ga eksport.",
+          "ru": "Выручка, чистая прибыль, топ товаров и заканчивающиеся остатки — по дням, неделям, месяцам. Экспорт в Excel.",
+          "en": "Revenue, net profit, top products and low-stock alerts by day, week and month. Export to Excel."
+        }
+      },
+      {
+        "icon": "shift",
+        "title": {
+          "uz": "Smenalar va Z-hisobot",
+          "ru": "Смены и Z-отчёт",
+          "en": "Shifts and Z-report"
+        },
+        "text": {
+          "uz": "Kassir smenani ochadi va yopadi; tizim kassadagi naqd pulni kutilgan summa bilan solishtiradi.",
+          "ru": "Кассир открывает и закрывает смену; система сверяет наличные в кассе с ожидаемой суммой.",
+          "en": "Cashiers open and close shifts; the system reconciles cash in the drawer against the expected amount."
+        }
+      },
+      {
+        "icon": "ret",
+        "title": {
+          "uz": "Qaytarishlar",
+          "ru": "Возвраты",
+          "en": "Returns"
+        },
+        "text": {
+          "uz": "Tovar qaytarilganda pul qaytariladi, qoldiq tiklanadi va hisobotlar avtomatik to'g'rilanadi.",
+          "ru": "При возврате товара деньги возвращаются, остаток восстанавливается, а отчёты корректируются автоматически.",
+          "en": "On a return the money is refunded, stock is restored and reports adjust automatically."
+        }
+      },
+      {
+        "icon": "crm",
+        "title": {
+          "uz": "Mijozlar va yetkazib beruvchilar",
+          "ru": "Клиенты и поставщики",
+          "en": "Customers and suppliers"
+        },
+        "text": {
+          "uz": "Har bir mijozning xaridlari, yetkazib beruvchilardan olingan tovarlar va ular oldidagi qarzlar.",
+          "ru": "Покупки каждого клиента, товары от поставщиков и долги перед ними.",
+          "en": "Each customer’s purchases, goods received from suppliers and what you owe them."
+        }
+      },
+      {
+        "icon": "users",
+        "title": {
+          "uz": "Xodimlar va nazorat",
+          "ru": "Сотрудники и контроль",
+          "en": "Staff and control"
+        },
+        "text": {
+          "uz": "Kassir tannarx va foydani ko'rmaydi. Har bir o'zgarish audit jurnaliga yoziladi: kim, qachon, nima qildi.",
+          "ru": "Кассир не видит себестоимость и прибыль. Каждое изменение пишется в журнал аудита: кто, когда, что сделал.",
+          "en": "Cashiers can’t see cost or profit. Every change is written to an audit log: who did what, and when."
+        }
+      },
+      {
+        "icon": "import",
+        "title": {
+          "uz": "Tovarlarni tez kiritish",
+          "ru": "Быстрое добавление товаров",
+          "en": "Quick product setup"
+        },
+        "text": {
+          "uz": "Excel'dan import, bir nechta o'lchov birligi (dona, metr, kg, qop), kategoriyalar va shtrix-kod yorliqlari chop etish.",
+          "ru": "Импорт из Excel, несколько единиц измерения (шт, метр, кг, мешок), категории и печать этикеток со штрих-кодом.",
+          "en": "Excel import, multiple units (piece, metre, kg, bag), categories and barcode label printing."
+        }
+      }
+    ],
+    "steps": [
+      {
+        "title": {
+          "uz": "Ulanamiz",
+          "ru": "Подключаем",
+          "en": "We connect you"
+        },
+        "text": {
+          "uz": "Do'koningiz uchun alohida tizim ochamiz va admin akkauntini beramiz.",
+          "ru": "Создаём отдельную систему для вашего магазина и выдаём аккаунт администратора.",
+          "en": "We set up a dedicated system for your store and hand you the admin account."
+        }
+      },
+      {
+        "title": {
+          "uz": "Tovarlarni kiritasiz",
+          "ru": "Добавляете товары",
+          "en": "Add your products"
+        },
+        "text": {
+          "uz": "Mavjud Excel ro'yxatini yuklaysiz yoki tovarlarni skaner bilan qo'shasiz.",
+          "ru": "Загружаете готовый список из Excel или добавляете товары сканером.",
+          "en": "Upload your existing Excel list or add products with a scanner."
+        }
+      },
+      {
+        "title": {
+          "uz": "Xodimlarni qo'shasiz",
+          "ru": "Добавляете сотрудников",
+          "en": "Add your staff"
+        },
+        "text": {
+          "uz": "Kassir va menejerlarga login berasiz — har kim faqat o'z bo'limini ko'radi.",
+          "ru": "Выдаёте логины кассирам и менеджерам — каждый видит только свой раздел.",
+          "en": "Give cashiers and managers their logins — each sees only their own area."
+        }
+      },
+      {
+        "title": {
+          "uz": "Sotishni boshlaysiz",
+          "ru": "Начинаете продавать",
+          "en": "Start selling"
+        },
+        "text": {
+          "uz": "Kassa ishlaydi, hisobotlar o'zi to'planadi. Biz o'rgatamiz va yordam beramiz.",
+          "ru": "Касса работает, отчёты собираются сами. Мы обучим и поможем.",
+          "en": "The till runs and reports build themselves. We train you and stay on hand."
+        }
+      }
+    ],
+    "why": [
+      {
+        "title": {
+          "uz": "So'm va QQS",
+          "ru": "Сум и НДС",
+          "en": "Som and VAT"
+        },
+        "text": {
+          "uz": "Narxlar QQS bilan yoki QQSsiz — chekda soliq to'g'ri ajratiladi.",
+          "ru": "Цены с НДС или без — налог правильно выделяется в чеке.",
+          "en": "Prices with or without VAT — tax is separated correctly on the receipt."
+        }
+      },
+      {
+        "title": {
+          "uz": "Nasiya savdo",
+          "ru": "Продажа в долг",
+          "en": "Selling on credit"
+        },
+        "text": {
+          "uz": "Qarzga sotish — kassaning oddiy to'lov turi, alohida daftar kerak emas.",
+          "ru": "Долг — обычный способ оплаты на кассе, отдельная тетрадь не нужна.",
+          "en": "Credit is just another payment method at the till — no separate notebook."
+        }
+      },
+      {
+        "title": {
+          "uz": "Internetga bog'liq emas",
+          "ru": "Не зависит от интернета",
+          "en": "Internet-independent"
+        },
+        "text": {
+          "uz": "Aloqa uzilsa sotuv to'xtamaydi; internet qaytganda ma'lumotlar o'zi sinxronlanadi.",
+          "ru": "Связь пропала — продажи не останавливаются; данные синхронизируются, когда интернет вернётся.",
+          "en": "If the connection drops, sales go on; data syncs once you’re back online."
+        }
+      },
+      {
+        "title": {
+          "uz": "To'rt til",
+          "ru": "Четыре языка",
+          "en": "Four languages"
+        },
+        "text": {
+          "uz": "O'zbek (lotin va kirill), rus va ingliz — har bir xodim o'z tilida ishlaydi.",
+          "ru": "Узбекский (латиница и кириллица), русский и английский — каждый работает на своём языке.",
+          "en": "Uzbek (Latin and Cyrillic), Russian and English — everyone works in their own language."
+        }
+      },
+      {
+        "title": {
+          "uz": "Har qanday qurilma",
+          "ru": "Любое устройство",
+          "en": "Any device"
+        },
+        "text": {
+          "uz": "Kompyuter, planshet yoki telefon — qimmat kassa apparati shart emas.",
+          "ru": "Компьютер, планшет или телефон — дорогой кассовый аппарат не обязателен.",
+          "en": "Desktop, tablet or phone — no expensive cash register required."
+        }
+      },
+      {
+        "title": {
+          "uz": "Ma'lumotlar xavfsiz",
+          "ru": "Данные в безопасности",
+          "en": "Your data is safe"
+        },
+        "text": {
+          "uz": "Bulutda zaxira, rollar bo'yicha huquqlar va o'zgarishlar jurnali.",
+          "ru": "Резервная копия в облаке, права по ролям и журнал изменений.",
+          "en": "Cloud backup, role-based permissions and a change log."
+        }
+      }
+    ],
+    "who": [
+      {
+        "title": {
+          "uz": "Qurilish mollari",
+          "ru": "Стройматериалы",
+          "en": "Building materials"
+        }
+      },
+      {
+        "title": {
+          "uz": "Xo'jalik mollari",
+          "ru": "Хозтовары",
+          "en": "Household goods"
+        }
+      },
+      {
+        "title": {
+          "uz": "Oziq-ovqat va minimarket",
+          "ru": "Продукты и минимаркеты",
+          "en": "Grocery and minimarkets"
+        }
+      },
+      {
+        "title": {
+          "uz": "Avto ehtiyot qismlar",
+          "ru": "Автозапчасти",
+          "en": "Auto parts"
+        }
+      },
+      {
+        "title": {
+          "uz": "Elektr va santexnika",
+          "ru": "Электрика и сантехника",
+          "en": "Electrical and plumbing"
+        }
+      },
+      {
+        "title": {
+          "uz": "Kiyim va poyabzal",
+          "ru": "Одежда и обувь",
+          "en": "Clothing and footwear"
+        }
+      },
+      {
+        "title": {
+          "uz": "Ulgurji savdo",
+          "ru": "Оптовая торговля",
+          "en": "Wholesale"
+        }
+      },
+      {
+        "title": {
+          "uz": "Dorixona va kosmetika",
+          "ru": "Аптеки и косметика",
+          "en": "Pharmacy and cosmetics"
+        }
+      }
+    ],
+    "faq": [
+      {
+        "title": {
+          "uz": "Kompyuterga biror narsa o'rnatish kerakmi?",
+          "ru": "Нужно ли что-то устанавливать на компьютер?",
+          "en": "Do I need to install anything?"
+        },
+        "text": {
+          "uz": "Yo'q. MarketHisob brauzerda ochiladi. Xohlasangiz uni bir bosishda ilova sifatida o'rnatib, ish stolidan ochishingiz mumkin.",
+          "ru": "Нет. MarketHisob открывается в браузере. При желании её можно установить как приложение в один клик и запускать с рабочего стола.",
+          "en": "No. MarketHisob runs in the browser. If you like, you can install it as an app in one click and launch it from the desktop."
+        }
+      },
+      {
+        "title": {
+          "uz": "Internet o'chib qolsa nima bo'ladi?",
+          "ru": "Что будет, если пропадёт интернет?",
+          "en": "What happens if the internet goes down?"
+        },
+        "text": {
+          "uz": "Kassa ishlashda davom etadi. Sotuvlar qurilmada saqlanadi va internet qaytishi bilan avtomatik bulutga yuboriladi.",
+          "ru": "Касса продолжит работать. Продажи сохраняются на устройстве и автоматически отправляются в облако, когда интернет вернётся.",
+          "en": "The till keeps working. Sales are stored on the device and sent to the cloud automatically when the connection returns."
+        }
+      },
+      {
+        "title": {
+          "uz": "Qanday uskunalar kerak?",
+          "ru": "Какое оборудование нужно?",
+          "en": "What hardware do I need?"
+        },
+        "text": {
+          "uz": "Istalgan kompyuter yoki planshet. Shtrix-kod uchun oddiy USB skaner tavsiya etiladi — u klaviatura kabi ishlaydi. Telefon yoki kompyuter kamerasi ham skaner bo'la oladi. Chek printeri ixtiyoriy (58/80 mm termoprinter).",
+          "ru": "Любой компьютер или планшет. Для штрих-кодов рекомендуем обычный USB-сканер — он работает как клавиатура. Камера телефона или компьютера тоже может служить сканером. Принтер чеков — по желанию (термопринтер 58/80 мм).",
+          "en": "Any computer or tablet. For barcodes we recommend a standard USB scanner — it works like a keyboard. A phone or computer camera can scan too. A receipt printer is optional (58/80 mm thermal)."
+        }
+      },
+      {
+        "title": {
+          "uz": "Mavjud tovarlar ro'yxatini ko'chirsa bo'ladimi?",
+          "ru": "Можно перенести существующий список товаров?",
+          "en": "Can I bring my existing product list?"
+        },
+        "text": {
+          "uz": "Ha. Excel faylni yuklaysiz — nomi, narxi, qoldig'i va shtrix-kodi bilan tovarlar avtomatik yaratiladi.",
+          "ru": "Да. Загружаете файл Excel — товары создаются автоматически с названием, ценой, остатком и штрих-кодом.",
+          "en": "Yes. Upload an Excel file and products are created with name, price, stock and barcode."
+        }
+      },
+      {
+        "title": {
+          "uz": "Ma'lumotlarim kimga ko'rinadi?",
+          "ru": "Кто видит мои данные?",
+          "en": "Who can see my data?"
+        },
+        "text": {
+          "uz": "Faqat siz va siz qo'shgan xodimlarga. Har bir do'konning ma'lumotlari alohida saqlanadi, kassir esa tannarx va foydani ko'rmaydi.",
+          "ru": "Только вы и добавленные вами сотрудники. Данные каждого магазина хранятся отдельно, а кассир не видит себестоимость и прибыль.",
+          "en": "Only you and the staff you add. Each store’s data is kept separate, and cashiers can’t see cost or profit."
+        }
+      },
+      {
+        "title": {
+          "uz": "Click, Payme yoki karta orqali to'lovlar hisoblanadimi?",
+          "ru": "Учитываются ли оплаты через Click, Payme или карту?",
+          "en": "Are Click, Payme or card payments tracked?"
+        },
+        "text": {
+          "uz": "Ha. Kassada \"Online\" to'lov turi bor: terminal, Click, Payme yoki o'tkazma orqali tushgan pul naqddan alohida hisoblanadi va smena hisobotida ko'rinadi. Naqd + online aralash to'lov va qarzga sotish ham bor.",
+          "ru": "Да. На кассе есть способ оплаты «Онлайн»: деньги через терминал, Click, Payme или перевод учитываются отдельно от наличных и видны в отчёте смены. Есть также смешанная оплата и продажа в долг.",
+          "en": "Yes. The till has an “Online” payment type: money received by terminal, Click, Payme or transfer is tracked separately from cash and shows in the shift report. Split payments and selling on credit are supported too."
+        }
+      },
+      {
+        "title": {
+          "uz": "Narxi qancha?",
+          "ru": "Сколько это стоит?",
+          "en": "How much does it cost?"
+        },
+        "text": {
+          "uz": "Narx do'kon hajmi va kassalar soniga bog'liq. Bog'laning — bepul demo ko'rsatamiz va mos tarifni taklif qilamiz.",
+          "ru": "Цена зависит от размера магазина и количества касс. Свяжитесь с нами — покажем бесплатное демо и предложим подходящий тариф.",
+          "en": "Pricing depends on store size and number of tills. Get in touch — we’ll give you a free demo and suggest the right plan."
+        }
+      }
+    ]
+  }
+}

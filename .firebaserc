@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "smartstock-d737f"
+  },
+  "targets": {
+    "smartstock-d737f": {
+      "hosting": {
+        "app": [
+          "smartstock-d737f"
+        ],
+        "site": [
+          "markethisob"
+        ]
+      }
+    }
   }
 }

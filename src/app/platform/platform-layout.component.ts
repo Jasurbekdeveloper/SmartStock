@@ -22,7 +22,7 @@ import { TelegramLinkDialogComponent } from '../shared/components/telegram-link-
         <div class="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center gap-3">
           <a routerLink="/platform" class="flex items-center gap-2 shrink-0">
             <img src="/logo.svg" alt="" class="w-9 h-9" />
-            <span class="font-extrabold text-lg">Hisobla</span>
+            <span class="font-extrabold text-lg">MarketHisob</span>
             <span class="hidden sm:inline text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-orange-300">{{ 'platform.badge' | translate }}</span>
           </a>
           <span class="flex-1"></span>
@@ -86,7 +86,9 @@ export class PlatformLayoutComponent {
   readonly tabs = [
     { path: '/platform', label: 'platform.nav.overview', icon: 'space_dashboard', exact: true },
     { path: '/platform/tenants', label: 'platform.nav.tenants', icon: 'storefront', exact: false },
+    { path: '/platform/leads', label: 'platform.nav.leads', icon: 'mark_email_unread', exact: false },
     { path: '/platform/plans', label: 'platform.nav.plans', icon: 'sell', exact: false },
+    { path: '/platform/site', label: 'platform.nav.site', icon: 'language', exact: false },
     { path: '/platform/audit', label: 'platform.nav.audit', icon: 'history', exact: false }
   ];
 

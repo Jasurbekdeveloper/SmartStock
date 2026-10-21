@@ -4,10 +4,6 @@
       <h1 class="page-title">{{ 'platform.leads.title' | translate }}</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'platform.leads.subtitle' | translate }}</p>
     </div>
-    <button mat-stroked-button [disabled]="testing()" (click)="sendTest()" [matTooltip]="'platform.leads.testHint' | translate">
-      <mat-icon>send</mat-icon>
-      {{ 'platform.leads.test' | translate }}
-    </button>
   </div>
 
   <!-- Status filter -->

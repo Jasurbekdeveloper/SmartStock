@@ -871,12 +871,7 @@
       "openStore": "Open store",
       "storeOpened": "Store opened",
       "notNotified": "Not sent to Telegram",
-      "notNotifiedHint": "Link Telegram from the profile menu and send /start to the bot",
-      "test": "Telegram test message",
-      "testHint": "Sends a sample lead to every super admin who linked Telegram",
-      "testSent": "Test message sent to Telegram",
-      "testNone": "Sent to nobody: link Telegram from the profile menu and send /start to the bot",
-      "testFailed": "Couldn’t send: check that Cloud Functions are deployed and the bot token is set"
+      "notNotifiedHint": "Check the Worker settings: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_IDS (worker/README.md)"
     }
   },
   "scanner": {

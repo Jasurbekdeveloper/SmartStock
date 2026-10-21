@@ -871,12 +871,7 @@
       "openStore": "Открыть магазин",
       "storeOpened": "Магазин открыт",
       "notNotified": "Не отправлено в Telegram",
-      "notNotifiedHint": "Подключите Telegram в меню профиля и напишите боту /start",
-      "test": "Тестовое сообщение в Telegram",
-      "testHint": "Отправляет пример заявки всем супер-админам, подключившим Telegram",
-      "testSent": "Тестовое сообщение отправлено в Telegram",
-      "testNone": "Никому не отправлено: подключите Telegram в меню профиля и напишите боту /start",
-      "testFailed": "Не удалось отправить: проверьте, что Cloud Functions развёрнуты и задан токен бота"
+      "notNotifiedHint": "Проверьте настройки Worker: TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_IDS (worker/README.md)"
     }
   },
   "scanner": {

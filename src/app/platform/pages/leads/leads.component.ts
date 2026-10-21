@@ -53,7 +53,6 @@ export class LeadsComponent {
   readonly badge = STATUS_BADGE;
 
   filter = signal<LeadStatus | 'all'>('all');
-  testing = signal(false);
   /** Unsaved notes per lead id. */
   notesDraft = signal<Record<string, string>>({});
 
@@ -119,17 +118,4 @@ export class LeadsComponent {
     });
   }
 
-  async sendTest() {
-    this.testing.set(true);
-    try {
-      const sent = await this.platform.testLeadNotification();
-      if (sent > 0) this.toast.success(this.translation.translate('platform.leads.testSent'));
-      else this.toast.error(this.translation.translate('platform.leads.testNone'));
-    } catch (err) {
-      console.error('Test lead notification failed:', err);
-      this.toast.error(this.translation.translate('platform.leads.testFailed'));
-    } finally {
-      this.testing.set(false);
-    }
-  }
 }

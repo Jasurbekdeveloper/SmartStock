@@ -150,14 +150,43 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
-    // leads/{id}: demo requests from the website, created only by the submitLead
-    // Cloud Function. The super admin works them: status and notes only.
+    // Optional string field of a new lead: absent, or a string of at most max chars.
+    function optionalText(data, field, max) {
+      return !(field in data) || (data[field] is string && data[field].size() <= max);
+    }
+
+    // leads/{id}: demo requests from the website. Created without sign-in by the
+    // leads Cloudflare Worker (worker/), which validates, rate-limits and sends the
+    // Telegram message; the shape is enforced here too. The super admin works them:
+    // status and notes only.
     match /leads/{id} {
       allow read: if isSuperAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['name', 'phone', 'storeName', 'city', 'storeType',
+            'registers', 'message', 'plan', 'lang', 'page', 'status', 'source', 'notified', 'ipHash',
+            'userAgent', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string
+        && request.resource.data.phone.matches('[+][0-9]{9,15}')
+        && optionalText(request.resource.data, 'storeName', 100)
+        && optionalText(request.resource.data, 'city', 80)
+        && optionalText(request.resource.data, 'storeType', 80)
+        && optionalText(request.resource.data, 'registers', 4)
+        && optionalText(request.resource.data, 'message', 1000)
+        && optionalText(request.resource.data, 'plan', 60)
+        && optionalText(request.resource.data, 'page', 300)
+        && optionalText(request.resource.data, 'ipHash', 64)
+        && optionalText(request.resource.data, 'userAgent', 300)
+        && (!('lang' in request.resource.data) || request.resource.data.lang in ['uz', 'ru', 'en'])
+        && (!('notified' in request.resource.data)
+            || (request.resource.data.notified is int && request.resource.data.notified >= 0 && request.resource.data.notified <= 20))
+        && request.resource.data.status == 'new'
+        && request.resource.data.source == 'website'
+        && request.resource.data.createdAt == request.time;
       allow update: if isSuperAdmin()
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['status', 'notes', 'updatedAt', 'updatedBy', 'tenantId']);
-      allow create, delete: if false;
+      allow delete: if false;
     }
 
     // leadRateLimits/{ipHash}: submitLead's per-IP counter (Admin SDK only).

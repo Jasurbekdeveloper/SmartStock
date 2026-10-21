@@ -3,12 +3,13 @@
 //   content.json          defaults shipped with the site
 //   siteContent/main      what the super admin published (Firestore, public read)
 //   plans                 tariffs with showOnSite = true (Firestore, public read)
-//   submitLead            Cloud Function that stores a demo request and pings Telegram
+//   leadUrl               Cloudflare Worker (worker/) that stores a demo request and pings Telegram
 const CONFIG = {
   projectId: 'smartstock-d737f',
   // Public web API key (same as the app's); Firestore rules decide what is readable.
   apiKey: 'AIzaSyA_FMzMPhgmLfrQdxklhyJbMjUXQkPCIIc',
-  leadUrl: 'https://europe-west1-smartstock-d737f.cloudfunctions.net/submitLead'
+  // Set to the deployed worker URL (npx wrangler deploy prints it).
+  leadUrl: ''
 };
 
 const LANGS = ['uz', 'ru', 'en'];
@@ -279,6 +280,7 @@ form.addEventListener('submit', async (e) => {
   const label = submitBtn.querySelector('span');
   label.textContent = tx('demo.sending');
   try {
+    if (!CONFIG.leadUrl) throw new Error('leadUrl is not configured');
     const res = await fetch(CONFIG.leadUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

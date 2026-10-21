@@ -871,12 +871,7 @@
       "openStore": "Do'kon ochish",
       "storeOpened": "Do'kon ochilgan",
       "notNotified": "Telegram'ga yuborilmadi",
-      "notNotifiedHint": "Profil menyusidan Telegram'ni ulang va botga /start yozing",
-      "test": "Telegram sinov xabari",
-      "testHint": "Telegram'ni ulagan barcha super adminlarga namunaviy ariza yuboradi",
-      "testSent": "Sinov xabari Telegram'ga yuborildi",
-      "testNone": "Hech kimga yuborilmadi: profil menyusidan Telegram'ni ulang va botga /start yozing",
-      "testFailed": "Yuborib bo'lmadi: Cloud Functions deploy qilinganini va bot tokenini tekshiring"
+      "notNotifiedHint": "Worker sozlamasini tekshiring: TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_IDS (worker/README.md)"
     }
   },
   "scanner": {

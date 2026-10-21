@@ -15,8 +15,7 @@ import {
   where,
   writeBatch
 } from 'firebase/firestore';
-import { Functions, httpsCallable } from 'firebase/functions';
-import { FIREBASE_FUNCTIONS, FIRESTORE } from '../firebase/firebase.providers';
+import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { createAuthAccount } from '../firebase/create-auth-account';
 import {
@@ -75,7 +74,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export class PlatformService {
   private firestore: Firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
-  private functions: Functions = inject(FIREBASE_FUNCTIONS);
 
   getTenants(): Observable<Tenant[]> {
     return fromCollectionQuery<Tenant>(query(collection(this.firestore, 'tenants'), orderBy('createdAt', 'desc')));
@@ -163,11 +161,6 @@ export class PlatformService {
     );
   }
 
-  /** Sends a sample lead to every super admin who linked Telegram; resolves to how many got it. */
-  async testLeadNotification(): Promise<number> {
-    const call = httpsCallable<void, { sent: number }>(this.functions, 'testLeadNotification');
-    return (await call()).data.sent;
-  }
 
   /** Creates the owner's login, then the store, its owner profile and default settings
    *  in one batch. Returns the new tenant id. */

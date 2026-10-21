@@ -48,3 +48,6 @@ Thumbs.db
 # Firebase service-account keys
 *service-account*.json
 serviceAccount*.json
+
+# Cloudflare Worker local state
+.wrangler/

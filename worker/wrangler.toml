@@ -1,0 +1,11 @@
+name = "markethisob-leads"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Public, non-secret settings. Secrets (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_IDS) are set with
+# `npx wrangler secret put <NAME>` and never stored in this file.
+[vars]
+FIREBASE_PROJECT_ID = "smartstock-d737f"
+FIREBASE_API_KEY = "AIzaSyA_FMzMPhgmLfrQdxklhyJbMjUXQkPCIIc"
+APP_URL = "https://smartstock-d737f.web.app"
+ALLOWED_ORIGINS = "https://markethisob.uz,https://www.markethisob.uz,https://markethisob.web.app,https://markethisob.firebaseapp.com"

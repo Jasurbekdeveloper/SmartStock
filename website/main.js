@@ -9,7 +9,7 @@ const CONFIG = {
   // Public web API key (same as the app's); Firestore rules decide what is readable.
   apiKey: 'AIzaSyA_FMzMPhgmLfrQdxklhyJbMjUXQkPCIIc',
   // Set to the deployed worker URL (npx wrangler deploy prints it).
-  leadUrl: ''
+  leadUrl: 'https://markethisob-leads.markethisob-leads-worker.workers.dev'
 };
 
 const LANGS = ['uz', 'ru', 'en'];

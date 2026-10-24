@@ -33,7 +33,7 @@ export interface Plan {
   maxUsers: number;
   maxProducts: number;
   active: boolean;
-  /** Listed in the website's pricing section (website/main.js reads plans publicly). */
+  /** Listed in the website's pricing section unless false (website/main.js reads plans publicly). */
   showOnSite?: boolean;
   /** Marked "Popular" on the website. */
   highlighted?: boolean;

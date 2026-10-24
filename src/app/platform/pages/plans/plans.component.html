@@ -79,7 +79,7 @@
           @if (!plan.active) {
           <span class="text-xs text-gray-500">{{ 'platform.plans.hidden' | translate }}</span>
           }
-          @if (plan.showOnSite) {
+          @if (plan.showOnSite !== false) {
           <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">{{ 'platform.plans.onSite' | translate }}</span>
           }
         </div>

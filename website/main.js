@@ -2,7 +2,7 @@
 // (/platform/site and /platform/plans) — no rebuild or redeploy is needed:
 //   content.json          defaults shipped with the site
 //   siteContent/main      what the super admin published (Firestore, public read)
-//   plans                 tariffs with showOnSite = true (Firestore, public read)
+//   plans                 active tariffs not hidden with showOnSite = false (Firestore, public read)
 //   leadUrl               Cloudflare Worker (worker/) that stores a demo request and pings Telegram
 const CONFIG = {
   projectId: 'smartstock-d737f',
@@ -222,7 +222,7 @@ async function load() {
   ]);
   content = merge(defaults, remote);
   plans = planDocs
-    .filter((p) => p.active !== false && p.showOnSite === true)
+    .filter((p) => p.active !== false && p.showOnSite !== false)
     .sort((a, b) => (a.priceMonthly || 0) - (b.priceMonthly || 0));
   try { localStorage.setItem(CACHE_KEY, JSON.stringify({ content, plans })); } catch (e) { /* ignore */ }
   render();

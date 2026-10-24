@@ -49,7 +49,7 @@ export class PlansComponent {
     maxUsers: [0, [Validators.required, Validators.min(0)]],
     maxProducts: [0, [Validators.required, Validators.min(0)]],
     active: [true],
-    showOnSite: [false],
+    showOnSite: [true],
     highlighted: [false],
     siteFeatures: this.fb.nonNullable.group({ uz: [''], ru: [''], en: [''] })
   });
@@ -63,7 +63,7 @@ export class PlansComponent {
       maxUsers: 3,
       maxProducts: 1000,
       active: true,
-      showOnSite: false,
+      showOnSite: true,
       highlighted: false,
       siteFeatures: { uz: '', ru: '', en: '' }
     });
@@ -77,7 +77,7 @@ export class PlansComponent {
       maxUsers: plan.maxUsers,
       maxProducts: plan.maxProducts,
       active: plan.active,
-      showOnSite: plan.showOnSite ?? false,
+      showOnSite: plan.showOnSite ?? true,
       highlighted: plan.highlighted ?? false,
       siteFeatures: { uz: plan.siteFeatures?.uz ?? '', ru: plan.siteFeatures?.ru ?? '', en: plan.siteFeatures?.en ?? '' }
     });

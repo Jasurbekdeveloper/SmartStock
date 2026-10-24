@@ -91,8 +91,8 @@
           <span class="pos-tile__image pos-tile__image--empty"><mat-icon>inventory_2</mat-icon></span>
           }
           <span class="pos-tile__name">{{ product.name }}</span>
-          @if (product.color || product.size) {
-          <span class="pos-tile__variant">{{ product.color }}@if (product.color && product.size) { · }{{ product.size }}</span>
+          @if (variantLabel(product); as variant) {
+          <span class="pos-tile__variant">{{ variant }}</span>
           }
           <span class="pos-tile__barcode">{{ product.barcode }}</span>
           <span class="pos-tile__price">{{ product.price | currencyDisplay:0 }}</span>

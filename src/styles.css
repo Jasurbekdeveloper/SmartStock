@@ -165,7 +165,19 @@ html.dark tr:hover {
 }
 
 .data-table thead th {
-  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700;
+  @apply px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700;
+}
+
+/* Headers start-aligned by default, but a column marked .text-right/.text-center must
+   line up with its cells: this selector outranks the bare utility, so restate them. */
+.data-table thead th {
+  text-align: left;
+}
+.data-table thead th.text-right {
+  text-align: right;
+}
+.data-table thead th.text-center {
+  text-align: center;
 }
 
 .data-table tbody td {

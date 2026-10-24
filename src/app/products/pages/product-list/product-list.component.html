@@ -2,15 +2,15 @@
   <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
     <div class="flex w-full flex-wrap gap-2 sm:w-auto">
-      @if (canImport()) {
+      @if (canManage()) {
       <a mat-stroked-button color="primary" routerLink="/products/import">
         <mat-icon>upload_file</mat-icon>
         {{ 'buttons.import' | translate }}
       </a>
-      }
       <a mat-flat-button color="primary" routerLink="/products/create">
         + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
       </a>
+      }
     </div>
   </div>
 
@@ -50,7 +50,7 @@
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.name' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.barcode' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.price' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.sellingPrice' | translate }}</th>
           @if (canSeeCost()) {
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.cost' | translate }}</th>
           }
@@ -70,8 +70,8 @@
               }
               <div class="min-w-0">
                 <p class="break-words">{{ product.name }}</p>
-                @if (product.color || product.size) {
-                <p class="text-xs font-normal text-gray-500">{{ product.color }} @if (product.color && product.size) { · } {{ product.size }}</p>
+                @if (variantLabel(product); as variant) {
+                <p class="text-xs font-normal text-gray-500">{{ variant }}</p>
                 }
               </div>
             </div>
@@ -103,12 +103,14 @@
             <button mat-icon-button [matTooltip]="'products.printBarcode' | translate" (click)="showBarcode(product)">
               <mat-icon>qr_code_2</mat-icon>
             </button>
+            @if (canManage()) {
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)">
               <mat-icon>edit</mat-icon>
             </button>
             <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product)">
               <mat-icon>delete</mat-icon>
             </button>
+            }
           </td>
         </tr>
         }

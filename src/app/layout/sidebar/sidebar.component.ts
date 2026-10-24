@@ -4,7 +4,8 @@ import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { AuthService, UserRole } from '../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
+import { homePath, Permission, roleCan } from '../../core/auth/permissions';
 import { SidebarStateService } from './sidebar-state.service';
 import { SettingsService } from '../../core/services/settings.service';
 
@@ -12,7 +13,8 @@ interface MenuItem {
   label: string;
   path: string;
   icon?: string;
-  roles?: UserRole[];
+  /** Shown only to roles with this permission (core/auth/permissions.ts). */
+  permission?: Permission;
   children?: MenuItem[];
 }
 
@@ -46,23 +48,26 @@ export class SidebarComponent {
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
 
+  homePath = computed(() => homePath(this.currentUser()?.role));
+
   visibleMenuItems = computed(() => {
     const role = this.currentUser()?.role;
-    const canSee = (item: MenuItem) => !item.roles || (!!role && item.roles.includes(role));
+    const canSee = (item: MenuItem) => !item.permission || roleCan(role, item.permission);
     return this.menuItems
       .filter(canSee)
-      .map((item) => (item.children ? { ...item, children: item.children.filter(canSee) } : item));
+      .map((item) => (item.children ? { ...item, children: item.children.filter(canSee) } : item))
+      .filter((item) => !item.children || item.children.length > 0);
   });
 
   menuItems: MenuItem[] = [
-    { label: 'navigation.dashboard', path: '/dashboard', icon: 'dashboard' },
+    { label: 'navigation.dashboard', path: '/dashboard', icon: 'dashboard', permission: 'reports.view' },
     {
       label: 'sales.title',
       path: '/sales',
       icon: 'receipt_long',
       children: [
-        { label: 'sales.salesHistory', path: '/sales/history' },
-        { label: 'shifts.shiftHistory', path: '/shifts/history' }
+        { label: 'sales.salesHistory', path: '/sales/history', permission: 'sales.viewOwn' },
+        { label: 'shifts.shiftHistory', path: '/shifts/history', permission: 'shifts.own' }
       ]
     },
     {
@@ -70,15 +75,15 @@ export class SidebarComponent {
       path: '/products',
       icon: 'inventory_2',
       children: [
-        { label: 'buttons.list', path: '/products/list' },
-        { label: 'categories.title', path: '/products/categories', roles: ['admin', 'manager'] }
+        { label: 'buttons.list', path: '/products/list', permission: 'products.view' },
+        { label: 'categories.title', path: '/products/categories', permission: 'products.manage' }
       ]
     },
     {
       label: 'navigation.stock',
       path: '/stock',
       icon: 'move_to_inbox',
-      roles: ['admin', 'manager'],
+      permission: 'stock.manage',
       children: [
         { label: 'stock.stockIn', path: '/stock/in' },
         { label: 'stock.stockOut', path: '/stock/out' },
@@ -86,20 +91,19 @@ export class SidebarComponent {
         { label: 'buttons.history', path: '/stock/history' }
       ]
     },
-    { label: 'navigation.debts', path: '/debts/list', icon: 'credit_card' },
-    { label: 'navigation.customers', path: '/customers/list', icon: 'people' },
-    { label: 'navigation.suppliers', path: '/suppliers/list', icon: 'local_shipping', roles: ['admin', 'manager'] },
-    { label: 'navigation.statistics', path: '/statistics', icon: 'bar_chart' },
-    { label: 'navigation.users', path: '/users', icon: 'group', roles: ['admin'] },
-    { label: 'navigation.auditLog', path: '/audit-log', icon: 'history', roles: ['admin', 'manager'] },
+    { label: 'navigation.debts', path: '/debts/list', icon: 'credit_card', permission: 'debts.manage' },
+    { label: 'navigation.customers', path: '/customers/list', icon: 'people', permission: 'customers.manage' },
+    { label: 'navigation.suppliers', path: '/suppliers/list', icon: 'local_shipping', permission: 'suppliers.manage' },
+    { label: 'navigation.statistics', path: '/statistics', icon: 'bar_chart', permission: 'reports.view' },
+    { label: 'navigation.users', path: '/users', icon: 'group', permission: 'users.manage' },
+    { label: 'navigation.auditLog', path: '/audit-log', icon: 'history', permission: 'auditLog.view' },
     {
       label: 'navigation.settings',
       path: '/settings',
       icon: 'settings',
-      roles: ['admin'],
       children: [
-        { label: 'navigation.storeSettings', path: '/settings' },
-        { label: 'subscription.title', path: '/settings/subscription' }
+        { label: 'navigation.storeSettings', path: '/settings', permission: 'settings.manage' },
+        { label: 'subscription.title', path: '/settings/subscription', permission: 'subscription.manage' }
       ]
     }
   ];

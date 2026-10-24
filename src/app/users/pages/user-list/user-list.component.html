@@ -117,4 +117,52 @@
       ></mat-paginator>
     }
   </mat-card>
+
+  <!-- Roles & permissions: read from core/auth/permissions.ts, i.e. exactly what the app enforces -->
+  <mat-card>
+    <div class="p-4 sm:p-6">
+      <h2 class="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+        <mat-icon class="text-orange-500">admin_panel_settings</mat-icon>{{ 'permissions.title' | translate }}
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'permissions.intro' | translate }}</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'permissions.permission' | translate }}</th>
+            @for (role of roles; track role) {
+            <th class="px-4 py-3 text-center text-gray-900 dark:text-white min-w-[7rem]">
+              <span class="block">{{ roleLabelKey(role) | translate }}</span>
+              <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">{{ 'permissions.roleHint.' + role | translate }}</span>
+            </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of permissionGroups; track group.id) {
+          <tr class="bg-gray-50 dark:bg-gray-800/60">
+            <td [attr.colspan]="roles.length + 1" class="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {{ 'permissions.group.' + group.id | translate }}
+            </td>
+          </tr>
+          @for (permission of group.permissions; track permission) {
+          <tr class="border-b dark:border-gray-700">
+            <td class="px-4 py-2.5 text-gray-900 dark:text-white">{{ 'permissions.p.' + permission | translate }}</td>
+            @for (role of roles; track role) {
+            <td class="px-4 py-2.5 text-center">
+              @if (roleCan(role, permission)) {
+              <mat-icon class="!text-[20px] text-green-600 dark:text-green-400" [attr.aria-label]="'permissions.allowed' | translate">check_circle</mat-icon>
+              } @else {
+              <mat-icon class="!text-[20px] text-gray-300 dark:text-gray-600" [attr.aria-label]="'permissions.denied' | translate">remove</mat-icon>
+              }
+            </td>
+            }
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
 </div>

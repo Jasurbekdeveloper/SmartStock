@@ -19,6 +19,7 @@ import { authCreateErrorKey } from '../../../core/firebase/create-auth-account';
 import { UserManagementService } from '../../../core/services/user-management.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
+import { PERMISSION_GROUPS, roleCan, STORE_ROLES } from '../../../core/auth/permissions';
 
 @Component({
   selector: 'app-user-list',
@@ -53,7 +54,10 @@ export class UserListComponent {
   errorKey = signal<string | null>(null);
 
   private tenantService = inject(TenantService);
-  readonly roles: StoreRole[] = ['admin', 'manager', 'cashier'];
+  readonly roles: readonly StoreRole[] = STORE_ROLES;
+  /** The roles & permissions table, built from the same map the app enforces. */
+  readonly permissionGroups = PERMISSION_GROUPS;
+  readonly roleCan = roleCan;
   canWrite = computed(() => this.tenantService.subscription().canWrite);
 
   /** The store owner can only be changed by the platform (super admin). */

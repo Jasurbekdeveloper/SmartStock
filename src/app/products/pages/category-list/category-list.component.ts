@@ -14,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { Category, CategoryService } from '../../../core/services/category.service';
+import { parseAxisValues } from '../../../core/utils/product-variants';
 import { StorageService } from '../../../core/services/storage.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
@@ -55,6 +56,8 @@ export class CategoryListComponent {
   editingId = signal<string | null>(null);
   editName = signal('');
   editImageUrl = signal('');
+  /** Default variant characteristics, typed as "Hajm, Quvvat". */
+  editAttributes = signal('');
   editImageUploading = signal(false);
   savingEdit = signal(false);
 
@@ -63,11 +66,12 @@ export class CategoryListComponent {
 
   createForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    imageUrl: ['']
+    imageUrl: [''],
+    variantAttributes: ['']
   });
 
   openCreateForm() {
-    this.createForm.reset({ name: '', imageUrl: '' });
+    this.createForm.reset({ name: '', imageUrl: '', variantAttributes: '' });
     this.createImagePreviewUrl.set('');
     this.errorKey.set(null);
     this.showCreateForm.set(true);
@@ -126,9 +130,9 @@ export class CategoryListComponent {
 
     this.submitting.set(true);
     this.errorKey.set(null);
-    const { name, imageUrl } = this.createForm.getRawValue();
+    const { name, imageUrl, variantAttributes } = this.createForm.getRawValue();
 
-    this.categoryService.addCategory({ name, imageUrl: imageUrl.trim() || undefined }).subscribe({
+    this.categoryService.addCategory({ name, imageUrl: imageUrl.trim() || undefined, variantAttributes: parseAxisValues(variantAttributes) }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.showCreateForm.set(false);
@@ -145,6 +149,7 @@ export class CategoryListComponent {
     this.editingId.set(category.id);
     this.editName.set(category.name);
     this.editImageUrl.set(category.imageUrl ?? '');
+    this.editAttributes.set(category.variantAttributes?.join(', ') ?? '');
     this.errorKey.set(null);
   }
 
@@ -159,7 +164,11 @@ export class CategoryListComponent {
     this.savingEdit.set(true);
     this.errorKey.set(null);
 
-    this.categoryService.updateCategory(id, { name, imageUrl: this.editImageUrl().trim() || undefined }).subscribe({
+    this.categoryService.updateCategory(id, {
+      name,
+      imageUrl: this.editImageUrl().trim() || undefined,
+      variantAttributes: parseAxisValues(this.editAttributes())
+    }).subscribe({
       next: () => {
         this.savingEdit.set(false);
         this.editingId.set(null);

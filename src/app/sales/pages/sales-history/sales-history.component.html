@@ -60,7 +60,7 @@
         @for (sale of pagination.paged(); track sale.id) {
         <tr [routerLink]="['/sales', sale.id]" class="cursor-pointer">
           <td class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
-          <td class="max-w-xs truncate" [title]="itemNames(sale)">{{ itemNames(sale) }}</td>
+          <td [title]="itemNames(sale)"><div class="max-w-xs truncate">{{ itemNames(sale) }}</div></td>
           <td class="whitespace-nowrap">
             <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
             @if (sale.debtAmount && sale.debtAmount > 0) {

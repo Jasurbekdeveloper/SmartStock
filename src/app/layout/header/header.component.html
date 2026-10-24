@@ -35,7 +35,7 @@
     <mat-icon class="text-gray-400">expand_more</mat-icon>
   </button>
   <mat-menu #userMenu="matMenu" xPosition="before">
-    @if (isAdmin()) {
+    @if (canManageSubscription()) {
     <a mat-menu-item routerLink="/settings/subscription">
       <mat-icon>workspace_premium</mat-icon>
       {{ 'subscription.title' | translate }}

@@ -20,12 +20,15 @@ export interface Category {
   id: string;
   name: string;
   imageUrl?: string;
+  /** Variant characteristics suggested for new products in this category, e.g. ["Hajm", "Quvvat"]. */
+  variantAttributes?: string[];
   createdAt?: Date;
 }
 
 export interface CategoryInput {
   name: string;
   imageUrl?: string;
+  variantAttributes?: string[];
 }
 
 @Injectable({
@@ -43,12 +46,17 @@ export class CategoryService {
   addCategory(input: CategoryInput): Observable<void> {
     const data: Record<string, unknown> = withTenant({ name: input.name, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     if (input.imageUrl) data['imageUrl'] = input.imageUrl;
+    if (input.variantAttributes?.length) data['variantAttributes'] = input.variantAttributes;
 
     return from(addDoc(collection(this.firestore, 'categories'), data)).pipe(map(() => undefined));
   }
 
   updateCategory(id: string, input: CategoryInput): Observable<void> {
-    const data: Record<string, unknown> = { name: input.name, imageUrl: input.imageUrl ?? null };
+    const data: Record<string, unknown> = {
+      name: input.name,
+      imageUrl: input.imageUrl ?? null,
+      variantAttributes: input.variantAttributes?.length ? input.variantAttributes : null
+    };
     return from(updateDoc(doc(this.firestore, 'categories', id), data));
   }
 

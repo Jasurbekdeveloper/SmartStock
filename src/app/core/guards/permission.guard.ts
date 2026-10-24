@@ -1,9 +1,12 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { filter, map, take } from 'rxjs/operators';
-import { AuthService, UserRole } from '../services/auth.service';
+import { AuthService } from '../services/auth.service';
+import { homePath, Permission } from '../auth/permissions';
 
-export function roleGuard(...allowedRoles: UserRole[]): CanActivateFn {
+/** Allows the route when the user's role has `permission`; otherwise sends them to
+ *  their home page (the till for cashiers, the dashboard for staff). */
+export function permissionGuard(permission: Permission): CanActivateFn {
   return () => {
     const authService = inject(AuthService);
     const router = inject(Router);
@@ -11,7 +14,7 @@ export function roleGuard(...allowedRoles: UserRole[]): CanActivateFn {
     return authService.authReady$.pipe(
       filter((ready) => ready),
       take(1),
-      map(() => (authService.hasRole(...allowedRoles) ? true : router.createUrlTree(['/dashboard'])))
+      map(() => (authService.can(permission) ? true : router.createUrlTree([homePath(authService.getCurrentUser()?.role)])))
     );
   };
 }

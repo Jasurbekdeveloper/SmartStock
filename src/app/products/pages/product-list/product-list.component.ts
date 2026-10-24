@@ -16,6 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { roleCan } from '../../../core/auth/permissions';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
@@ -24,6 +25,7 @@ import { BarcodeLabelDialogComponent } from '../../../shared/components/barcode-
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
+import { variantLabel } from '../../../core/utils/product-variants';
 
 @Component({
   selector: 'app-product-list',
@@ -61,14 +63,10 @@ export class ProductListComponent {
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   /** Cost price is purchasing/margin data — cashiers only need the selling price. */
-  canSeeCost = computed(() => this.currentUser()?.role !== 'cashier');
-  /** Bulk import creates/edits products in full (name/price/etc.), which
-   *  `firestore.rules`' isStaff() restricts to admin/manager — same gating as
-   *  the /products/import route's roleGuard. */
-  canImport = computed(() => {
-    const role = this.currentUser()?.role;
-    return role === 'admin' || role === 'manager';
-  });
+  canSeeCost = computed(() => roleCan(this.currentUser()?.role, 'products.viewCost'));
+  readonly variantLabel = variantLabel;
+  /** Create/edit/delete/import — same permission as the product routes and firestore.rules' staff check. */
+  canManage = computed(() => roleCan(this.currentUser()?.role, 'products.manage'));
 
   searchQuery = signal('');
   fromDate = signal<Date | null>(null);
@@ -87,7 +85,7 @@ export class ProductListComponent {
     return this.products().filter((product) => {
       if (query) {
         const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
-        const matchesVariant = normalizeForSearch(`${product.color ?? ''} ${product.size ?? ''} ${product.sku ?? ''}`).includes(normalizedQuery);
+        const matchesVariant = normalizeForSearch(`${variantLabel(product)} ${product.sku ?? ''}`).includes(normalizedQuery);
         const matchesBarcode = product.barcode?.toLowerCase().includes(query);
         // Optional per-product synonyms/loanwords (e.g. "truba" tagged on a product
         // actually named "quvur") — same cross-script normalization as the name match.

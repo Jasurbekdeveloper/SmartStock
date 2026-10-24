@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../../core/services/auth.service';
+import { roleCan } from '../../../core/auth/permissions';
 import { ShiftService } from '../../../core/services/shift.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
@@ -32,7 +33,7 @@ export class ShiftHistoryComponent {
   private shifts$ = this.authService.currentUser$.pipe(
     switchMap((user) => {
       if (!user) return of([]);
-      const seeAll = user.role === 'admin' || user.role === 'manager';
+      const seeAll = roleCan(user.role, 'shifts.viewAll');
       return this.shiftService.getShifts(user.uid, seeAll);
     })
   );

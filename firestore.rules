@@ -60,6 +60,12 @@ service cloud.firestore {
       return isTenantStaff(tenantId) && tenantWritable(tenantId);
     }
 
+    // Role split mirrors src/app/core/auth/permissions.ts: staff (admin/manager) see
+    // the whole store; a cashier sees only the sales and shifts they made.
+    function isStaffOrOwner(tenantId, ownerUid) {
+      return isTenantStaff(tenantId) || (isTenantMember(tenantId) && ownerUid == request.auth.uid);
+    }
+
     function canAdminWrite(tenantId) {
       return isTenantAdmin(tenantId) && tenantWritable(tenantId);
     }
@@ -234,9 +240,11 @@ service cloud.firestore {
     // run the register). A sale is otherwise immutable — the only change allowed is a
     // return bumping its denormalized refundedAmount, never past the sale total.
     match /sales/{id} {
-      allow read: if isTenantMember(resource.data.tenantId);
-      allow create: if canWrite(request.resource.data.tenantId);
-      allow update: if canWrite(resource.data.tenantId)
+      allow read: if isStaffOrOwner(resource.data.tenantId, resource.data.get('cashierId', ''));
+      allow create: if canWrite(request.resource.data.tenantId)
+        && request.resource.data.cashierId == request.auth.uid;
+      // Refunds are a manager action (permission sales.refund).
+      allow update: if canStaffWrite(resource.data.tenantId)
         && request.resource.data.tenantId == resource.data.tenantId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundedAmount'])
         && request.resource.data.refundedAmount <= resource.data.total + 1;
@@ -247,7 +255,7 @@ service cloud.firestore {
     // Immutable once written; attributed to the active user creating it.
     match /returns/{id} {
       allow read: if isTenantMember(resource.data.tenantId);
-      allow create: if canWrite(request.resource.data.tenantId)
+      allow create: if canStaffWrite(request.resource.data.tenantId)
         && request.resource.data.cashierId == request.auth.uid;
       allow update, delete: if false;
     }
@@ -255,8 +263,9 @@ service cloud.firestore {
     // customers/{id}: debtor contact info, any active staff can register one.
     match /customers/{id} {
       allow read: if isTenantMember(resource.data.tenantId);
+      // Cashiers may add a customer at the till (debt sale) but not edit the base.
       allow create: if canWrite(request.resource.data.tenantId);
-      allow update: if canWrite(resource.data.tenantId)
+      allow update: if canStaffWrite(resource.data.tenantId)
         && request.resource.data.tenantId == resource.data.tenantId;
       allow delete: if canStaffWrite(resource.data.tenantId);
     }
@@ -266,8 +275,9 @@ service cloud.firestore {
     // original amount and customer stay fixed once created).
     match /debts/{id} {
       allow read: if isTenantMember(resource.data.tenantId);
+      // A debt sale at the till creates the debt; collecting payments is staff work.
       allow create: if canWrite(request.resource.data.tenantId);
-      allow update: if canWrite(resource.data.tenantId)
+      allow update: if canStaffWrite(resource.data.tenantId)
         && request.resource.data.tenantId == resource.data.tenantId
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate']);
@@ -279,7 +289,7 @@ service cloud.firestore {
     // filtered client-side); only the cashier who opened a shift may create/close it,
     // and closing may only touch the Z-report fields, not the original open data.
     match /shifts/{id} {
-      allow read: if isTenantMember(resource.data.tenantId);
+      allow read: if isStaffOrOwner(resource.data.tenantId, resource.data.cashierId);
       allow create: if canWrite(request.resource.data.tenantId)
         && request.resource.data.cashierId == request.auth.uid;
       allow update: if canWrite(resource.data.tenantId)

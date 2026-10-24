@@ -157,12 +157,19 @@ export class SalesService {
    * first — so offline sales keep showing up on the dashboard and in the POS.
    */
   getSalesInRange(from: Date, to?: Date | null): Observable<Sale[]> {
-    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
+    const constraints: QueryConstraint[] = [...this.ownSalesOnly(), orderBy('createdAt', 'desc')];
     if (to && to.getTime() < Date.now()) {
       constraints.push(startAt(Timestamp.fromDate(to)));
     }
     constraints.push(endAt(Timestamp.fromDate(from)));
     return fromCollectionQuery<Sale>(tenantQuery(this.firestore, 'sales', requireTenantId(this.authService), ...constraints));
+  }
+
+  /** A cashier may read only their own sales (firestore.rules), so their queries must
+   *  say so or Firestore rejects them. Staff see every sale. */
+  ownSalesOnly(): QueryConstraint[] {
+    const user = this.authService.getCurrentUser();
+    return user && !this.authService.can('sales.viewAll') ? [where('cashierId', '==', user.uid)] : [];
   }
 
   getSaleById(id: string): Observable<Sale | undefined> {
@@ -211,7 +218,7 @@ export class SalesService {
     let customerId: string | undefined = debt?.customerId;
     if (debt && debt.amount > 0 && !customerId && debt.newCustomer) {
       const customerRef = doc(collection(this.firestore, 'customers'));
-      batch.set(customerRef, withTenant({ ...debt.newCustomer, createdAt: serverTimestamp() }, tenantId));
+      batch.set(customerRef, stripUndefined(withTenant({ ...debt.newCustomer, createdAt: serverTimestamp() }, tenantId)));
       customerId = customerRef.id;
     }
 
@@ -225,7 +232,7 @@ export class SalesService {
 
     if (debt && debt.amount > 0 && customerId) {
       const debtRef = doc(collection(this.firestore, 'debts'));
-      batch.set(debtRef, {
+      batch.set(debtRef, stripUndefined({
         customerId,
         tenantId,
         saleId: saleRef.id,
@@ -240,7 +247,7 @@ export class SalesService {
         paidAmount: 0,
         remainingAmount: debt.amount,
         createdAt: serverTimestamp()
-      });
+      }));
     }
 
     this.adjustStockInBatch(
@@ -293,10 +300,21 @@ export class SalesService {
   }
 }
 
-function stripUndefined<T extends Record<string, unknown>>(data: T): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...data };
-  for (const key of Object.keys(result)) {
-    if (result[key] === undefined) delete result[key];
+/**
+ * Drops `undefined` at every depth (sale lines, debt lines too). Firestore's
+ * batch.set() throws synchronously on an undefined field anywhere in the document —
+ * e.g. an older product without a categoryId — which used to leave the POS stuck in
+ * "submitting". Only plain objects and arrays are walked, so serverTimestamp() /
+ * increment() sentinels, Timestamps and Dates pass through untouched.
+ */
+export function stripUndefined<T>(data: T): T {
+  if (Array.isArray(data)) return data.map((v) => stripUndefined(v)) as T;
+  if (data && typeof data === 'object' && Object.getPrototypeOf(data) === Object.prototype) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) result[key] = stripUndefined(value);
+    }
+    return result as T;
   }
-  return result;
+  return data;
 }

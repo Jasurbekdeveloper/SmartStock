@@ -1,105 +1,216 @@
 <div class="max-w-4xl mx-auto">
   <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'form.createProduct' | translate }}</h1>
 
-  <form (ngSubmit)="createProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
-      <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
-        <mat-label>{{ 'form.productName' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.name" name="name" [placeholder]="'form.enterProductName' | translate" />
-      </mat-form-field>
+  <form (ngSubmit)="createProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-5">
+    <!-- Basic info: the name drives the automatic search keywords -->
+    <section class="space-y-4">
+      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+        <mat-icon class="text-orange-500">inventory_2</mat-icon>{{ 'products.sectionBasic' | translate }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+        <mat-form-field appearance="outline" class="w-full min-w-0 md:col-span-2" subscriptSizing="dynamic">
+          <mat-label>{{ 'form.productName' | translate }}</mat-label>
+          <input
+            matInput
+            [ngModel]="product.name"
+            (ngModelChange)="onNameChange($event)"
+            [errorStateMatcher]="fields.matcher('name')"
+            name="name"
+            required
+            [placeholder]="'form.enterProductName' | translate"
+          />
+          <mat-error>{{ fields.message('name') | translate }}</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
-        <mat-label>{{ 'form.barcode' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.barcode" name="barcode" (keydown.enter)="$event.preventDefault()" [placeholder]="'form.enterBarcode' | translate" />
-        <button
-          mat-icon-button
-          matSuffix
-          type="button"
-          [attr.aria-label]="'products.scanBarcode' | translate"
-          [matTooltip]="'products.scanBarcode' | translate"
-          (click)="scanBarcode()"
-        >
-          <mat-icon>photo_camera</mat-icon>
-        </button>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.sku' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.sku" name="sku" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.color' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.color" name="color" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.size' | translate }}</mat-label>
-        <input matInput [(ngModel)]="product.size" name="size" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'form.price' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="product.price" name="price" min="0" step="0.01" placeholder="0.00" />
-      </mat-form-field>
-
-      @if (canSeeCost()) {
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'form.cost' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="product.cost" name="cost" min="0" step="0.01" placeholder="0.00" />
-      </mat-form-field>
-      }
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.quantity' | translate }}</mat-label>
-        <input matInput type="number" min="0" step="0.01" [(ngModel)]="product.quantity" name="quantity" placeholder="0" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.unit' | translate }}</mat-label>
-        <mat-select [(ngModel)]="product.unit" name="unit">
-          @for (u of units; track u) {
-          <mat-option [value]="u">{{ 'units.' + u | translate }}</mat-option>
+        <div class="md:col-span-2 space-y-2">
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'products.searchKeywords' | translate }}</mat-label>
+            <input
+              matInput
+              [ngModel]="searchKeywordsInput"
+              (ngModelChange)="onKeywordsChange($event)"
+              name="searchKeywordsInput"
+              placeholder="truba, quvur shlangi"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [attr.aria-label]="'products.keywordsAuto' | translate"
+              [matTooltip]="'products.keywordsAuto' | translate"
+              [disabled]="!product.name.trim()"
+              (click)="addSuggestedKeywords()"
+            >
+              <mat-icon>auto_awesome</mat-icon>
+            </button>
+            <mat-hint>{{ (keywordsTouched ? 'products.searchKeywordsHint' : 'products.keywordsAutoHint') | translate }}</mat-hint>
+          </mat-form-field>
+          @if (keywordList().length > 0) {
+          <div class="flex flex-wrap gap-1.5">
+            @for (keyword of keywordList(); track keyword) {
+            <span class="inline-flex items-center gap-1 rounded-full bg-orange-50 py-0.5 pl-2.5 pr-1 text-xs text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
+              {{ keyword }}
+              <button
+                type="button"
+                class="rounded-full px-1 leading-none hover:bg-orange-200 dark:hover:bg-orange-800"
+                [attr.aria-label]="('common.delete' | translate) + ' ' + keyword"
+                (click)="removeKeyword(keyword)"
+              >&times;</button>
+            </span>
+            }
+          </div>
           }
-        </mat-select>
-      </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.minQuantity' | translate }}</mat-label>
-        <input matInput type="number" step="0.01" [(ngModel)]="product.minQuantity" name="minQuantity" min="0" placeholder="0" />
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'products.category' | translate }}</mat-label>
+          <mat-select [ngModel]="product.categoryId" (ngModelChange)="onCategoryChange($event)" name="categoryId" [placeholder]="'form.enterCategory' | translate">
+            @for (category of categories(); track category.id) {
+            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-        <mat-label>{{ 'products.altUnits' | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="altUnitsInput"
-          name="altUnitsInput"
-          placeholder="quti:20,karobka:100"
-        />
-        <mat-hint>{{ 'products.altUnitsHint' | translate }}</mat-hint>
-      </mat-form-field>
+      </div>
+    </section>
 
-      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-        <mat-label>{{ 'products.searchKeywords' | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="searchKeywordsInput"
-          name="searchKeywordsInput"
-          placeholder="truba, quvur shlangi"
-        />
-        <mat-hint>{{ 'products.searchKeywordsHint' | translate }}</mat-hint>
-      </mat-form-field>
+    <!-- Codes: barcode (scan / type / generate), SKU, MXIK -->
+    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
+      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+        <mat-icon class="text-orange-500">qr_code_scanner</mat-icon>{{ 'products.sectionCodes' | translate }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+        <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+          <mat-label>{{ 'form.barcode' | translate }}</mat-label>
+          <input matInput [(ngModel)]="product.barcode" [errorStateMatcher]="fields.matcher('barcode')" name="barcode" inputmode="numeric" (keydown.enter)="$event.preventDefault()" [placeholder]="'form.enterBarcode' | translate" />
+          <div matSuffix class="flex items-center pr-1">
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'products.scanBarcode' | translate"
+              [matTooltip]="'products.scanBarcode' | translate"
+              (click)="scanBarcode()"
+            >
+              <mat-icon>photo_camera</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'products.generateBarcode' | translate"
+              [matTooltip]="'products.generateBarcode' | translate"
+              [disabled]="generating()"
+              (click)="generateBarcode()"
+            >
+              <mat-icon>auto_awesome</mat-icon>
+            </button>
+          </div>
+          <mat-hint>{{ 'products.barcodeHint' | translate }}</mat-hint>
+          <mat-error>{{ fields.message('barcode') | translate }}</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'products.category' | translate }}</mat-label>
-        <mat-select [(ngModel)]="product.categoryId" name="categoryId" [placeholder]="'form.enterCategory' | translate">
-          @for (category of categories(); track category.id) {
-          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.sku' | translate }}</mat-label>
+          <input matInput [(ngModel)]="product.sku" [errorStateMatcher]="fields.matcher('sku')" name="sku" required />
+          <mat-error>{{ fields.message('sku') | translate }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full md:col-span-2" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.mxikCode' | translate }}</mat-label>
+          <input
+            matInput
+            [(ngModel)]="mxikCode"
+            [errorStateMatcher]="fields.matcher('mxik')"
+            name="mxikCode"
+            inputmode="numeric"
+            maxlength="17"
+            placeholder="00000000000000000"
+          />
+          <a
+            mat-icon-button
+            matSuffix
+            href="https://tasnif.soliq.uz/"
+            target="_blank"
+            rel="noopener"
+            [attr.aria-label]="'products.mxikFind' | translate"
+            [matTooltip]="'products.mxikFind' | translate"
+          >
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+          <mat-hint [class.text-red-600]="mxikInvalid(mxikCode)">
+            {{ (mxikInvalid(mxikCode) ? 'products.invalidMxik' : 'products.mxikHint') | translate }}
+          </mat-hint>
+          <mat-error>{{ fields.message('mxik') | translate }}</mat-error>
+        </mat-form-field>
+      </div>
+    </section>
+
+    <!-- Prices -->
+    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
+      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+        <mat-icon class="text-orange-500">payments</mat-icon>{{ 'products.sectionPrices' | translate }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+        @if (canSeeCost()) {
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'products.costPrice' | translate }}</mat-label>
+          <input matInput type="number" [(ngModel)]="product.cost" [errorStateMatcher]="fields.matcher('cost')" name="cost" min="0" step="0.01" placeholder="0" required />
+          <mat-error>{{ fields.message('cost') | translate }}</mat-error>
+        </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.sellingPrice' | translate }}</mat-label>
+          <input matInput type="number" [(ngModel)]="product.price" [errorStateMatcher]="fields.matcher('price')" name="price" min="0" step="0.01" placeholder="0" required />
+          @if (canSeeCost()) {
+          @if (margin(product.cost, product.price); as m) {
+          <mat-hint [class.text-red-600]="m.belowCost">
+            {{ (m.belowCost ? 'products.belowCost' : 'products.profit') | translate }}: {{ formatNumber(m.profit) }} ({{ m.percent }}%)
+          </mat-hint>
           }
-        </mat-select>
-      </mat-form-field>
-    </div>
+          }
+          <mat-error>{{ fields.message('price') | translate }}</mat-error>
+        </mat-form-field>
+      </div>
+    </section>
+
+    <!-- Stock -->
+    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
+      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+        <mat-icon class="text-orange-500">warehouse</mat-icon>{{ 'products.sectionStock' | translate }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-start">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'products.quantity' | translate }}</mat-label>
+          <input matInput type="number" min="0" step="0.01" [(ngModel)]="product.quantity" [errorStateMatcher]="fields.matcher('quantity')" name="quantity" placeholder="0" />
+          <mat-error>{{ fields.message('quantity') | translate }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'products.unit' | translate }}</mat-label>
+          <mat-select [(ngModel)]="product.unit" name="unit">
+            @for (u of units; track u) {
+            <mat-option [value]="u">{{ 'units.' + u | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>{{ 'products.minQuantity' | translate }}</mat-label>
+          <input matInput type="number" step="0.01" [(ngModel)]="product.minQuantity" name="minQuantity" min="0" placeholder="0" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full md:col-span-3" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.altUnits' | translate }}</mat-label>
+          <input
+            matInput
+            [(ngModel)]="altUnitsInput"
+            name="altUnitsInput"
+            placeholder="quti:20,karobka:100"
+          />
+          <mat-hint>{{ 'products.altUnitsHint' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
+    </section>
 
     <section class="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -115,60 +226,190 @@
       <p class="text-xs text-gray-500">{{ 'products.requiredImageMaxSize' | translate }}</p>
     </section>
 
+    <!-- Variants: characteristics (Hajm, Quvvat, Rang...) -> one product per combination -->
     <section class="space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="font-semibold text-gray-900 dark:text-white">{{ 'products.variants' | translate }}</h2>
-          <p class="text-sm text-gray-500">{{ 'products.baseVariantHint' | translate }}</p>
-        </div>
+      <div>
+        <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+          <mat-icon class="text-orange-500">tune</mat-icon>{{ 'products.variants' | translate }}
+        </h2>
+        <p class="text-sm text-gray-500">{{ 'products.variantsIntro' | translate }}</p>
+      </div>
+
+      <!-- 1. Characteristics -->
+      @for (axis of axes; track $index; let j = $index) {
+      <div class="grid grid-cols-[1fr_auto] gap-x-2 sm:grid-cols-[minmax(0,14rem)_1fr_auto] items-start">
+        <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.attributeName' | translate }}</mat-label>
+          <input
+            matInput
+            [(ngModel)]="axis.name"
+            [errorStateMatcher]="fields.matcher('axis' + j)"
+            [name]="'axisName' + j"
+            [matAutocomplete]="axisAuto"
+          />
+          <mat-autocomplete #axisAuto="matAutocomplete">
+            @for (preset of presetOptions(axis.name, j); track preset.name) {
+            <mat-option [value]="preset.name">{{ preset.name }}</mat-option>
+            }
+          </mat-autocomplete>
+          <mat-error>{{ fields.message('axis' + j) | translate }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full min-w-0 order-3 col-span-2 sm:order-none sm:col-span-1" subscriptSizing="dynamic">
+          <mat-label>{{ 'products.attributeValues' | translate }}</mat-label>
+          <input matInput [(ngModel)]="axis.valuesInput" [name]="'axisValues' + j" [placeholder]="axisExamples(axis.name)" />
+          <mat-hint>{{ 'products.attributeValuesHint' | translate }}</mat-hint>
+        </mat-form-field>
+        <button
+          mat-icon-button
+          type="button"
+          class="mt-2"
+          [attr.aria-label]="'common.delete' | translate"
+          [matTooltip]="'common.delete' | translate"
+          (click)="removeAxis(j)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      }
+
+      @if (axes.length < maxAxes) {
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="mr-1 text-sm text-gray-500">{{ 'products.addAttribute' | translate }}:</span>
+        @for (preset of unusedPresets(); track preset.name) {
+        <button
+          type="button"
+          class="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-700 hover:border-orange-400 hover:bg-orange-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-orange-900/30"
+          (click)="addAxis(preset.name)"
+        >+ {{ preset.name }}</button>
+        }
+        <button
+          type="button"
+          class="rounded-full border border-dashed border-gray-400 px-2.5 py-0.5 text-xs text-gray-600 hover:border-orange-400 dark:text-gray-300"
+          (click)="addAxis()"
+        >+ {{ 'products.customAttribute' | translate }}</button>
+      </div>
+      }
+
+      @if (axes.length > 0) {
+      <div class="flex flex-wrap gap-2">
+        <button mat-flat-button color="primary" type="button" (click)="generateVariants()">
+          <mat-icon>auto_awesome</mat-icon>{{ 'products.generateVariants' | translate }}
+        </button>
         <button mat-stroked-button type="button" (click)="addVariant()" [disabled]="variants.length >= 49">
           <mat-icon>add</mat-icon>{{ 'products.addVariant' | translate }}
         </button>
       </div>
 
+      <!-- 2. Values of the main product (the fields above are its code, price and stock) -->
+      <div class="rounded-lg border border-orange-200 bg-orange-50/60 p-3 dark:border-orange-900/50 dark:bg-orange-900/10">
+        <p class="mb-2 text-sm font-medium text-gray-800 dark:text-gray-100">
+          {{ 'products.baseVariant' | translate }}
+          <span class="font-normal text-gray-500">— {{ 'products.baseVariantNote' | translate }}</span>
+        </p>
+        <div class="grid grid-cols-1 gap-x-3 sm:grid-cols-3">
+          @for (axis of axes; track $index; let j = $index) {
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ axis.name || ('products.attributeName' | translate) }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="baseValues[j]"
+              [errorStateMatcher]="fields.matcher('base.a' + j)"
+              [name]="'baseValue' + j"
+              [placeholder]="axisExamples(axis.name)"
+            />
+            <mat-error>{{ fields.message('base.a' + j) | translate }}</mat-error>
+          </mat-form-field>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- 3. Other variants -->
       @for (variant of variants; track $index; let i = $index) {
-      <div class="grid grid-cols-1 gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-700/40 sm:grid-cols-2 xl:grid-cols-4">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'products.sku' | translate }}</mat-label>
-          <input matInput [(ngModel)]="variant.sku" [name]="'variantSku' + i" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'form.barcode' | translate }}</mat-label>
-          <input matInput [(ngModel)]="variant.barcode" [name]="'variantBarcode' + i" (keydown.enter)="$event.preventDefault()" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'products.color' | translate }}</mat-label>
-          <input matInput [(ngModel)]="variant.color" [name]="'variantColor' + i" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'products.size' | translate }}</mat-label>
-          <input matInput [(ngModel)]="variant.size" [name]="'variantSize' + i" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'form.price' | translate }}</mat-label>
-          <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.price" [name]="'variantPrice' + i" />
-        </mat-form-field>
-        @if (canSeeCost()) {
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'form.cost' | translate }}</mat-label>
-          <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.cost" [name]="'variantCost' + i" />
-        </mat-form-field>
-        }
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>{{ 'products.quantity' | translate }}</mat-label>
-          <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.quantity" [name]="'variantQuantity' + i" />
-        </mat-form-field>
-        <label class="flex flex-col justify-center gap-1 text-sm text-gray-600 dark:text-gray-300">
-          {{ 'products.variantImage' | translate }}
-          <input type="file" accept="image/*" (change)="selectVariantImage(i, $event)" [disabled]="submitting()" />
-        </label>
-        @if (variant.imagePreview; as preview) {
-        <img [src]="preview" [alt]="variant.color + ' ' + variant.size" class="h-16 w-16 rounded object-cover" />
-        }
-        <div class="flex items-center">
-          <button mat-button color="warn" type="button" (click)="removeVariant(i)">
-            <mat-icon>delete</mat-icon>{{ 'common.delete' | translate }}
+      <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-700/40">
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
+            {{ 'products.variant' | translate }} {{ i + 2 }}
+            @if (rowLabel(variant.values); as label) { <span class="font-normal text-gray-500">— {{ label }}</span> }
+          </p>
+          <button
+            mat-icon-button
+            type="button"
+            [attr.aria-label]="'common.delete' | translate"
+            [matTooltip]="'common.delete' | translate"
+            (click)="removeVariant(i)"
+          >
+            <mat-icon>delete</mat-icon>
           </button>
+        </div>
+        <div class="grid grid-cols-1 gap-x-3 sm:grid-cols-2 xl:grid-cols-3">
+          @for (axis of axes; track $index; let j = $index) {
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ axis.name || ('products.attributeName' | translate) }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="variant.values[j]"
+              [errorStateMatcher]="fields.matcher('v' + i + '.a' + j)"
+              [name]="'variantValue' + i + '_' + j"
+              [placeholder]="axisExamples(axis.name)"
+            />
+            <mat-error>{{ fields.message('v' + i + '.a' + j) | translate }}</mat-error>
+          </mat-form-field>
+          }
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'products.sku' | translate }}</mat-label>
+            <input matInput [(ngModel)]="variant.sku" [errorStateMatcher]="fields.matcher('v' + i + '.sku')" [name]="'variantSku' + i" />
+            <mat-error>{{ fields.message('v' + i + '.sku') | translate }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'form.barcode' | translate }}</mat-label>
+            <input matInput [(ngModel)]="variant.barcode" [errorStateMatcher]="fields.matcher('v' + i + '.barcode')" [name]="'variantBarcode' + i" inputmode="numeric" (keydown.enter)="$event.preventDefault()" />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [attr.aria-label]="'products.generateBarcode' | translate"
+              [matTooltip]="'products.generateBarcode' | translate"
+              [disabled]="generating()"
+              (click)="generateBarcode(i)"
+            >
+              <mat-icon>auto_awesome</mat-icon>
+            </button>
+            <mat-error>{{ fields.message('v' + i + '.barcode') | translate }}</mat-error>
+          </mat-form-field>
+          @if (canSeeCost()) {
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'products.costPrice' | translate }}</mat-label>
+            <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.cost" [errorStateMatcher]="fields.matcher('v' + i + '.cost')" [name]="'variantCost' + i" required />
+            <mat-error>{{ fields.message('v' + i + '.cost') | translate }}</mat-error>
+          </mat-form-field>
+          }
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'products.sellingPrice' | translate }}</mat-label>
+            <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.price" [errorStateMatcher]="fields.matcher('v' + i + '.price')" [name]="'variantPrice' + i" required />
+            @if (canSeeCost()) {
+            @if (margin(variant.cost, variant.price); as m) {
+            <mat-hint [class.text-red-600]="m.belowCost">
+              {{ (m.belowCost ? 'products.belowCost' : 'products.profit') | translate }}: {{ formatNumber(m.profit) }} ({{ m.percent }}%)
+            </mat-hint>
+            }
+            }
+            <mat-error>{{ fields.message('v' + i + '.price') | translate }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
+            <mat-label>{{ 'products.quantity' | translate }}</mat-label>
+            <input matInput type="number" min="0" step="0.01" [(ngModel)]="variant.quantity" [errorStateMatcher]="fields.matcher('v' + i + '.quantity')" [name]="'variantQuantity' + i" />
+            <mat-error>{{ fields.message('v' + i + '.quantity') | translate }}</mat-error>
+          </mat-form-field>
+          <div class="flex items-center gap-3 py-2">
+            <label class="flex flex-col gap-1 text-sm text-gray-600 dark:text-gray-300">
+              {{ 'products.variantImage' | translate }}
+              <input type="file" accept="image/*" (change)="selectVariantImage(i, $event)" [disabled]="submitting()" />
+            </label>
+            @if (variant.imagePreview; as preview) {
+            <img [src]="preview" [alt]="rowLabel(variant.values)" class="h-14 w-14 rounded object-cover" />
+            }
+          </div>
         </div>
       </div>
       }

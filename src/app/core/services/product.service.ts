@@ -18,6 +18,7 @@ import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { TenantService } from './tenant.service';
+import { ProductAttribute } from '../utils/product-variants';
 
 export interface Product {
   id: string;
@@ -38,6 +39,12 @@ export interface Product {
    *  `normalizeForSearch()`'s Latin/Cyrillic script matching, this covers genuinely
    *  different words with the same meaning, which has no deterministic mapping. */
   searchKeywords?: string[];
+  /** MXIK (IKPU) — 17-digit code from the tax committee classifier (tasnif.soliq.uz).
+   *  null until the store fills it in; needed once fiscal/tax integration arrives. */
+  mxikCode?: string | null;
+  /** What tells this variant apart from the others in its family, e.g. Hajm = 80 L.
+   *  `color`/`size` below are kept in sync for "Rang"/"O'lcham" (older screens, Excel import). */
+  attributes?: ProductAttribute[];
   minQuantity?: number;
   categoryId: string;
   description?: string;

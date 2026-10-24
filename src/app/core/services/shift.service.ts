@@ -163,7 +163,10 @@ export class ShiftService {
 
   getShiftSales(shiftId: string): Observable<Sale[]> {
     if (!shiftId) return of([]);
-    const salesQuery = tenantQuery(this.firestore, 'sales', requireTenantId(this.authService), where('shiftId', '==', shiftId));
+    const salesQuery = tenantQuery(
+      this.firestore, 'sales', requireTenantId(this.authService),
+      where('shiftId', '==', shiftId), ...this.salesService.ownSalesOnly()
+    );
     return fromCollectionQuery<Sale>(salesQuery);
   }
 }

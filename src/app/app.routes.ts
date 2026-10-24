@@ -17,7 +17,7 @@ import { SaleDetailComponent } from './sales/pages/sale-detail/sale-detail.compo
 import { ReceiptComponent } from './sales/pages/receipt/receipt.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 import { onboardingGuard, storeUserGuard, superAdminGuard } from './core/guards/platform.guard';
 import { UserListComponent } from './users/pages/user-list/user-list.component';
 import { CategoryListComponent } from './products/pages/category-list/category-list.component';
@@ -93,34 +93,35 @@ export const routes: Routes = [
     component: LayoutComponent,
     canActivate: [authGuard, storeUserGuard],
     children: [
-      { path: 'dashboard', component: DashboardComponent, canActivate: [onboardingGuard] },
+      // Access per role: see core/auth/permissions.ts (and firestore.rules for the server side).
+      { path: 'dashboard', component: DashboardComponent, canActivate: [onboardingGuard, permissionGuard('reports.view')] },
       {
         path: 'onboarding',
         loadComponent: () => import('./onboarding/onboarding.component').then((m) => m.OnboardingComponent),
-        canActivate: [roleGuard('admin')]
+        canActivate: [permissionGuard('settings.manage')]
       },
       {
         path: 'products',
         children: [
-          { path: 'list', component: ProductListComponent },
-          { path: 'create', component: ProductCreateComponent },
-          { path: 'edit/:id', component: ProductEditComponent },
+          { path: 'list', component: ProductListComponent, canActivate: [permissionGuard('products.view')] },
+          { path: 'create', component: ProductCreateComponent, canActivate: [permissionGuard('products.manage')] },
+          { path: 'edit/:id', component: ProductEditComponent, canActivate: [permissionGuard('products.manage')] },
           {
             path: 'import',
             loadComponent: () =>
               import('./products/pages/product-import/product-import.component').then((m) => m.ProductImportComponent),
-            canActivate: [roleGuard('admin', 'manager')]
+            canActivate: [permissionGuard('products.manage')]
           },
           {
             path: 'categories',
             component: CategoryListComponent,
-            canActivate: [roleGuard('admin', 'manager')]
+            canActivate: [permissionGuard('products.manage')]
           }
         ]
       },
       {
         path: 'stock',
-        canActivate: [roleGuard('admin', 'manager')],
+        canActivate: [permissionGuard('stock.manage')],
         children: [
           { path: 'in', component: StockInComponent },
           { path: 'out', component: StockOutComponent },
@@ -128,9 +129,10 @@ export const routes: Routes = [
           { path: 'history', component: StockHistoryComponent }
         ]
       },
-      { path: 'pos', component: PosComponent },
+      { path: 'pos', component: PosComponent, canActivate: [permissionGuard('pos.sell')] },
       {
         path: 'debts',
+        canActivate: [permissionGuard('debts.manage')],
         children: [
           { path: 'list', component: DebtListComponent },
           { path: 'create', component: DebtCreateComponent },
@@ -139,6 +141,8 @@ export const routes: Routes = [
       },
       {
         path: 'sales',
+        // Cashiers see only their own sales: SalesService filters, firestore.rules enforces.
+        canActivate: [permissionGuard('sales.viewOwn')],
         children: [
           { path: 'history', component: SalesHistoryComponent },
           { path: ':id', component: SaleDetailComponent }
@@ -146,10 +150,12 @@ export const routes: Routes = [
       },
       {
         path: 'statistics',
-        loadComponent: () => import('./statistics/statistics.component').then((m) => m.StatisticsComponent)
+        loadComponent: () => import('./statistics/statistics.component').then((m) => m.StatisticsComponent),
+        canActivate: [permissionGuard('reports.view')]
       },
       {
         path: 'customers',
+        canActivate: [permissionGuard('customers.manage')],
         children: [
           { path: 'list', component: CustomerListComponent },
           { path: 'create', component: CustomerCreateComponent },
@@ -159,7 +165,7 @@ export const routes: Routes = [
       },
       {
         path: 'suppliers',
-        canActivate: [roleGuard('admin', 'manager')],
+        canActivate: [permissionGuard('suppliers.manage')],
         children: [
           { path: 'list', component: SupplierListComponent },
           { path: 'create', component: SupplierCreateComponent },
@@ -169,21 +175,22 @@ export const routes: Routes = [
       },
       {
         path: 'shifts',
+        canActivate: [permissionGuard('shifts.own')],
         children: [
           { path: 'open', component: ShiftOpenComponent },
           { path: 'close/:id', component: ShiftCloseComponent },
           { path: 'history', component: ShiftHistoryComponent }
         ]
       },
-      { path: 'users', component: UserListComponent, canActivate: [roleGuard('admin')] },
-      { path: 'settings', component: SettingsPageComponent, canActivate: [roleGuard('admin')] },
+      { path: 'users', component: UserListComponent, canActivate: [permissionGuard('users.manage')] },
+      { path: 'settings', component: SettingsPageComponent, canActivate: [permissionGuard('settings.manage')] },
       {
         path: 'settings/subscription',
         loadComponent: () =>
           import('./settings/pages/subscription/subscription-page.component').then((m) => m.SubscriptionPageComponent),
-        canActivate: [roleGuard('admin')]
+        canActivate: [permissionGuard('subscription.manage')]
       },
-      { path: 'audit-log', component: AuditLogListComponent, canActivate: [roleGuard('admin', 'manager')] }
+      { path: 'audit-log', component: AuditLogListComponent, canActivate: [permissionGuard('auditLog.view')] }
     ]
   },
   { path: '**', redirectTo: '/dashboard' }

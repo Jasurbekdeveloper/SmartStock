@@ -10,17 +10,27 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialog } from '@angular/material/dialog';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { roleCan } from '../../../core/auth/permissions';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
 import { formatAltUnitsForInput, parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
 import { StorageService } from '../../../core/services/storage.service';
 import { firstValueFrom } from 'rxjs';
-import { hasDuplicateProductIdentifiers } from '../../../core/utils/product-identifiers';
+import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
+import { validateAttributeRows, validateProductForm } from '../../../core/utils/product-form-validation';
+import {
+  legacyColorSize, MAX_VARIANT_AXES, presetExamples, ProductAttribute, productAttributes, VARIANT_ATTRIBUTE_PRESETS
+} from '../../../core/utils/product-variants';
+import { FieldErrorState } from '../../../shared/forms/field-error-state';
+import { mergeKeywordsInput, parseKeywordsInput, suggestSearchKeywords } from '../../../core/utils/search-keywords';
+import { priceMargin } from '../../../core/utils/price-margin';
+import { formatNumber } from '../../../core/utils/format-number';
 
 @Component({
   selector: 'app-product-edit',
@@ -36,7 +46,8 @@ import { hasDuplicateProductIdentifiers } from '../../../core/utils/product-iden
     MatInputModule,
     MatSelectModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatAutocompleteModule
   ],
   templateUrl: './product-edit.component.html',
   styleUrl: './product-edit.component.css'
@@ -61,7 +72,9 @@ export class ProductEditComponent implements OnInit, OnDestroy {
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   /** Cost price is purchasing/margin data — cashiers only need the selling price. */
-  canSeeCost = computed(() => this.currentUser()?.role !== 'cashier');
+  canSeeCost = computed(() => roleCan(this.currentUser()?.role, 'products.viewCost'));
+  readonly margin = priceMargin;
+  readonly formatNumber = formatNumber;
 
   submitting = signal(false);
   errorKey = signal<string | null>(null);
@@ -77,6 +90,69 @@ export class ProductEditComponent implements OnInit, OnDestroy {
    *  split/trimmed back at save time. A signal (not a plain field) for the same
    *  zoneless reason as `altUnitsInput` above. */
   searchKeywordsInput = signal('');
+  keywordList = computed(() => parseKeywordsInput(this.searchKeywordsInput()));
+
+  readonly mxikInvalid = (code: string) => !!code.trim() && !isValidMxikCode(code);
+  generating = signal(false);
+
+  /** Characteristics of this variant (Hajm = 80 L...), edited as name/value rows.
+   *  Older products get theirs from color/size (see productAttributes). */
+  attributeRows = signal<ProductAttribute[]>([]);
+  readonly maxAxes = MAX_VARIANT_AXES;
+  readonly axisExamples = presetExamples;
+
+  presetOptions(typed: string, index: number) {
+    const used = new Set(this.attributeRows().filter((_, j) => j !== index).map((a) => a.name.trim().toLowerCase()));
+    const query = typed.trim().toLowerCase();
+    return VARIANT_ATTRIBUTE_PRESETS.filter((p) => !used.has(p.name.toLowerCase()) && p.name.toLowerCase().includes(query));
+  }
+
+  addAttribute(): void {
+    if (this.attributeRows().length < MAX_VARIANT_AXES) this.attributeRows.update((rows) => [...rows, { name: '', value: '' }]);
+  }
+
+  removeAttribute(index: number): void {
+    this.attributeRows.update((rows) => rows.filter((_, j) => j !== index));
+  }
+
+  /** SKUs/barcodes of the store's other products, loaded on submit for the duplicate check. */
+  private takenIds = signal<string[]>([]);
+  /** Which field is wrong, so it can be marked red (see FieldErrorState). */
+  readonly fields = new FieldErrorState(() => {
+    const product = this.product();
+    return product
+      ? {
+          ...validateProductForm(product, [], { requireCost: this.canSeeCost(), taken: this.takenIds() }),
+          ...validateAttributeRows(this.attributeRows())
+        }
+      : {};
+  });
+
+  /** Adds the name's suggestions (other script + synonyms) to the current keywords. */
+  addSuggestedKeywords(): void {
+    const name = this.product()?.name ?? '';
+    this.searchKeywordsInput.update((input) => mergeKeywordsInput(input, suggestSearchKeywords(name)));
+  }
+
+  removeKeyword(keyword: string): void {
+    this.searchKeywordsInput.set(this.keywordList().filter((k) => k !== keyword).join(', '));
+  }
+
+  /** Fills an in-store EAN-13 for goods without a barcode, unique against the catalog. */
+  async generateBarcode(): Promise<void> {
+    if (!this.product()) return;
+    this.generating.set(true);
+    try {
+      const existing = await firstValueFrom(this.productService.getProducts());
+      const code = generateStoreBarcode(existing.flatMap((p) => [p.barcode, p.sku]));
+      this.product.update((p) => (p ? { ...p, barcode: code } : p));
+    } catch (err) {
+      console.error('Generate barcode error:', err);
+      this.errorKey.set('messages.error');
+    } finally {
+      this.generating.set(false);
+    }
+  }
   imageFile: File | null = null;
   imagePreview = signal<string | null>(null);
 
@@ -108,6 +184,7 @@ export class ProductEditComponent implements OnInit, OnDestroy {
           this.originalProduct.set(product ? { ...product } : null);
           this.altUnitsInput.set(formatAltUnitsForInput(product?.altUnits));
           this.searchKeywordsInput.set(product?.searchKeywords?.join(', ') ?? '');
+          this.attributeRows.set(product ? productAttributes(product).map((a) => ({ ...a })) : []);
         },
         error: (err) => {
           console.error('Load product error:', err);
@@ -139,9 +216,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     const product = this.product();
     if (!product) return;
 
-    if (!product.name.trim() || !product.sku?.trim() || !Number.isFinite(product.price) || product.price < 0 ||
-      !Number.isFinite(product.quantity) || product.quantity < 0) {
-      this.errorKey.set('products.invalidProduct');
+    if (!this.fields.check()) {
+      this.errorKey.set('products.fixHighlighted');
       return;
     }
     const before = this.originalProduct();
@@ -150,24 +226,26 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     this.errorKey.set(null);
 
     const altUnits = parseAltUnitsInput(this.altUnitsInput());
-    const searchKeywords = this.searchKeywordsInput()
-      .split(',')
-      .map((k) => k.trim())
-      .filter((k) => k.length > 0);
+    const searchKeywords = parseKeywordsInput(this.searchKeywordsInput());
+    const attributes = this.attributeRows()
+      .map((a) => ({ name: a.name.trim(), value: a.value.trim() }))
+      .filter((a) => a.name && a.value);
     let payload: Product = {
       ...product,
+      attributes: attributes.length > 0 ? attributes : undefined,
+      ...legacyColorSize(attributes),
       altUnits: altUnits.length > 0 ? altUnits : undefined,
-      searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined
+      searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined,
+      mxikCode: product.mxikCode?.trim() || null
     };
 
     try {
       const existing = await firstValueFrom(this.productService.getProducts());
-      const duplicate = hasDuplicateProductIdentifiers([
-        ...existing.filter((item) => item.id !== product.id),
-        payload
-      ]);
-      if (duplicate) {
-        this.errorKey.set('products.duplicateBarcode');
+      this.takenIds.set(existing
+        .filter((item) => item.id !== product.id)
+        .flatMap((item) => [item.barcode, item.sku].filter((v): v is string => !!v)));
+      if (!this.fields.check()) {
+        this.errorKey.set('products.fixHighlighted');
         this.submitting.set(false);
         return;
       }

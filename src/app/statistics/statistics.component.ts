@@ -22,6 +22,7 @@ import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { exportReportsToExcel, exportToExcel } from '../core/utils/excel-export';
 import { Product, ProductService } from '../core/services/product.service';
+import { productAttributes } from '../core/utils/product-variants';
 
 interface MonthlyReportRow {
   month: string;
@@ -443,8 +444,7 @@ export class StatisticsComponent {
         rows: this.products().map((product) => ({
           [t('products.name')]: product.name,
           [t('products.sku')]: product.sku ?? '',
-          [t('products.color')]: product.color ?? '',
-          [t('products.size')]: product.size ?? '',
+          [t('products.attributes')]: productAttributes(product).map((a) => a.name + ': ' + a.value).join('; '),
           [t('form.barcode')]: product.barcode,
           [t('products.quantity')]: product.quantity,
           [t('products.unit')]: t(`units.${product.unit}`),

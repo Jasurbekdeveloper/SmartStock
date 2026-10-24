@@ -313,6 +313,24 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "sales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "cashierId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

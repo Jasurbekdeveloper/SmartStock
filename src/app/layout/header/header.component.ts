@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ThemeService } from '../../core/services/theme.service';
 import { Language, TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
+import { roleCan } from '../../core/auth/permissions';
 import { SidebarStateService } from '../sidebar/sidebar-state.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -30,7 +31,7 @@ export class HeaderComponent {
   private dialog = inject(MatDialog);
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
-  isAdmin = computed(() => this.currentUser()?.role === 'admin');
+  canManageSubscription = computed(() => roleCan(this.currentUser()?.role, 'subscription.manage'));
   userName = computed(() => this.currentUser()?.displayName || this.currentUser()?.email || '—');
   roleKey = computed(() => {
     const role = this.currentUser()?.role ?? 'cashier';

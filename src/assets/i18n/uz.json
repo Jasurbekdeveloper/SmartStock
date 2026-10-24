@@ -106,7 +106,47 @@
       "updatedCount": "Yangilandi",
       "failedCount": "Xato",
       "failedRows": "Xato qatorlar"
-    }
+    },
+    "costPrice": "Tannarx (qanchadan tushgan)",
+    "sellingPrice": "Sotish narxi",
+    "profit": "Foyda",
+    "belowCost": "Sotish narxi tannarxdan past — zarariga sotiladi",
+    "pricesRequired": "Tannarx va sotish narxini kiriting (0 dan katta bo'lsin).",
+    "sectionBasic": "Asosiy ma'lumot",
+    "sectionCodes": "Kodlar",
+    "sectionPrices": "Narxlar",
+    "sectionStock": "Ombor",
+    "keywordsAuto": "Nomdan kalit so'zlar qo'shish",
+    "keywordsAutoHint": "Nomdan avtomatik to'ldiriladi: kirillcha yozilishi va sinonimlar. Xohlasangiz o'zgartiring.",
+    "generateBarcode": "Shtrix kod yaratish",
+    "barcodeHint": "Skanerlang, qo'lda kiriting yoki kod bo'lmasa — yarating",
+    "mxikCode": "MXIK (IKPU) kodi",
+    "mxikFind": "tasnif.soliq.uz da qidirish",
+    "mxikHint": "17 xonali kod. Ixtiyoriy — soliq integratsiyasi uchun keyin kerak bo'ladi",
+    "invalidMxik": "MXIK kodi 17 ta raqamdan iborat bo'lishi kerak",
+    "errRequired": "To'ldirilishi shart",
+    "errPrice": "Sotish narxi 0 dan katta bo'lsin",
+    "errCost": "Tannarx 0 dan katta bo'lsin",
+    "errQuantity": "Qoldiq manfiy bo'lmasin",
+    "errColorOrSize": "Rang yoki o'lcham kiriting",
+    "errDuplicate": "Bu kod boshqa mahsulotda bor",
+    "fixHighlighted": "Qizil bilan belgilangan maydonlarni to'g'rilang.",
+    "variantsIntro": "Bir xil tovarning hajm, quvvat, rang kabi xususiyati bilan farq qiladigan turlari (masalan, Ariston 50 L / 80 L). Har biri o'z narxi, qoldig'i va shtrix kodiga ega bo'ladi. Faqat qadoqi farq qilsa (qop / tonna), \"Qo'shimcha o'lchov birliklari\"dan foydalaning.",
+    "attributes": "Xususiyatlar",
+    "attributeName": "Xususiyat",
+    "attributeValue": "Qiymati",
+    "attributeValues": "Qiymatlari",
+    "attributeValuesHint": "Vergul bilan: 50 L, 80 L, 100 L",
+    "addAttribute": "Xususiyat qo'shish",
+    "customAttribute": "Boshqa",
+    "generateVariants": "Variantlarni yaratish",
+    "baseVariant": "Asosiy mahsulot",
+    "baseVariantNote": "yuqoridagi kod, narx va qoldiq shu variantniki",
+    "variant": "Variant",
+    "noAttributeValues": "Variant yaratish uchun xususiyatlarga qiymat kiriting (masalan: 50 L, 80 L).",
+    "errVariantValue": "Kamida bitta xususiyat qiymatini kiriting",
+    "errDuplicateVariant": "Bunday variant allaqachon bor",
+    "errDuplicateAxis": "Bu xususiyat takrorlangan"
   },
   "units": {
     "dona": "dona",
@@ -128,7 +168,9 @@
     "enterName": "Kategoriya nomini kiriting",
     "imageUrl": "Rasm (URL)",
     "noCategoriesFound": "Kategoriyalar topilmadi",
-    "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?"
+    "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?",
+    "variantAttributes": "Variant xususiyatlari",
+    "variantAttributesHint": "Yangi mahsulotda avtomatik taklif qilinadi, masalan: Hajm, Quvvat"
   },
   "pos": {
     "title": "POS Tizimi",
@@ -206,7 +248,7 @@
     "countedQuantity": "Sanalgan miqdor",
     "difference": "Farq",
     "supplier": "Ta'minotchi",
-    "costPrice": "Xarajat narxi",
+    "costPrice": "Tannarx (kelish narxi)",
     "sellingPrice": "Sotish narxi",
     "totalCost": "Jami xarajat",
     "date": "Sana",
@@ -439,7 +481,7 @@
     "enterBarcode": "Shtrix kod kiriting",
     "price": "Narxi",
     "enterPrice": "Narxni kiriting",
-    "cost": "Xarajat narxi",
+    "cost": "Tannarx",
     "enterCost": "Xarajat narxini kiriting",
     "quantity": "Miqdori",
     "enterQuantity": "Miqdorini kiriting",
@@ -480,7 +522,7 @@
     "role": "Roli",
     "roleAdmin": "Administrator",
     "roleCashier": "Kassir",
-    "roleManager": "Ombor mudiri",
+    "roleManager": "Menejer",
     "status": "Holati",
     "active": "Faol",
     "inactive": "Nofaol",
@@ -877,5 +919,72 @@
   "scanner": {
     "hint": "Shtrix-kodni ramka ichiga to'liq sig'diring, 10–20 sm masofada, yorug' joyda tuting. Doimiy ish uchun USB skaner tezroq.",
     "camera": "Kamera"
+  },
+  "permissions": {
+    "title": "Rollar va huquqlar",
+    "intro": "Har bir rol nimani qila olishi. Tizim aynan shu jadval bo'yicha ishlaydi: ruxsat yo'q sahifa menyuda ko'rinmaydi va server ham bunday amalni rad etadi.",
+    "permission": "Huquq",
+    "allowed": "Ruxsat bor",
+    "denied": "Ruxsat yo'q",
+    "roleHint": {
+      "admin": "Do'kon egasi — hammasi",
+      "manager": "Savdo, ombor, hisobotlar",
+      "cashier": "Faqat kassa va o'z savdolari"
+    },
+    "group": {
+      "sales": "Savdo va kassa",
+      "catalog": "Mahsulotlar va ombor",
+      "clients": "Mijozlar va qarzlar",
+      "reports": "Hisobotlar",
+      "admin": "Boshqaruv"
+    },
+    "p": {
+      "pos": {
+        "sell": "Kassada sotish",
+        "discount": "Chegirma berish",
+        "priceOverride": "Sotishda narxni o'zgartirish"
+      },
+      "sales": {
+        "viewOwn": "O'z savdolarini ko'rish va chek chiqarish",
+        "viewAll": "Barcha xodimlarning savdolarini ko'rish",
+        "refund": "Qaytarish (vozvrat) qilish"
+      },
+      "shifts": {
+        "own": "O'z smenasini ochish va yopish",
+        "viewAll": "Barcha smenalarni ko'rish"
+      },
+      "products": {
+        "view": "Mahsulotlar ro'yxatini ko'rish",
+        "manage": "Mahsulot qo'shish, tahrirlash, o'chirish, import",
+        "viewCost": "Tannarx va foydani ko'rish"
+      },
+      "stock": {
+        "manage": "Kirim, chiqim va inventarizatsiya"
+      },
+      "suppliers": {
+        "manage": "Ta'minotchilar"
+      },
+      "customers": {
+        "manage": "Mijozlar bazasini boshqarish"
+      },
+      "debts": {
+        "manage": "Qarzlarni ko'rish va to'lov qabul qilish"
+      },
+      "reports": {
+        "view": "Bosh sahifa va statistika (tushum, foyda)"
+      },
+      "auditLog": {
+        "view": "Amallar jurnali"
+      },
+      "users": {
+        "manage": "Xodimlar va ularning rollari"
+      },
+      "settings": {
+        "manage": "Do'kon sozlamalari"
+      },
+      "subscription": {
+        "manage": "Obuna va to'lov"
+      }
+    }
   }
 }

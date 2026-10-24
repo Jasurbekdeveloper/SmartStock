@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +17,7 @@ import { CategoryService } from '../core/services/category.service';
 import { PaymentMethod, Sale, SaleDebtInput, SaleItem, SalesService } from '../core/services/sales.service';
 import { DebtService } from '../core/services/debt.service';
 import { AuthService } from '../core/services/auth.service';
+import { roleCan } from '../core/auth/permissions';
 import { Shift, ShiftService } from '../core/services/shift.service';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
@@ -30,6 +31,7 @@ import { PosSuccessDialogComponent, PosSuccessDialogData } from './pos-success-d
 import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog.component';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
+import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
 
 /** Browsing without a search shows this many products at most, most-sold first. */
@@ -97,15 +99,16 @@ export class PosComponent implements OnInit {
   @ViewChild('searchInput') private searchInputRef?: ElementRef<HTMLInputElement>;
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
-  /** Recent sales only drive the "most sold first" ordering of categories/products. */
-  sales = toSignal(this.salesService.getSalesInRange(daysAgo(DEFAULT_RANGE_DAYS)), { initialValue: [] });
-  customers = toSignal(this.debtService.getCustomers(), { initialValue: [] });
+  /** Recent sales only drive the "most sold first" ordering of categories/products.
+   *  A failing read (offline, index still building) must never break the till —
+   *  toSignal rethrows errors on read — so it falls back to no ordering. */
+  sales = toSignal(this.salesService.getSalesInRange(daysAgo(DEFAULT_RANGE_DAYS)).pipe(catchError(() => of([]))), { initialValue: [] });
+  customers = toSignal(this.debtService.getCustomers().pipe(catchError(() => of([]))), { initialValue: [] });
   currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
 
   /** Price overrides are a manager-level action; cashiers can still give discounts. */
   canEditPrice = computed(() => {
-    const role = this.currentUser()?.role;
-    return role === 'admin' || role === 'manager';
+    return roleCan(this.currentUser()?.role, 'pos.priceOverride');
   });
 
   /** Soft enforcement only — checkout is never blocked by a missing shift. */
@@ -174,7 +177,7 @@ export class PosComponent implements OnInit {
       return this.products().filter(
         (p) =>
           normalizeForSearch(p.name).includes(normalizedQuery) ||
-          normalizeForSearch(`${p.color ?? ''} ${p.size ?? ''} ${p.sku ?? ''}`).includes(normalizedQuery) ||
+          normalizeForSearch(`${variantLabel(p)} ${p.sku ?? ''}`).includes(normalizedQuery) ||
           p.barcode.includes(barcodeQuery) ||
           (p.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false)
       );
@@ -221,8 +224,10 @@ export class PosComponent implements OnInit {
     this.warnIfOverStock(product.id);
   }
 
+  readonly variantLabel = variantLabel;
+
   productDisplayName(product: Product): string {
-    const variant = [product.color, product.size].filter(Boolean).join(' / ');
+    const variant = variantLabel(product);
     return variant ? `${product.name} — ${variant}` : product.name;
   }
 
@@ -370,8 +375,24 @@ export class PosComponent implements OnInit {
       });
   }
 
+  /** Never leaves the till locked: whatever goes wrong while building or saving the
+   *  sale, `submitting` is reset and the cart stays so the cashier can retry. */
   private completeSale(payment: PosPaymentDialogResult) {
     this.submitting.set(true);
+    try {
+      this.saveSale(payment);
+    } catch (err) {
+      this.saleFailed(err);
+    }
+  }
+
+  private saleFailed(err: unknown) {
+    console.error('Create sale error:', err);
+    this.submitting.set(false);
+    this.toast.error(this.translation.translate('pos.saleError'));
+  }
+
+  private saveSale(payment: PosPaymentDialogResult) {
 
     const cart = this.cart();
     const checkout = calculateCheckout(this.checkoutLines(), payment.discount, {
@@ -433,11 +454,7 @@ export class PosComponent implements OnInit {
         this.clearCart();
         this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt });
       },
-      error: (err) => {
-        console.error('Create sale error:', err);
-        this.submitting.set(false);
-        this.toast.error(this.translation.translate('pos.saleError'));
-      }
+      error: (err) => this.saleFailed(err)
     });
   }
 

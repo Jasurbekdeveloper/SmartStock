@@ -55,7 +55,7 @@ export class SaleDetailComponent {
 
   canReturn = computed(() => {
     const sale = this.sale();
-    if (!sale) return false;
+    if (!sale || !this.authService.can('sales.refund')) return false;
     const returned = this.returnedQty();
     const soldByProduct = new Map<string, number>();
     for (const item of sale.items) soldByProduct.set(item.productId, (soldByProduct.get(item.productId) ?? 0) + item.quantity);

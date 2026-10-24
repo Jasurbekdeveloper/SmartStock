@@ -12,6 +12,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIREBASE_FUNCTIONS, FIRESTORE } from '../firebase/firebase.providers';
 import { fromDocRef } from '../firebase/firestore.utils';
+import { Permission, roleCan } from '../auth/permissions';
 
 /** `superadmin` is the platform operator (no store); the rest belong to one store. */
 export type UserRole = 'superadmin' | 'admin' | 'cashier' | 'manager';
@@ -126,6 +127,11 @@ export class AuthService {
   hasRole(...roles: UserRole[]): boolean {
     const user = this.currentUserSubject.value;
     return !!user && roles.includes(user.role);
+  }
+
+  /** Whether the signed-in user's role grants `permission` (see core/auth/permissions.ts). */
+  can(permission: Permission): boolean {
+    return roleCan(this.currentUserSubject.value?.role, permission);
   }
 
   isSuperAdmin(): boolean {

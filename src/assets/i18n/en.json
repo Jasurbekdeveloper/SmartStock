@@ -106,7 +106,47 @@
       "updatedCount": "Updated",
       "failedCount": "Failed",
       "failedRows": "Failed rows"
-    }
+    },
+    "costPrice": "Cost price (what you paid)",
+    "sellingPrice": "Selling price",
+    "profit": "Profit",
+    "belowCost": "Selling price is below cost — sold at a loss",
+    "pricesRequired": "Enter the cost price and the selling price (greater than 0).",
+    "sectionBasic": "Basic info",
+    "sectionCodes": "Codes",
+    "sectionPrices": "Prices",
+    "sectionStock": "Stock",
+    "keywordsAuto": "Add keywords from the name",
+    "keywordsAutoHint": "Filled automatically from the name: the other-script spelling and synonyms. You can edit it.",
+    "generateBarcode": "Generate barcode",
+    "barcodeHint": "Scan, type it in, or generate one if the item has no barcode",
+    "mxikCode": "MXIK (IKPU) code",
+    "mxikFind": "Search on tasnif.soliq.uz",
+    "mxikHint": "17 digits. Optional — needed later for the tax integration",
+    "invalidMxik": "The MXIK code must be exactly 17 digits",
+    "errRequired": "Required",
+    "errPrice": "Selling price must be greater than 0",
+    "errCost": "Cost price must be greater than 0",
+    "errQuantity": "Stock cannot be negative",
+    "errColorOrSize": "Enter a color or a size",
+    "errDuplicate": "Another product already uses this code",
+    "fixHighlighted": "Fix the fields marked in red.",
+    "variantsIntro": "Kinds of the same item that differ by volume, power, color and so on (e.g. Ariston 50 L / 80 L). Each has its own price, stock and barcode. If only the packaging differs (bag / ton), use \"Alternate units\" instead.",
+    "attributes": "Characteristics",
+    "attributeName": "Characteristic",
+    "attributeValue": "Value",
+    "attributeValues": "Values",
+    "attributeValuesHint": "Comma-separated: 50 L, 80 L, 100 L",
+    "addAttribute": "Add characteristic",
+    "customAttribute": "Other",
+    "generateVariants": "Generate variants",
+    "baseVariant": "Main product",
+    "baseVariantNote": "the code, price and stock above belong to it",
+    "variant": "Variant",
+    "noAttributeValues": "Enter values for the characteristics to generate variants (e.g. 50 L, 80 L).",
+    "errVariantValue": "Enter at least one value",
+    "errDuplicateVariant": "This variant already exists",
+    "errDuplicateAxis": "This characteristic is repeated"
   },
   "units": {
     "dona": "pcs",
@@ -128,7 +168,9 @@
     "enterName": "Enter category name",
     "imageUrl": "Image (URL)",
     "noCategoriesFound": "No categories found",
-    "confirmDelete": "Are you sure you want to delete this category?"
+    "confirmDelete": "Are you sure you want to delete this category?",
+    "variantAttributes": "Variant characteristics",
+    "variantAttributesHint": "Suggested for new products, e.g. Volume, Power"
   },
   "pos": {
     "title": "POS System",
@@ -206,7 +248,7 @@
     "countedQuantity": "Counted Quantity",
     "difference": "Difference",
     "supplier": "Supplier",
-    "costPrice": "Cost Price",
+    "costPrice": "Cost price (purchase price)",
     "sellingPrice": "Selling Price",
     "totalCost": "Total Cost",
     "date": "Date",
@@ -439,7 +481,7 @@
     "enterBarcode": "Enter barcode",
     "price": "Price",
     "enterPrice": "Enter price",
-    "cost": "Cost",
+    "cost": "Cost price",
     "enterCost": "Enter cost",
     "quantity": "Quantity",
     "enterQuantity": "Enter quantity",
@@ -480,7 +522,7 @@
     "role": "Role",
     "roleAdmin": "Admin",
     "roleCashier": "Cashier",
-    "roleManager": "Warehouse Manager",
+    "roleManager": "Manager",
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
@@ -877,5 +919,72 @@
   "scanner": {
     "hint": "Fit the whole barcode inside the frame, 10–20 cm away, in good light. For everyday use a USB scanner is faster.",
     "camera": "Camera"
+  },
+  "permissions": {
+    "title": "Roles and permissions",
+    "intro": "What each role can do. The app follows exactly this table: pages a role may not use are hidden from its menu, and the server rejects those actions.",
+    "permission": "Permission",
+    "allowed": "Allowed",
+    "denied": "Not allowed",
+    "roleHint": {
+      "admin": "Store owner — everything",
+      "manager": "Sales, stock, reports",
+      "cashier": "Till and own sales only"
+    },
+    "group": {
+      "sales": "Sales and till",
+      "catalog": "Products and stock",
+      "clients": "Customers and debts",
+      "reports": "Reports",
+      "admin": "Administration"
+    },
+    "p": {
+      "pos": {
+        "sell": "Sell at the till",
+        "discount": "Give discounts",
+        "priceOverride": "Change the price at sale"
+      },
+      "sales": {
+        "viewOwn": "Own sales and receipt reprint",
+        "viewAll": "All staff's sales",
+        "refund": "Make returns (refunds)"
+      },
+      "shifts": {
+        "own": "Open and close own shift",
+        "viewAll": "All shifts"
+      },
+      "products": {
+        "view": "Product list",
+        "manage": "Add, edit, delete, import products",
+        "viewCost": "Cost price and profit"
+      },
+      "stock": {
+        "manage": "Stock in, out and counts"
+      },
+      "suppliers": {
+        "manage": "Suppliers"
+      },
+      "customers": {
+        "manage": "Customer base"
+      },
+      "debts": {
+        "manage": "Debts and collecting payments"
+      },
+      "reports": {
+        "view": "Dashboard and statistics (revenue, profit)"
+      },
+      "auditLog": {
+        "view": "Activity log"
+      },
+      "users": {
+        "manage": "Staff and their roles"
+      },
+      "settings": {
+        "manage": "Store settings"
+      },
+      "subscription": {
+        "manage": "Subscription and billing"
+      }
+    }
   }
 }

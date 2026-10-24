@@ -21,6 +21,12 @@
           <input matInput formControlName="name" [placeholder]="'categories.enterName' | translate" />
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="!flex-1 !min-w-[14rem]">
+          <mat-label>{{ 'categories.variantAttributes' | translate }}</mat-label>
+          <input matInput formControlName="variantAttributes" placeholder="Hajm, Quvvat" />
+          <mat-hint>{{ 'categories.variantAttributesHint' | translate }}</mat-hint>
+        </mat-form-field>
+
         <div class="flex items-center gap-3">
           @if (createImagePreviewUrl()) {
           <img [src]="createImagePreviewUrl()" alt="" class="w-12 h-12 rounded object-cover" />
@@ -56,6 +62,7 @@
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.imageUrl' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.name' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.variantAttributes' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
         </tr>
       </thead>
@@ -83,6 +90,11 @@
               <input matInput [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
             </mat-form-field>
           </td>
+          <td class="px-4 py-3">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+              <input matInput [ngModel]="editAttributes()" (ngModelChange)="editAttributes.set($event)" placeholder="Hajm, Quvvat" />
+            </mat-form-field>
+          </td>
           <td class="px-4 py-3 whitespace-nowrap">
             <button mat-icon-button color="primary" [matTooltip]="'common.save' | translate" (click)="saveEdit(category.id)" [disabled]="savingEdit()">
               <mat-icon>check</mat-icon>
@@ -100,6 +112,7 @@
             }
           </td>
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ category.name }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{{ category.variantAttributes?.join(', ') || '—' }}</td>
           <td class="px-4 py-3 whitespace-nowrap">
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="startEdit(category)">
               <mat-icon>edit</mat-icon>

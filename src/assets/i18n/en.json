@@ -570,7 +570,16 @@
     "adminProvisionedOnly": "Only an administrator can create new accounts.",
     "backToSite": "Back to website",
     "storeSuspended": "This store is suspended. Contact the MarketHisob administrator.",
-    "inactive": "Your account is disabled. Contact your store administrator."
+    "inactive": "Your account is disabled. Contact your store administrator.",
+    "fillFields": "Enter your email and password.",
+    "noProfile": "No profile was found for this account. Contact your store administrator.",
+    "userDisabled": "This account has been disabled.",
+    "tooManyRequests": "Too many attempts. Try again in a few minutes.",
+    "network": "No internet connection or the server didn't respond. Check your connection and try again.",
+    "permissionDenied": "No permission to read the account data.",
+    "unknownError": "An unexpected error occurred while signing in.",
+    "contactAdmin": "If the problem persists, contact your store administrator.",
+    "errorCode": "Error code"
   },
   "users": {
     "title": "User Management",
@@ -896,6 +905,7 @@
       "sectionsTitle": "Sections",
       "sectionsHint": "A disabled section is hidden on the page and in the menu.",
       "sections": {
+        "modules": "Modules (tabs)",
         "features": "Features",
         "how": "How it works",
         "why": "Why us",
@@ -911,6 +921,7 @@
         "hero": "Hero",
         "mock": "Checkout picture",
         "ps": "Problem / solution",
+        "modules": "Modules",
         "features": "Features",
         "how": "How it works",
         "why": "Why us",
@@ -926,6 +937,7 @@
         "strip": "Short benefits (under the hero)",
         "bad": "“Today” problems",
         "good": "“With MarketHisob” solutions",
+        "modules": "Modules: title, first line is the description, each next line a bullet",
         "features": "Feature cards",
         "steps": "Steps",
         "why": "Benefits",

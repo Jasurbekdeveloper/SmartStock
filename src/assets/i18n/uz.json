@@ -570,7 +570,16 @@
     "adminProvisionedOnly": "Yangi akkauntlarni faqat administrator yaratadi.",
     "backToSite": "Saytga qaytish",
     "storeSuspended": "Do'kon to'xtatilgan. MarketHisob administratori bilan bog'laning.",
-    "inactive": "Akkauntingiz o'chirilgan. Do'kon administratoriga murojaat qiling."
+    "inactive": "Akkauntingiz o'chirilgan. Do'kon administratoriga murojaat qiling.",
+    "fillFields": "Elektron pochta va parolni kiriting.",
+    "noProfile": "Bu akkaunt uchun profil topilmadi. Do'kon administratoriga murojaat qiling.",
+    "userDisabled": "Bu akkaunt bloklangan.",
+    "tooManyRequests": "Juda ko'p urinish bo'ldi. Bir necha daqiqadan keyin qayta urinib ko'ring.",
+    "network": "Internet aloqasi yo'q yoki server javob bermadi. Aloqani tekshirib, qayta urinib ko'ring.",
+    "permissionDenied": "Akkaunt ma'lumotlarini o'qishga ruxsat yo'q.",
+    "unknownError": "Kirishda kutilmagan xatolik yuz berdi.",
+    "contactAdmin": "Muammo hal bo'lmasa, do'kon administratoriga murojaat qiling.",
+    "errorCode": "Xato kodi"
   },
   "users": {
     "title": "Foydalanuvchilarni boshqarish",
@@ -896,6 +905,7 @@
       "sectionsTitle": "Bo'limlar",
       "sectionsHint": "O'chirilgan bo'lim saytda ham, menyuda ham ko'rinmaydi.",
       "sections": {
+        "modules": "Modullar (tablar)",
         "features": "Imkoniyatlar",
         "how": "Qanday ishlaydi",
         "why": "Afzalliklar",
@@ -911,6 +921,7 @@
         "hero": "Bosh ekran",
         "mock": "Kassa rasmi",
         "ps": "Muammo / yechim",
+        "modules": "Modullar",
         "features": "Imkoniyatlar",
         "how": "Qanday ishlaydi",
         "why": "Afzalliklar",
@@ -926,6 +937,7 @@
         "strip": "Qisqa afzalliklar (bosh ekran ostida)",
         "bad": "\"Hozir\" muammolari",
         "good": "\"MarketHisob bilan\" yechimlari",
+        "modules": "Modullar: sarlavha, birinchi qator — tavsif, keyingi qatorlar — punktlar",
         "features": "Imkoniyatlar kartalari",
         "steps": "Qadamlar",
         "why": "Afzalliklar",

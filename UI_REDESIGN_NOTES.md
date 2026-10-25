@@ -4,7 +4,8 @@
 - `src/styles.css` — yangi tokenlar ("Ledger"): teal brend, ink sidebar, Onest shrifti, `--surface/--border/--text` semantik ranglar, light/dark.
 - Umumiy klasslar: `.page`, `.page-head`, `.card`, `.form-section`, `.stat`, `.tone-*`, `.badge--*`, `.chip`, `.seg`, `.search-box`, `.data-table`, `.empty-state`, `.dropzone`, `.kbd`.
 - `gray-*` palitrasi tokenlarga moslangan — eski sahifalar ham yangi ranglarni oladi.
-- Material mavzusi (`material-theme.scss`) teal'ga o'tkazildi. `public/logo.svg` yangi rangda (marketing sayti `website/` o'zgartirilmadi).
+- Material mavzusi (`material-theme.scss`) teal'ga o'tkazildi. `public/logo.svg` yangi rangda.
+- Marketing sayti (`website/`) ham shu dizaynga o'tkazildi: yangi "Modullar" bo'limi (`modules` ro'yxati — ikonka maketni tanlaydi; matnning 1-qatori tavsif, keyingilari punktlar), yangi ikonkalar `wallet`, `tag`, `calendar`.
 
 ## Layout
 - Sidebar: guruhlar (Savdo / Katalog va ombor / Moliya / Boshqaruv), joriy sahifa ochiq turadi.

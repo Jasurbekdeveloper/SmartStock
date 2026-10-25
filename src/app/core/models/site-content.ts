@@ -12,8 +12,8 @@ export interface SiteListItem {
   text?: LocalizedText;
 }
 
-export type SiteListName = 'strip' | 'bad' | 'good' | 'features' | 'steps' | 'why' | 'who' | 'faq';
-export type SiteSection = 'features' | 'how' | 'why' | 'who' | 'pricing' | 'faq' | 'contact';
+export type SiteListName = 'strip' | 'bad' | 'good' | 'modules' | 'features' | 'steps' | 'why' | 'who' | 'faq';
+export type SiteSection = 'modules' | 'features' | 'how' | 'why' | 'who' | 'pricing' | 'faq' | 'contact';
 
 /** `siteContent/main` — everything the website shows besides the plans.
  *  Missing or empty values fall back to website/content.json (see website/main.js `merge`). */
@@ -28,13 +28,14 @@ export interface SiteContent {
 
 export const SITE_DEFAULTS = siteDefaults as unknown as SiteContent;
 
-export const SITE_SECTIONS: SiteSection[] = ['features', 'how', 'why', 'who', 'pricing', 'faq', 'contact'];
+export const SITE_SECTIONS: SiteSection[] = ['modules', 'features', 'how', 'why', 'who', 'pricing', 'faq', 'contact'];
 
 /** Editor layout: lists, and whether their items have a second text and an icon. */
 export const SITE_LISTS: { name: SiteListName; hasText: boolean; hasIcon?: boolean }[] = [
   { name: 'strip', hasText: true },
   { name: 'bad', hasText: false },
   { name: 'good', hasText: false },
+  { name: 'modules', hasText: true, hasIcon: true },
   { name: 'features', hasText: true, hasIcon: true },
   { name: 'steps', hasText: true },
   { name: 'why', hasText: true },
@@ -44,7 +45,7 @@ export const SITE_LISTS: { name: SiteListName; hasText: boolean; hasIcon?: boole
 
 /** Must match ICONS in website/main.js. */
 export const FEATURE_ICONS = [
-  'pos', 'stock', 'debt', 'stats', 'shift', 'ret', 'crm', 'users', 'import', 'scan', 'online', 'cloud', 'telegram', 'print', 'star'
+  'pos', 'stock', 'debt', 'stats', 'shift', 'ret', 'crm', 'users', 'import', 'scan', 'online', 'cloud', 'telegram', 'print', 'wallet', 'tag', 'calendar', 'star'
 ];
 
 /** Text keys grouped by their prefix, in page order. */
@@ -54,6 +55,7 @@ export const SITE_TEXT_GROUPS: { id: string; prefixes: string[] }[] = [
   { id: 'hero', prefixes: ['hero.'] },
   { id: 'mock', prefixes: ['mock.'] },
   { id: 'ps', prefixes: ['ps.'] },
+  { id: 'modules', prefixes: ['mod.'] },
   { id: 'features', prefixes: ['f.'] },
   { id: 'how', prefixes: ['how.'] },
   { id: 'why', prefixes: ['why.'] },

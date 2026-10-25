@@ -180,7 +180,8 @@ export class AuthService {
     const profile = snap.data() as Omit<AppUser, 'uid'>;
     if (!profile.active) {
       await signOut(this.auth);
-      throw new Error('INACTIVE');
+      // The role tells the login page whether to send the user to an administrator.
+      throw Object.assign(new Error('INACTIVE'), { role: profile.role });
     }
 
     if (profile.role !== 'superadmin') {
@@ -188,7 +189,7 @@ export class AuthService {
       const status = tenantSnap?.data()?.['status'];
       if (!tenantSnap?.exists() || status === 'suspended' || status === 'cancelled') {
         await signOut(this.auth);
-        throw new Error('TENANT_SUSPENDED');
+        throw Object.assign(new Error('TENANT_SUSPENDED'), { role: profile.role });
       }
     }
 

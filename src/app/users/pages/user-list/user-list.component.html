@@ -1,6 +1,6 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'users.title' | translate }}</h1>
+    <h1 class="page-title">{{ 'users.title' | translate }}</h1>
     <button mat-flat-button color="primary" [disabled]="!canWrite()" (click)="openCreateForm()">
       <mat-icon>add</mat-icon>
       {{ 'users.addEmployee' | translate }}
@@ -122,7 +122,7 @@
   <mat-card>
     <div class="p-4 sm:p-6">
       <h2 class="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
-        <mat-icon class="text-orange-500">admin_panel_settings</mat-icon>{{ 'permissions.title' | translate }}
+        <mat-icon class="text-brand-500">admin_panel_settings</mat-icon>{{ 'permissions.title' | translate }}
       </h2>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'permissions.intro' | translate }}</p>
     </div>

@@ -9,11 +9,11 @@ html {
   height: 100%;
   @include mat.theme((
     color: (
-      primary: mat.$orange-palette,
+      primary: mat.$cyan-palette,
       tertiary: mat.$azure-palette,
       theme-type: light,
     ),
-    typography: (plain-family: Inter, brand-family: Inter),
+    typography: (plain-family: Onest, brand-family: Onest),
     density: 0,
   ));
 }
@@ -24,11 +24,11 @@ html {
 html.dark {
   @include mat.theme((
     color: (
-      primary: mat.$orange-palette,
+      primary: mat.$cyan-palette,
       tertiary: mat.$azure-palette,
       theme-type: dark,
     ),
-    typography: (plain-family: Inter, brand-family: Inter),
+    typography: (plain-family: Onest, brand-family: Onest),
     density: 0,
   ));
 }
@@ -49,22 +49,29 @@ body {
   height: 100%;
 }
 
-// M3's generated orange primary comes out brownish; pin it to the brand orange
-// so Material buttons match the Tailwind `brand-*` accents.
+// Pin Material's primary to the brand teal so Material buttons match the Tailwind `brand-*` accents.
 html {
   @include mat.theme-overrides((
-    primary: #ea580c,
+    primary: #0d8577,
     on-primary: #ffffff,
-    primary-container: #ffedd5,
-    on-primary-container: #7c2d12,
+    primary-container: #d1f6ee,
+    on-primary-container: #032a27,
+    surface: #ffffff,
+    surface-container: #ffffff,
+    surface-container-high: #ffffff,
+    surface-container-low: #f7f9f8,
   ));
 }
 
 html.dark {
   @include mat.theme-overrides((
-    primary: #fb923c,
-    on-primary: #1c0a00,
-    primary-container: #7c2d12,
-    on-primary-container: #ffedd5,
+    primary: #2fbfab,
+    on-primary: #032a27,
+    primary-container: #10554e,
+    on-primary-container: #d1f6ee,
+    surface: #0f1620,
+    surface-container: #0f1620,
+    surface-container-high: #16202c,
+    surface-container-low: #0b1119,
   ));
 }

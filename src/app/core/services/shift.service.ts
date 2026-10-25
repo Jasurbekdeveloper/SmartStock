@@ -17,6 +17,7 @@ import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { Sale, SaleReturn, SalesService, saleCardIn, saleCashIn } from './sales.service';
 import { roundMoney } from '../utils/pos-math';
 import { AuthService } from './auth.service';
+import { CashMovement, CashMovementService } from './cash-movement.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
 export interface Shift {
@@ -35,6 +36,9 @@ export interface Shift {
   cashTotal?: number;
   cardTotal?: number;
   refundTotal?: number;
+  /** Cash put into / taken out of the drawer outside sales (see CashMovementService). */
+  cashInTotal?: number;
+  cashOutTotal?: number;
   notes?: string;
 }
 
@@ -48,11 +52,14 @@ export interface ShiftTotals {
   debtTotal: number;
   refundTotal: number;
   cashRefunds: number;
-  /** Net cash movement in the drawer: cash kept from sales minus cash refunds. */
+  /** Cash added to / removed from the drawer outside sales (float, collection, expenses). */
+  cashIn: number;
+  cashOut: number;
+  /** Net cash movement in the drawer: cash kept from sales − cash refunds + cash in − cash out. */
   cashDrawerDelta: number;
 }
 
-export function computeShiftTotals(sales: Sale[], returns: SaleReturn[]): ShiftTotals {
+export function computeShiftTotals(sales: Sale[], returns: SaleReturn[], movements: CashMovement[] = []): ShiftTotals {
   const sum = <T>(list: T[], pick: (x: T) => number) => roundMoney(list.reduce((s, x) => s + pick(x), 0));
   const cashTotal = sum(sales, saleCashIn);
   const cashRefunds = sum(
@@ -60,6 +67,8 @@ export function computeShiftTotals(sales: Sale[], returns: SaleReturn[]): ShiftT
     (r) => r.refundAmount
   );
   const refundTotal = sum(returns, (r) => r.refundAmount);
+  const cashIn = sum(movements.filter((m) => m.type === 'in'), (m) => m.amount);
+  const cashOut = sum(movements.filter((m) => m.type === 'out'), (m) => m.amount);
   return {
     salesCount: sales.length,
     totalRevenue: roundMoney(sum(sales, (s) => s.total) - refundTotal),
@@ -68,7 +77,9 @@ export function computeShiftTotals(sales: Sale[], returns: SaleReturn[]): ShiftT
     debtTotal: sum(sales, (s) => s.debtAmount ?? 0),
     refundTotal,
     cashRefunds,
-    cashDrawerDelta: roundMoney(cashTotal - cashRefunds)
+    cashIn,
+    cashOut,
+    cashDrawerDelta: roundMoney(cashTotal - cashRefunds + cashIn - cashOut)
   };
 }
 
@@ -79,6 +90,7 @@ export class ShiftService {
   private firestore = inject(FIRESTORE);
   private salesService = inject(SalesService);
   private authService = inject(AuthService);
+  private cashMovements = inject(CashMovementService);
 
   /** Opens a new shift for the given cashier, starting with the cash float they counted into the drawer. */
   openShift(cashierId: string, cashierName: string, startingCash: number): Observable<string> {
@@ -95,7 +107,8 @@ export class ShiftService {
 
   /**
    * Closes the shift: pulls every sale and return linked to it, adds the net cash
-   * drawer movement (cash kept from sales minus cash refunds) to the starting float
+   * drawer movement (cash kept from sales minus cash refunds, plus cash put in, minus
+   * cash taken out) to the starting float
    * to get `expectedCash`, then records the cashier's physical count and the variance
    * between the two (positive = surplus, negative = shortage).
    */
@@ -103,14 +116,15 @@ export class ShiftService {
     return forkJoin({
       shiftSnap: from(getDoc(doc(this.firestore, 'shifts', shiftId))),
       sales: this.getShiftSales(shiftId).pipe(take(1)),
-      returns: this.salesService.getReturnsForShift(shiftId).pipe(take(1))
+      returns: this.salesService.getReturnsForShift(shiftId).pipe(take(1)),
+      movements: this.cashMovements.getForShift(shiftId).pipe(take(1))
     }).pipe(
-      switchMap(({ shiftSnap, sales, returns }) => {
+      switchMap(({ shiftSnap, sales, returns, movements }) => {
         const startingCash = (shiftSnap.data()?.['startingCash'] as number) ?? 0;
-        const totals = computeShiftTotals(sales, returns);
+        const totals = computeShiftTotals(sales, returns, movements);
         const expectedCash = roundMoney(startingCash + totals.cashDrawerDelta);
         const variance = roundMoney(countedCash - expectedCash);
-        const { salesCount, totalRevenue, cashTotal, cardTotal, refundTotal } = totals;
+        const { salesCount, totalRevenue, cashTotal, cardTotal, refundTotal, cashIn, cashOut } = totals;
 
         return from(
           updateDoc(doc(this.firestore, 'shifts', shiftId), {
@@ -123,7 +137,9 @@ export class ShiftService {
             totalRevenue,
             cashTotal,
             cardTotal,
-            refundTotal
+            refundTotal,
+            cashInTotal: cashIn,
+            cashOutTotal: cashOut
           })
         );
       })

@@ -24,6 +24,7 @@ export type Permission =
   | 'customers.manage'
   | 'debts.manage'
   | 'reports.view'
+  | 'finance.manage'
   | 'auditLog.view'
   | 'users.manage'
   | 'settings.manage'
@@ -47,6 +48,7 @@ const MANAGER: readonly Permission[] = [
   'customers.manage',
   'debts.manage',
   'reports.view',
+  'finance.manage',
   'auditLog.view'
 ];
 
@@ -63,7 +65,7 @@ export const PERMISSION_GROUPS: readonly { id: string; permissions: readonly Per
   { id: 'sales', permissions: ['pos.sell', 'pos.discount', 'pos.priceOverride', 'sales.viewOwn', 'sales.viewAll', 'sales.refund', 'shifts.own', 'shifts.viewAll'] },
   { id: 'catalog', permissions: ['products.view', 'products.manage', 'products.viewCost', 'stock.manage', 'suppliers.manage'] },
   { id: 'clients', permissions: ['customers.manage', 'debts.manage'] },
-  { id: 'reports', permissions: ['reports.view', 'auditLog.view'] },
+  { id: 'reports', permissions: ['reports.view', 'finance.manage', 'auditLog.view'] },
   { id: 'admin', permissions: ['users.manage', 'settings.manage', 'subscription.manage'] }
 ];
 

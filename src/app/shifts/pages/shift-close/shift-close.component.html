@@ -1,18 +1,23 @@
-<div class="max-w-2xl mx-auto space-y-6">
-  <h1 class="page-title">{{ 'shifts.closeShift' | translate }}</h1>
+<div class="page page--narrow !max-w-2xl">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">Z-report</p>
+      <h1 class="page-title">{{ 'shifts.closeShift' | translate }}</h1>
+    </div>
+  </div>
 
   @if (!shift()) {
-  <mat-card class="!p-6 text-center text-gray-500 dark:text-gray-400">
+  <mat-card class="!p-6 text-center text-muted">
     {{ 'messages.loading' | translate }}
   </mat-card>
   } @else if (alreadyClosed()) {
-  <mat-card class="!p-6 text-center text-gray-500 dark:text-gray-400">
+  <mat-card class="!p-6 text-center text-muted">
     {{ 'shifts.alreadyClosed' | translate }}
   </mat-card>
   } @else {
   @let t = totals();
   <mat-card class="!p-6">
-    <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">{{ 'shifts.byPaymentMethod' | translate }}</h2>
+    <h2 class="text-lg font-bold mb-4">{{ 'shifts.byPaymentMethod' | translate }}</h2>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
       <div class="kpi-tile">
         <p class="kpi-tile__label">{{ 'pos.cash' | translate }}</p>
@@ -28,11 +33,11 @@
       </div>
       <div class="kpi-tile">
         <p class="kpi-tile__label">{{ 'returns.title' | translate }}</p>
-        <p class="kpi-tile__value text-red-600 dark:text-red-400">−{{ t.refundTotal | currencyDisplay:0 }}</p>
+        <p class="kpi-tile__value text-loss">−{{ t.refundTotal | currencyDisplay:0 }}</p>
       </div>
     </div>
 
-    <div class="space-y-2 mb-6 font-medium text-gray-900 dark:text-white">
+    <div class="space-y-2 mb-6 font-medium">
       <div class="flex justify-between">
         <span>{{ 'shifts.salesCount' | translate }}:</span>
         <span>{{ t.salesCount }}</span>
@@ -55,7 +60,19 @@
         <span>{{ t.cashRefunds | currencyDisplay }}</span>
       </div>
       }
-      <div class="flex justify-between border-t dark:border-gray-700 pt-2 text-lg font-bold">
+      @if (t.cashIn > 0) {
+      <div class="flex justify-between">
+        <span>+ {{ 'shifts.cashIn' | translate }}:</span>
+        <span>{{ t.cashIn | currencyDisplay }}</span>
+      </div>
+      }
+      @if (t.cashOut > 0) {
+      <div class="flex justify-between">
+        <span>− {{ 'shifts.cashOut' | translate }}:</span>
+        <span>{{ t.cashOut | currencyDisplay }}</span>
+      </div>
+      }
+      <div class="flex justify-between border-t pt-2 text-lg font-bold">
         <span>{{ 'shifts.expectedCash' | translate }}:</span>
         <span>{{ expectedCash() | currencyDisplay }}</span>
       </div>
@@ -77,10 +94,10 @@
 
     @if (countedCash() !== null) {
     <div
-      class="p-3 rounded-lg mb-4 font-semibold flex justify-between"
+      class="p-3 rounded-xl mb-4 font-semibold flex justify-between"
       [class]="variance() >= 0
-        ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
-        : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'"
+        ? 'tone-green'
+        : 'tone-red'"
     >
       <span>{{ 'shifts.variance' | translate }} ({{ (variance() >= 0 ? 'shifts.variancePositive' : 'shifts.varianceNegative') | translate }}):</span>
       <span>{{ variance() | currencyDisplay }}</span>

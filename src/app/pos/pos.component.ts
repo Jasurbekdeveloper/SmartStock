@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { combineLatest, defer, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +18,11 @@ import { PaymentMethod, Sale, SaleDebtInput, SaleItem, SalesService } from '../c
 import { DebtService } from '../core/services/debt.service';
 import { AuthService } from '../core/services/auth.service';
 import { roleCan } from '../core/auth/permissions';
-import { Shift, ShiftService } from '../core/services/shift.service';
+import { Shift, ShiftService, computeShiftTotals } from '../core/services/shift.service';
+import { CashMovementService } from '../core/services/cash-movement.service';
+import { CashMovementDialogComponent, CashMovementDialogData } from '../shared/components/cash-movement-dialog/cash-movement-dialog.component';
+import { PriceTier, expiryState, hasWholesale, resolveTier, tierPrice } from '../core/utils/price-tier';
+import { roundMoney } from '../core/utils/pos-math';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
 import { SettingsService } from '../core/services/settings.service';
@@ -36,6 +40,7 @@ import { PRODUCT_UNITS } from '../core/constants/units';
 
 /** Browsing without a search shows this many products at most, most-sold first. */
 const BROWSE_LIMIT = 60;
+const VIEW_MODE_STORAGE_KEY = 'smartstock_pos_view';
 
 @Component({
   selector: 'app-pos',
@@ -72,6 +77,10 @@ export class PosComponent implements OnInit {
   selectedCategoryId = signal<string | null>(null);
   submitting = signal(false);
 
+  /** Ticket-wide price tier; lines of products without a wholesale price stay retail. */
+  priceTier = signal<PriceTier>('retail');
+  viewMode = signal<'grid' | 'list'>(this.loadViewMode());
+
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private salesService = inject(SalesService);
@@ -83,6 +92,7 @@ export class PosComponent implements OnInit {
   private settingsService = inject(SettingsService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private cashMovements = inject(CashMovementService);
 
   private scannerGun = createScannerGunDetector();
   /** Suppresses the global scanner listener while a dialog is open. */
@@ -118,6 +128,116 @@ export class PosComponent implements OnInit {
 
   vatRate = this.settingsService.vatRate;
   pricesIncludeVat = this.settingsService.pricesIncludeVat;
+
+  /** Cash the drawer should hold now: float + cash sales − cash refunds ± cash movements.
+   *  Same formula as the Z-report (computeShiftTotals). */
+  drawerCash = toSignal(
+    toObservable(this.activeShift).pipe(
+      switchMap((shift) =>
+        !shift
+          ? of(0)
+          : // defer: a failing read must never break the till, even if it throws synchronously.
+            defer(() =>
+              combineLatest([
+                this.shiftService.getShiftSales(shift.id),
+                this.salesService.getReturnsForShift(shift.id),
+                this.cashMovements.getForShift(shift.id)
+              ])
+            ).pipe(
+              map(([sales, returns, movements]) =>
+                roundMoney(shift.startingCash + computeShiftTotals(sales, returns, movements).cashDrawerDelta)
+              ),
+              catchError(() => of(shift.startingCash))
+            )
+      )
+    ),
+    { initialValue: 0 }
+  );
+
+  /** Only show the retail/wholesale switch when the catalog actually has wholesale prices. */
+  anyWholesale = computed(() => this.products().some((p) => hasWholesale(p)));
+
+  /** Quantity of each product already in the ticket — badges on the catalog tiles. */
+  cartQty = computed(() => new Map(this.cart().map((i) => [i.productId, i.quantity])));
+
+  totalUnits = computed(() => this.cart().reduce((s, i) => s + i.quantity, 0));
+
+  shownPrice(product: Product): number {
+    return tierPrice(product, this.priceTier() === 'wholesale' ? 'wholesale' : 'retail');
+  }
+
+  isLow(product: Product): boolean {
+    return product.quantity > 0 && product.minQuantity !== undefined && product.quantity <= product.minQuantity;
+  }
+
+  expiryOf(product: Product) {
+    return expiryState(product.expiryDate);
+  }
+
+  initials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? '')
+      .join('');
+  }
+
+  setViewMode(mode: 'grid' | 'list') {
+    this.viewMode.set(mode);
+    try {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch {
+      /* storage unavailable — keep the in-memory choice */
+    }
+  }
+
+  private loadViewMode(): 'grid' | 'list' {
+    try {
+      return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'list' ? 'list' : 'grid';
+    } catch {
+      return 'grid';
+    }
+  }
+
+  /** Switches the whole ticket; manually overridden prices are kept as typed. */
+  setPriceTier(tier: PriceTier) {
+    this.priceTier.set(tier);
+    this.cart.update((cart) => cart.map((item) => this.repriced(item)));
+  }
+
+  /** Re-applies the tier price to a line (ticket tier or the product's quantity threshold). */
+  private repriced(item: CartItem): CartItem {
+    if (item.priceOverridden) return item;
+    const product = this.productById().get(item.productId) ?? {
+      price: item.retailPrice,
+      wholesalePrice: item.wholesalePrice,
+      wholesaleMinQty: item.wholesaleMinQty
+    };
+    const tier = resolveTier(product, item.quantity, this.priceTier());
+    return { ...item, tier, price: tierPrice(product, tier) };
+  }
+
+  openCashDialog() {
+    const shift = this.activeShift();
+    if (!shift) return;
+    this.dialogOpen.set(true);
+    const data: CashMovementDialogData = { expectedCash: this.drawerCash() };
+    this.dialog
+      .open(CashMovementDialogComponent, { width: '440px', maxWidth: '96vw', data })
+      .afterClosed()
+      .subscribe((input) => {
+        this.dialogOpen.set(false);
+        if (!input) return;
+        this.cashMovements.add(shift.id, input).subscribe({
+          next: () => this.toast.success(this.translation.translate('finance.cashMovementSaved')),
+          error: (err) => {
+            console.error('Cash movement error:', err);
+            this.toast.error(this.translation.translate('messages.error'));
+          }
+        });
+      });
+  }
 
   ngOnInit() {
     this.productService.getProducts().subscribe((products) => this.products.set(products));
@@ -202,8 +322,9 @@ export class PosComponent implements OnInit {
     const existing = this.cart().find((item) => item.productId === product.id);
     if (existing) {
       // Scans/repeat clicks always add 1 primary unit, whatever unit the line displays.
-      this.patchLine(product.id, { quantity: existing.quantity + 1 });
+      this.setLineQuantity(product.id, existing.quantity + 1);
     } else {
+      const tier = resolveTier(product, 1, this.priceTier());
       this.cart.update((cart) => [
         ...cart,
         {
@@ -211,7 +332,11 @@ export class PosComponent implements OnInit {
           productName: this.productDisplayName(product),
           categoryId: product.categoryId,
           quantity: 1,
-          price: product.price,
+          price: tierPrice(product, tier),
+          retailPrice: product.price,
+          wholesalePrice: product.wholesalePrice ?? undefined,
+          wholesaleMinQty: product.wholesaleMinQty ?? undefined,
+          tier,
           costPrice: product.cost,
           discount: 0,
           unit: product.unit,
@@ -219,6 +344,10 @@ export class PosComponent implements OnInit {
           selectedUnit: product.unit
         }
       ]);
+      const exp = expiryState(product.expiryDate);
+      if (exp === 'expired') {
+        this.toast.error(`${product.name}: ${this.translation.translate('expiry.expiredWarning')}`);
+      }
     }
     this.selectedLineId.set(product.id);
     this.warnIfOverStock(product.id);
@@ -280,8 +409,15 @@ export class PosComponent implements OnInit {
   updateQuantity(productId: string, enteredQty: number) {
     const item = this.cart().find((i) => i.productId === productId);
     if (!item || !(enteredQty > 0)) return;
-    this.patchLine(productId, { quantity: enteredQty * this.unitFactor(item, item.selectedUnit) });
+    this.setLineQuantity(productId, enteredQty * this.unitFactor(item, item.selectedUnit));
     this.warnIfOverStock(productId);
+  }
+
+  /** Quantity change in primary units; re-evaluates the wholesale threshold. */
+  private setLineQuantity(productId: string, quantity: number) {
+    this.cart.update((cart) =>
+      cart.map((item) => (item.productId === productId ? this.repriced({ ...item, quantity }) : item))
+    );
   }
 
   /** +1 / −1 in the displayed unit. Dropping below one unit removes the line. */
@@ -317,7 +453,11 @@ export class PosComponent implements OnInit {
 
   updatePrice(productId: string, price: number) {
     if (!this.canEditPrice() || !(price > 0)) return;
-    this.patchLine(productId, { price });
+    const item = this.cart().find((i) => i.productId === productId);
+    if (!item) return;
+    // Typing the tier price back clears the override, so the tier logic resumes.
+    const overridden = price !== item.retailPrice && price !== item.wholesalePrice;
+    this.patchLine(productId, { price, priceOverridden: overridden || undefined });
   }
 
   updateLineDiscount(productId: string, discount: number) {
@@ -410,6 +550,7 @@ export class PosComponent implements OnInit {
         quantity: item.quantity,
         ...(item.unit ? { unit: item.unit } : {}),
         price: item.price,
+        ...(item.tier === 'wholesale' ? { priceTier: 'wholesale' as const } : {}),
         total: line.gross - line.lineDiscount,
         ...(line.lineDiscount > 0 ? { discount: line.lineDiscount } : {}),
         finalTotal: line.total,
@@ -519,6 +660,11 @@ export class PosComponent implements OnInit {
       this.holdCart();
       return;
     }
+    if (event.key === 'F7' && this.anyWholesale()) {
+      event.preventDefault();
+      this.setPriceTier(this.priceTier() === 'wholesale' ? 'retail' : 'wholesale');
+      return;
+    }
 
     const inSearchBox = document.activeElement === this.searchInputRef?.nativeElement;
 
@@ -617,6 +763,7 @@ export class PosComponent implements OnInit {
     this.cart.set([]);
     this.selectedLineId.set(null);
     this.searchQuery.set('');
+    this.priceTier.set('retail');
   }
 
   // ---------------------------------------------------------------- held carts
@@ -695,7 +842,15 @@ interface CartItem {
   categoryId: string;
   /** Always in the product's PRIMARY unit, whatever unit the cashier types in. */
   quantity: number;
+  /** Unit price charged on this line (tier price or a manual override). */
   price: number;
+  /** Shelf (retail) and wholesale price snapshotted at add time, for tier switching. */
+  retailPrice: number;
+  wholesalePrice?: number;
+  wholesaleMinQty?: number;
+  tier?: PriceTier;
+  /** Set when a manager typed a price by hand; tier changes then leave it alone. */
+  priceOverridden?: boolean;
   /** Per-unit cost snapshotted at add time; only used for profit. */
   costPrice: number;
   /** Per-line discount, absolute currency. */

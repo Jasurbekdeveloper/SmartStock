@@ -1,0 +1,45 @@
+.pc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (min-width: 1200px) {
+  .pc-layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+}
+
+.pc-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1200px) {
+  .pc-aside {
+    position: sticky;
+    top: 5rem;
+  }
+}
+
+.pc-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pc-step {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-right: 0.5rem;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: 1px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}

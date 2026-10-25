@@ -95,7 +95,7 @@
     <div class="pay__breakdown">
       <div><span>{{ 'pos.subtotal' | translate }}</span><span>{{ c.subtotal | currencyDisplay }}</span></div>
       @if (c.cartDiscount > 0) {
-      <div class="text-brand-600 dark:text-brand-400"><span>{{ 'pos.discount' | translate }}</span><span>−{{ c.cartDiscount | currencyDisplay }}</span></div>
+      <div class="text-profit"><span>{{ 'pos.discount' | translate }}</span><span>−{{ c.cartDiscount | currencyDisplay }}</span></div>
       }
       @if (data.vat.vatRate > 0) {
       <div>

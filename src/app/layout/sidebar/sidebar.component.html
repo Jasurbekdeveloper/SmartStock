@@ -1,51 +1,65 @@
 <div class="side">
   <div class="side__brand">
-    <a [routerLink]="homePath()" (click)="onNavigate()" class="flex items-center gap-3 min-w-0">
-      <img src="/logo.svg" alt="" class="w-9 h-9 shrink-0" />
+    <a [routerLink]="homePath()" (click)="onNavigate()" class="side__store">
+      <span class="side__logo">{{ storeInitial() }}</span>
       <span class="min-w-0">
-        <span class="block font-extrabold leading-tight text-white truncate">{{ storeName() }}</span>
-        <span class="block text-[11px] uppercase tracking-wider text-slate-400">POS · {{ 'navigation.menu' | translate }}</span>
+        <span class="side__store-name">{{ storeName() }}</span>
+        <span class="side__store-sub">MarketHisob</span>
       </span>
     </a>
-    <button (click)="sidebarState.closeMobile()" class="lg:hidden p-2 rounded-lg hover:bg-white/10" aria-label="Close menu">
+    <button (click)="sidebarState.closeMobile()" class="side__close lg:hidden" aria-label="Close menu">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <a routerLink="/pos" (click)="onNavigate()" class="side__cta">
-    <mat-icon>point_of_sale</mat-icon>
-    <span class="flex-1">{{ 'navigation.pos' | translate }}</span>
-    <kbd>POS</kbd>
+  <a routerLink="/pos" routerLinkActive="side__cta--active" (click)="onNavigate()" class="side__cta">
+    <span class="side__cta-icon"><mat-icon>point_of_sale</mat-icon></span>
+    <span class="flex-1">
+      <span class="block leading-tight">{{ 'navigation.pos' | translate }}</span>
+      <span class="block text-[11px] font-medium opacity-75">{{ 'navigation.posHint' | translate }}</span>
+    </span>
+    <mat-icon class="opacity-70">arrow_forward</mat-icon>
   </a>
 
   <nav class="side__nav">
-    @for (item of visibleMenuItems(); track item.label) {
-    @if (item.children) {
-    <button type="button" class="side__item" [class.side__item--open]="expandedMenu() === item.label" (click)="onItemClick(item)">
-      <mat-icon>{{ item.icon }}</mat-icon>
-      <span class="flex-1 text-left">{{ item.label | translate }}</span>
-      <mat-icon class="side__chev" [class.rotate-180]="expandedMenu() === item.label">expand_more</mat-icon>
-    </button>
-    @if (expandedMenu() === item.label) {
-    <div class="side__sub">
-      @for (child of item.children; track child.path) {
-      <a [routerLink]="child.path" routerLinkActive="side__subitem--active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavigate()" class="side__subitem">
-        {{ child.label | translate }}
+    @for (group of visibleGroups(); track group.label) {
+    <div class="side__group">
+      @if (group.label) {
+      <p class="side__group-label">{{ group.label | translate }}</p>
+      }
+      @for (item of group.items; track item.path) {
+      @if (item.children) {
+      <button type="button" class="side__item" [class.side__item--open]="isExpanded(item)" (click)="toggle(item)">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span class="flex-1 text-left">{{ item.label | translate }}</span>
+        <mat-icon class="side__chev" [class.rotate-180]="isExpanded(item)">expand_more</mat-icon>
+      </button>
+      @if (isExpanded(item)) {
+      <div class="side__sub">
+        @for (child of item.children; track child.path) {
+        <a [routerLink]="child.path" routerLinkActive="side__subitem--active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavigate()" class="side__subitem">
+          {{ child.label | translate }}
+        </a>
+        }
+      </div>
+      }
+      } @else {
+      <a [routerLink]="item.path" routerLinkActive="side__item--active" [routerLinkActiveOptions]="{ exact: item.exact ?? false }" (click)="onNavigate()" class="side__item">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span class="flex-1">{{ item.label | translate }}</span>
+        @if (item.badge) {
+        <span class="side__new">{{ 'common.new' | translate }}</span>
+        }
       </a>
       }
+      }
     </div>
-    }
-    } @else {
-    <a [routerLink]="item.path" routerLinkActive="side__item--active" (click)="onNavigate()" class="side__item">
-      <mat-icon>{{ item.icon }}</mat-icon>
-      <span class="flex-1">{{ item.label | translate }}</span>
-    </a>
-    }
     }
   </nav>
 
   <div class="side__foot">
-    <span class="w-2 h-2 rounded-full" [class]="online() ? 'bg-green-500' : 'bg-amber-500'"></span>
-    {{ (online() ? 'common.online' : 'common.offline') | translate }}
+    <span class="side__status" [class.side__status--off]="!online()"></span>
+    <span class="flex-1">{{ (online() ? 'common.online' : 'common.offline') | translate }}</span>
+    <span class="text-[11px] opacity-60">v2</span>
   </div>
 </div>

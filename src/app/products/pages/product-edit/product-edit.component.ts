@@ -19,7 +19,11 @@ import { roleCan } from '../../../core/auth/permissions';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
-import { formatAltUnitsForInput, parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
+import { emptyExtras, extrasFromProduct, extrasToProductFields, validateExtras } from '../../../core/utils/product-extras';
+import { ProductExtrasComponent } from '../../components/product-extras/product-extras.component';
+import { ImageDropzoneComponent, isAcceptableImage } from '../../../shared/components/image-dropzone/image-dropzone.component';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
+import { TranslationService } from '../../../core/services/translation.service';
 import { StorageService } from '../../../core/services/storage.service';
 import { firstValueFrom } from 'rxjs';
 import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
@@ -47,7 +51,10 @@ import { formatNumber } from '../../../core/utils/format-number';
     MatSelectModule,
     MatIconModule,
     MatTooltipModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    ProductExtrasComponent,
+    ImageDropzoneComponent,
+    CurrencyDisplayPipe
   ],
   templateUrl: './product-edit.component.html',
   styleUrl: './product-edit.component.css'
@@ -79,16 +86,11 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   submitting = signal(false);
   errorKey = signal<string | null>(null);
 
-  /** Free-text "unit:factor,unit:factor" input, e.g. "quti:20,karobka:100" — pre-filled
-   *  from the loaded product's `altUnits` (see `ngOnInit`) and parsed back via
-   *  `parseAltUnitsInput()` at save time. A signal (not a plain field) so the zoneless
-   *  pre-fill from the async product load actually refreshes the view. */
-  altUnitsInput = signal('');
 
   /** Free-text comma-separated synonyms/loanwords, e.g. "truba, quvur shlangi" —
    *  pre-filled from the loaded product's `searchKeywords` (see `ngOnInit`) and
    *  split/trimmed back at save time. A signal (not a plain field) for the same
-   *  zoneless reason as `altUnitsInput` above. */
+   *  zoneless reason as the other form signals here. */
   searchKeywordsInput = signal('');
   keywordList = computed(() => parseKeywordsInput(this.searchKeywordsInput()));
 
@@ -161,10 +163,17 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     if (preview) URL.revokeObjectURL(preview);
   }
 
-  selectImage(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+  /** Wholesale price, alternate units, expiry/batch (see ProductExtrasComponent). */
+  extras = emptyExtras();
+  private translation = inject(TranslationService);
+
+  unitLabel(unit: string | undefined): string {
+    if (!unit) return '';
+    return (PRODUCT_UNITS as readonly string[]).includes(unit) ? this.translation.translate('units.' + unit) : unit;
+  }
+
+  selectImageFile(file: File): void {
+    if (!isAcceptableImage(file)) {
       this.errorKey.set('products.invalidImage');
       return;
     }
@@ -182,7 +191,7 @@ export class ProductEditComponent implements OnInit, OnDestroy {
         next: (product) => {
           this.product.set(product ?? null);
           this.originalProduct.set(product ? { ...product } : null);
-          this.altUnitsInput.set(formatAltUnitsForInput(product?.altUnits));
+          this.extras = extrasFromProduct(product ?? {});
           this.searchKeywordsInput.set(product?.searchKeywords?.join(', ') ?? '');
           this.attributeRows.set(product ? productAttributes(product).map((a) => ({ ...a })) : []);
         },
@@ -225,7 +234,12 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     this.submitting.set(true);
     this.errorKey.set(null);
 
-    const altUnits = parseAltUnitsInput(this.altUnitsInput());
+    const extrasError = validateExtras(this.extras);
+    if (extrasError) {
+      this.errorKey.set(extrasError);
+      this.submitting.set(false);
+      return;
+    }
     const searchKeywords = parseKeywordsInput(this.searchKeywordsInput());
     const attributes = this.attributeRows()
       .map((a) => ({ name: a.name.trim(), value: a.value.trim() }))
@@ -234,7 +248,7 @@ export class ProductEditComponent implements OnInit, OnDestroy {
       ...product,
       attributes: attributes.length > 0 ? attributes : undefined,
       ...legacyColorSize(attributes),
-      altUnits: altUnits.length > 0 ? altUnits : undefined,
+      ...extrasToProductFields(this.extras, product.unit),
       searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined,
       mxikCode: product.mxikCode?.trim() || null
     };

@@ -2,7 +2,7 @@
   "name": "MarketHisob — savdo va ombor",
   "short_name": "MarketHisob",
   "description": "Do'konlar uchun kassa, ombor va qarz hisobi",
-  "theme_color": "#ea580c",
+  "theme_color": "#0d8577",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",

@@ -48,7 +48,7 @@ interface PaymentMethodStat {
   amount: number;
 }
 
-const CHART_COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#06b6d4', '#eab308', '#ec4899'];
+const CHART_COLORS = ['#16a593', '#2563eb', '#f59e0b', '#8b5cf6', '#ef4444', '#0ea5e9', '#84cc16', '#ec4899'];
 
 @Component({
   selector: 'app-statistics',

@@ -1,0 +1,103 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupCatalog' | translate }}</p>
+      <h1 class="page-title">{{ 'navigation.expiry' | translate }}</h1>
+      <p class="page-subtitle">{{ 'expiry.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'expiry.expired' | translate }}</p>
+          <p class="stat__value">{{ expired().length }}</p>
+          @if (canSeeCost()) { <p class="stat__foot money">{{ expiredValue() | currencyDisplay:0 }}</p> }
+        </div>
+        <span class="stat__icon tone-red"><mat-icon>event_busy</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'expiry.soon' | translate }} ({{ warnDays() }} {{ 'expiry.days' | translate }})</p>
+          <p class="stat__value">{{ soon().length }}</p>
+          @if (canSeeCost()) { <p class="stat__foot money">{{ soonValue() | currencyDisplay:0 }}</p> }
+        </div>
+        <span class="stat__icon tone-amber"><mat-icon>hourglass_bottom</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'expiry.tracked' | translate }}</p>
+          <p class="stat__value">{{ trackedCount() }}</p>
+        </div>
+        <span class="stat__icon tone-brand"><mat-icon>event_available</mat-icon></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="seg">
+      <button type="button" [class.seg--on]="filter() === 'soon'" (click)="filter.set('soon')">{{ 'expiry.needsAttention' | translate }}</button>
+      <button type="button" [class.seg--on]="filter() === 'expired'" (click)="filter.set('expired')">{{ 'expiry.expired' | translate }}</button>
+      <button type="button" [class.seg--on]="filter() === 'all'" (click)="filter.set('all')">{{ 'finance.all' | translate }}</button>
+    </div>
+    <div class="seg">
+      @for (d of [7, 30, 90]; track d) {
+      <button type="button" [class.seg--on]="warnDays() === d" (click)="warnDays.set(d)">{{ d }} {{ 'expiry.days' | translate }}</button>
+      }
+    </div>
+  </div>
+
+  <section class="card overflow-hidden">
+    @if (rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>verified</mat-icon>
+      <p class="empty-state__title">{{ 'expiry.allGood' | translate }}</p>
+      <p class="text-sm max-w-md">{{ 'expiry.howTo' | translate }}</p>
+    </div>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'table.name' | translate }}</th>
+            <th>{{ 'products.batchNo' | translate }}</th>
+            <th>{{ 'products.expiryDate' | translate }}</th>
+            <th class="text-right">{{ 'products.quantity' | translate }}</th>
+            @if (canSeeCost()) { <th class="text-right">{{ 'expiry.valueAtCost' | translate }}</th> }
+            <th class="w-10"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.product.id) {
+          <tr>
+            <td>
+              <p class="font-medium">{{ row.product.name }}</p>
+              <p class="text-xs text-muted money">{{ row.product.barcode }}</p>
+            </td>
+            <td class="text-muted">{{ row.product.batchNo || '—' }}</td>
+            <td class="whitespace-nowrap">
+              {{ row.product.expiryDate | date: 'dd.MM.yyyy' }}
+              @switch (row.state) {
+              @case ('expired') { <span class="badge badge--red ml-1">{{ -row.days }} {{ 'expiry.daysAgo' | translate }}</span> }
+              @case ('soon') { <span class="badge badge--amber ml-1">{{ row.days === 0 ? ('expiry.today' | translate) : row.days + ' ' + ('expiry.daysLeft' | translate) }}</span> }
+              @default { <span class="badge badge--green ml-1">{{ row.days }} {{ 'expiry.daysLeft' | translate }}</span> }
+              }
+            </td>
+            <td class="text-right money">{{ row.product.quantity | sum:2 }} {{ unitLabel(row.product.unit) }}</td>
+            @if (canSeeCost()) { <td class="text-right money">{{ row.product.quantity * (row.product.cost || 0) | currencyDisplay:0 }}</td> }
+            <td>
+              <a mat-icon-button [routerLink]="['/products/edit', row.product.id]" [attr.aria-label]="'common.edit' | translate"><mat-icon>edit</mat-icon></a>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+</div>

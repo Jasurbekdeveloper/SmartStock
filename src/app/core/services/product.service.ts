@@ -46,6 +46,15 @@ export interface Product {
    *  `color`/`size` below are kept in sync for "Rang"/"O'lcham" (older screens, Excel import). */
   attributes?: ProductAttribute[];
   minQuantity?: number;
+  /** Optional wholesale price per primary unit. Applied in the POS when the cashier
+   *  switches the ticket to wholesale, or automatically from `wholesaleMinQty`. */
+  wholesalePrice?: number | null;
+  /** Quantity (primary unit) from which a line switches to the wholesale price by itself. 0/absent = manual only. */
+  wholesaleMinQty?: number | null;
+  /** Best-before date of the stock on hand (pharmacy, grocery). null = not tracked. */
+  expiryDate?: Date | null;
+  /** Batch / lot number of the stock on hand. */
+  batchNo?: string | null;
   categoryId: string;
   description?: string;
   sku?: string;

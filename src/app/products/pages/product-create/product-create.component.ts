@@ -18,7 +18,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { roleCan } from '../../../core/auth/permissions';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
-import { parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
+import { emptyExtras, extrasToProductFields, validateExtras } from '../../../core/utils/product-extras';
+import { ProductExtrasComponent } from '../../components/product-extras/product-extras.component';
+import { ImageDropzoneComponent, isAcceptableImage } from '../../../shared/components/image-dropzone/image-dropzone.component';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
+import { ToastService } from '../../../core/services/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { StorageService } from '../../../core/services/storage.service';
 import { firstValueFrom } from 'rxjs';
 import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
@@ -59,7 +64,10 @@ interface ProductVariantDraft {
     MatSelectModule,
     MatIconModule,
     MatTooltipModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    ProductExtrasComponent,
+    ImageDropzoneComponent,
+    CurrencyDisplayPipe
   ],
   templateUrl: './product-create.component.html',
   styleUrl: './product-create.component.css'
@@ -72,6 +80,8 @@ export class ProductCreateComponent implements OnDestroy {
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
   private storageService = inject(StorageService);
+  private toast = inject(ToastService);
+  private translation = inject(TranslationService);
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
   readonly units = PRODUCT_UNITS;
@@ -97,6 +107,24 @@ export class ProductCreateComponent implements OnDestroy {
     sku: ''
   };
 
+  /** Wholesale price, alternate units, expiry/batch (see ProductExtrasComponent). */
+  extras = emptyExtras();
+
+  categoryName(): string | null {
+    return this.categories().find((c) => c.id === this.product.categoryId)?.name ?? null;
+  }
+
+  /** Fixed units are translated; anything else is shown as typed. */
+  unitLabel(unit: string | undefined): string {
+    if (!unit) return '';
+    return (PRODUCT_UNITS as readonly string[]).includes(unit) ? this.translation.translate('units.' + unit) : unit;
+  }
+
+  /** Markup % mapped onto a 0–100 bar (100% markup fills it). */
+  marginBar(percent: number | null): number {
+    return Math.max(4, Math.min(100, Math.abs(percent ?? 0)));
+  }
+
   imageFile: File | null = null;
   imagePreview = signal<string | null>(null);
   variants: ProductVariantDraft[] = [];
@@ -109,10 +137,8 @@ export class ProductCreateComponent implements OnDestroy {
     }
   }
 
-  selectImage(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+  selectImageFile(file: File): void {
+    if (!isAcceptableImage(file)) {
       this.errorKey.set('products.invalidImage');
       return;
     }
@@ -121,6 +147,13 @@ export class ProductCreateComponent implements OnDestroy {
     this.imageFile = file;
     this.imagePreview.set(URL.createObjectURL(file));
     this.errorKey.set(null);
+  }
+
+  clearImage(): void {
+    const preview = this.imagePreview();
+    if (preview) URL.revokeObjectURL(preview);
+    this.imagePreview.set(null);
+    this.imageFile = null;
   }
 
   /** Characteristics the variants differ by (Hajm, Quvvat, Rang...), each with its
@@ -241,10 +274,6 @@ export class ProductCreateComponent implements OnDestroy {
     this.variants[index] = { ...variant, imageFile: file, imagePreview: URL.createObjectURL(file) };
   }
 
-  /** Free-text "unit:factor,unit:factor" input, e.g. "quti:20,karobka:100" —
-   *  parsed into `product.altUnits` at submit time via `parseAltUnitsInput()`. */
-  altUnitsInput = '';
-
   /** Free-text comma-separated synonyms/loanwords, e.g. "truba, quvur shlangi" —
    *  split/trimmed into `product.searchKeywords` at submit time. Filled automatically
    *  from the name (other script + synonyms) until the user edits it by hand. */
@@ -327,19 +356,24 @@ export class ProductCreateComponent implements OnDestroy {
       });
   }
 
-  createProduct(): void {
-    void this.createProductAsync();
+  /** `again`: stay on the form, cleared, for the next product ("Saqlab, yana qo'shish"). */
+  createProduct(again = false): void {
+    void this.createProductAsync(again);
   }
 
-  private async createProductAsync(): Promise<void> {
+  private async createProductAsync(again: boolean): Promise<void> {
     if (!this.fields.check()) {
       this.errorKey.set('products.fixHighlighted');
+      return;
+    }
+    const extrasError = validateExtras(this.extras);
+    if (extrasError) {
+      this.errorKey.set(extrasError);
       return;
     }
     this.submitting.set(true);
     this.errorKey.set(null);
 
-    const altUnits = parseAltUnitsInput(this.altUnitsInput);
     const searchKeywords = parseKeywordsInput(this.searchKeywordsInput);
 
     const familyId = crypto.randomUUID();
@@ -368,7 +402,7 @@ export class ProductCreateComponent implements OnDestroy {
         ...legacyColorSize(baseAttributes),
         familyId,
         imageUrl,
-        altUnits: altUnits.length > 0 ? altUnits : undefined,
+        ...extrasToProductFields(this.extras, this.product.unit),
         searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined,
         mxikCode: this.mxikCode.trim() || null
       };
@@ -394,11 +428,39 @@ export class ProductCreateComponent implements OnDestroy {
         return;
       }
       await firstValueFrom(this.productService.addProducts([shared, ...variants]));
+      if (again) {
+        this.toast.success(`${shared.name}: ${this.translation.translate('products.saved')}`);
+        this.resetForm();
+        this.submitting.set(false);
+        this.cdr.markForCheck();
+        return;
+      }
       await this.router.navigate(['/products/list']);
     } catch (err) {
       console.error('Create product error:', err);
       this.errorKey.set((err as Error)?.message === 'PRODUCT_LIMIT_REACHED' ? 'subscription.productLimitReached' : 'messages.error');
       this.submitting.set(false);
     }
+  }
+
+  /** Clears the form for the next product, keeping the category and unit (usually the
+   *  same for a batch of goods entered in a row). */
+  private resetForm(): void {
+    const { categoryId, unit } = this.product;
+    this.product = { name: '', barcode: '', price: 0, cost: 0, quantity: 0, unit, minQuantity: 0, categoryId, sku: '' };
+    this.extras = emptyExtras();
+    this.clearImage();
+    for (const variant of this.variants) {
+      if (variant.imagePreview) URL.revokeObjectURL(variant.imagePreview);
+    }
+    this.variants = [];
+    this.axes = [];
+    this.baseValues = [];
+    this.searchKeywordsInput = '';
+    this.keywordsTouched = false;
+    this.mxikCode = '';
+    this.errorKey.set(null);
+    this.fields.shown.set(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

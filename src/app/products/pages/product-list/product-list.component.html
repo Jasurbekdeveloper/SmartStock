@@ -1,134 +1,153 @@
-<div class="space-y-6">
-  <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ 'products.title' | translate }}</h1>
-    <div class="flex w-full flex-wrap gap-2 sm:w-auto">
-      @if (canManage()) {
-      <a mat-stroked-button color="primary" routerLink="/products/import">
-        <mat-icon>upload_file</mat-icon>
-        {{ 'buttons.import' | translate }}
-      </a>
-      <a mat-flat-button color="primary" routerLink="/products/create">
-        + {{ 'common.add' | translate }} {{ 'navigation.products' | translate }}
-      </a>
-      }
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupCatalog' | translate }}</p>
+      <h1 class="page-title">{{ 'products.title' | translate }}</h1>
+      <p class="page-subtitle">{{ summary().count }} {{ 'products.skuCount' | translate }}</p>
+    </div>
+    @if (canManage()) {
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/products/import"><mat-icon>upload_file</mat-icon>{{ 'buttons.import' | translate }}</a>
+      <a mat-stroked-button routerLink="/products/quick"><mat-icon>bolt</mat-icon>{{ 'header.quickEntry' | translate }}</a>
+      <a mat-flat-button color="primary" routerLink="/products/create"><mat-icon>add</mat-icon>{{ 'header.newProduct' | translate }}</a>
+    </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="stat !p-4">
+      <p class="stat__label">{{ 'products.skuTotal' | translate }}</p>
+      <p class="stat__value !text-xl">{{ summary().count }}</p>
+    </div>
+    <button type="button" class="stat !p-4 text-left" (click)="setStockFilter(stockFilter() === 'low' ? 'all' : 'low')">
+      <p class="stat__label">{{ 'products.lowStock' | translate }}</p>
+      <p class="stat__value !text-xl" [class.text-loss]="summary().low > 0">{{ summary().low }}</p>
+      <p class="stat__foot">{{ 'pos.outOfStock' | translate }}: {{ summary().out }}</p>
+    </button>
+    @if (canSeeCost()) {
+    <div class="stat !p-4">
+      <p class="stat__label">{{ 'products.stockAtCost' | translate }}</p>
+      <p class="stat__value !text-xl money">{{ summary().costValue | currencyDisplay:0 }}</p>
+    </div>
+    }
+    <div class="stat !p-4">
+      <p class="stat__label">{{ 'products.stockAtRetail' | translate }}</p>
+      <p class="stat__value !text-xl money">{{ summary().retailValue | currencyDisplay:0 }}</p>
     </div>
   </div>
 
-  <mat-card class="!p-4">
-    <div class="flex flex-wrap gap-4 items-start">
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!flex-1 !min-w-[16rem]">
-        <mat-label>{{ 'common.search' | translate }}</mat-label>
-        <input matInput [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label>{{ 'sales.fromDate' | translate }}</mat-label>
-        <input matInput [matDatepicker]="fromPicker" [ngModel]="fromDate()" (ngModelChange)="onFromDateChange($event)" />
-        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
-        <mat-datepicker #fromPicker></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label>{{ 'sales.toDate' | translate }}</mat-label>
-        <input matInput [matDatepicker]="toPicker" [ngModel]="toDate()" (ngModelChange)="onToDateChange($event)" />
-        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
-        <mat-datepicker #toPicker></mat-datepicker>
-      </mat-form-field>
-
-      <button mat-button (click)="clearFilters()">
-        <mat-icon>clear</mat-icon>
-        {{ 'buttons.cancel' | translate }}
-      </button>
-    </div>
-  </mat-card>
-
-  <mat-card>
-    <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead class="bg-gray-100 dark:bg-gray-700">
-        <tr>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.name' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.barcode' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.sellingPrice' | translate }}</th>
-          @if (canSeeCost()) {
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'form.cost' | translate }}</th>
-          }
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.quantity' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.category' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'products.createdAt' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (product of pagination.paged(); track product.id) {
-        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
-            <div class="flex min-w-0 items-center gap-3">
-              @if (product.imageUrl) {
-              <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" class="h-10 w-10 shrink-0 rounded object-cover" />
-              }
-              <div class="min-w-0">
-                <p class="break-words">{{ product.name }}</p>
-                @if (variantLabel(product); as variant) {
-                <p class="text-xs font-normal text-gray-500">{{ variant }}</p>
-                }
-              </div>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.barcode }}</td>
-          <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ product.price | currencyDisplay }}</td>
-          @if (canSeeCost()) {
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.cost | currencyDisplay }}</td>
-          }
-          <td class="px-4 py-3">
-            <span
-              [class.text-red-600]="isLowStock(product)"
-              [class.dark:text-red-400]="isLowStock(product)"
-              [class.font-bold]="isLowStock(product)"
-              [class.text-gray-900]="!isLowStock(product)"
-              [class.dark:text-white]="!isLowStock(product)"
-            >
-              {{ product.quantity | sum:0 }} {{ 'units.' + product.unit | translate }}
-            </span>
-            @if (isLowStock(product)) {
-            <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
-              {{ 'products.lowStock' | translate }}
-            </span>
-            }
-          </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ categoryName(product.categoryId) }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ product.createdAt | date: 'short' }}</td>
-          <td class="px-4 py-3 whitespace-nowrap">
-            <button mat-icon-button [matTooltip]="'products.printBarcode' | translate" (click)="showBarcode(product)">
-              <mat-icon>qr_code_2</mat-icon>
-            </button>
-            @if (canManage()) {
-            <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product)">
-              <mat-icon>delete</mat-icon>
-            </button>
-            }
-          </td>
-        </tr>
+  <section class="card">
+    <div class="p-4 space-y-3">
+      <div class="toolbar">
+        <label class="search-box">
+          <mat-icon>search</mat-icon>
+          <input [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" [placeholder]="'products.searchPlaceholder' | translate" />
+        </label>
+        <div class="seg">
+          <button type="button" [class.seg--on]="stockFilter() === 'all'" (click)="setStockFilter('all')">{{ 'finance.all' | translate }}</button>
+          <button type="button" [class.seg--on]="stockFilter() === 'low'" (click)="setStockFilter('low')">{{ 'products.lowStock' | translate }}</button>
+          <button type="button" [class.seg--on]="stockFilter() === 'out'" (click)="setStockFilter('out')">{{ 'pos.outOfStock' | translate }}</button>
+        </div>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!w-40">
+          <mat-label>{{ 'sales.fromDate' | translate }}</mat-label>
+          <input matInput [matDatepicker]="fromPicker" [ngModel]="fromDate()" (ngModelChange)="onFromDateChange($event)" />
+          <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="!w-40">
+          <mat-label>{{ 'sales.toDate' | translate }}</mat-label>
+          <input matInput [matDatepicker]="toPicker" [ngModel]="toDate()" (ngModelChange)="onToDateChange($event)" />
+          <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+          <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+        <button mat-button (click)="clearFilters()"><mat-icon>filter_alt_off</mat-icon>{{ 'products.clearFilters' | translate }}</button>
+      </div>
+      @if (categories().length > 0) {
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        <button type="button" class="chip" [class.chip--active]="!categoryFilter()" (click)="setCategory(null)">{{ 'finance.all' | translate }}</button>
+        @for (c of categories(); track c.id) {
+        <button type="button" class="chip" [class.chip--active]="categoryFilter() === c.id" (click)="setCategory(c.id)">{{ c.name }}</button>
         }
-      </tbody>
-    </table>
+      </div>
+      }
+    </div>
+
+    <div class="overflow-x-auto" style="border-top: 1px solid var(--border)">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'table.name' | translate }}</th>
+            <th>{{ 'form.barcode' | translate }}</th>
+            <th class="text-right">{{ 'products.sellingPrice' | translate }}</th>
+            @if (canSeeCost()) { <th class="text-right">{{ 'form.cost' | translate }}</th> }
+            <th class="text-right">{{ 'products.quantity' | translate }}</th>
+            <th>{{ 'products.category' | translate }}</th>
+            <th class="text-right">{{ 'table.action' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of pagination.paged(); track product.id) {
+          <tr>
+            <td>
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="pl-avatar">
+                  @if (product.imageUrl) { <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" /> } @else { {{ initials(product.name) }} }
+                </span>
+                <div class="min-w-0">
+                  <p class="font-medium break-words">{{ product.name }}</p>
+                  <p class="text-xs text-muted">
+                    @if (variantLabel(product); as variant) { {{ variant }} · }
+                    {{ product.sku }}
+                    @if (product.wholesalePrice) { <span class="badge badge--blue !py-0 ml-1">{{ 'pos.wholesaleShort' | translate }}</span> }
+                    @if (product.expiryDate) { <span class="badge badge--amber !py-0 ml-1">{{ product.expiryDate | date: 'dd.MM.yy' }}</span> }
+                  </p>
+                </div>
+              </div>
+            </td>
+            <td class="money text-muted">{{ product.barcode }}</td>
+            <td class="text-right font-semibold money">{{ product.price | currencyDisplay:0 }}</td>
+            @if (canSeeCost()) { <td class="text-right money text-muted">{{ product.cost | currencyDisplay:0 }}</td> }
+            <td class="text-right whitespace-nowrap">
+              <span class="money" [class.text-loss]="isLowStock(product) || product.quantity <= 0" [class.font-bold]="isLowStock(product)">
+                {{ product.quantity | sum:0 }} {{ 'units.' + product.unit | translate }}
+              </span>
+              @if (product.quantity <= 0) { <span class="badge badge--red ml-1">{{ 'pos.outOfStock' | translate }}</span> }
+              @else if (isLowStock(product)) { <span class="badge badge--amber ml-1">{{ 'products.lowStock' | translate }}</span> }
+            </td>
+            <td>@if (categoryName(product.categoryId); as cat) { <span class="badge badge--gray">{{ cat }}</span> }</td>
+            <td class="text-right whitespace-nowrap">
+              <button mat-icon-button [matTooltip]="'products.printBarcode' | translate" (click)="showBarcode(product)"><mat-icon>qr_code_2</mat-icon></button>
+              @if (canManage()) {
+              <button mat-icon-button [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" [matTooltip]="'buttons.delete' | translate" (click)="deleteProduct(product)"><mat-icon>delete_outline</mat-icon></button>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
     @if (products().length === 0) {
-      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'messages.noProducts' | translate }}</p>
+    <div class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <p class="empty-state__title">{{ 'messages.noProducts' | translate }}</p>
+      @if (canManage()) {
+      <div class="flex gap-2 mt-2">
+        <a mat-flat-button color="primary" routerLink="/products/create"><mat-icon>add</mat-icon>{{ 'header.newProduct' | translate }}</a>
+        <a mat-stroked-button routerLink="/products/import"><mat-icon>upload_file</mat-icon>Excel</a>
+      </div>
+      }
+    </div>
     } @else if (filteredProducts().length === 0) {
-      <p class="text-gray-500 dark:text-gray-400 text-center py-8">{{ 'sales.noResults' | translate }}</p>
+    <div class="empty-state"><mat-icon>search_off</mat-icon><p class="empty-state__title">{{ 'sales.noResults' | translate }}</p></div>
     } @else {
-      <mat-paginator
-        [length]="filteredProducts().length"
-        [pageIndex]="pagination.pageIndex()"
-        [pageSize]="pagination.pageSize()"
-        [pageSizeOptions]="[10, 25, 50]"
-        (page)="pagination.onPage($event)"
-      ></mat-paginator>
+    <mat-paginator
+      [length]="filteredProducts().length"
+      [pageIndex]="pagination.pageIndex()"
+      [pageSize]="pagination.pageSize()"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      (page)="pagination.onPage($event)"
+    ></mat-paginator>
     }
-  </mat-card>
+  </section>
 </div>

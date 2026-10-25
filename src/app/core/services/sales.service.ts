@@ -31,8 +31,10 @@ export interface SaleItem {
   /** In the product's primary unit. */
   quantity: number;
   unit?: string;
-  /** Per-unit shelf price. */
+  /** Per-unit price charged. */
   price: number;
+  /** Set when the line was sold at the product's wholesale price. */
+  priceTier?: 'wholesale';
   /** quantity * price - discount (before the cart-level discount). */
   total: number;
   /** Per-line discount, absolute currency. */

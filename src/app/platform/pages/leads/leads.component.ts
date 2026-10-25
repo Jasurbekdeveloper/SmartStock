@@ -17,7 +17,7 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { LEAD_STATUSES, Lead, LeadStatus } from '../../../core/models/site-content';
 
 const STATUS_BADGE: Record<LeadStatus, string> = {
-  new: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+  new: 'bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-300',
   contacted: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
   demo: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
   won: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',

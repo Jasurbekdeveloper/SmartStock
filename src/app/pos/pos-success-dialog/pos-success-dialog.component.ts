@@ -20,21 +20,21 @@ export interface PosSuccessDialogData {
   imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, CurrencyDisplayPipe],
   template: `
     <div class="p-6 text-center">
-      <div class="mx-auto mb-3 grid place-items-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/40">
-        <mat-icon class="!w-9 !h-9 !text-4xl text-green-600 dark:text-green-400">check</mat-icon>
+      <div class="mx-auto mb-3 grid place-items-center w-16 h-16 rounded-2xl tone-green">
+        <mat-icon class="!w-9 !h-9 !text-4xl">check</mat-icon>
       </div>
-      <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ 'pos.saleDone' | translate }}</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">№ {{ data.receiptNo }} · {{ data.total | currencyDisplay: 0 }}</p>
+      <h2 class="text-xl font-bold ">{{ 'pos.saleDone' | translate }}</h2>
+      <p class="text-sm text-muted money">№ {{ data.receiptNo }} · {{ data.total | currencyDisplay: 0 }}</p>
 
       @if (data.debt > 0) {
-      <div class="mt-5 rounded-xl bg-amber-50 dark:bg-amber-900/30 p-4">
-        <p class="text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">{{ 'pos.debit' | translate }}</p>
-        <p class="text-3xl font-extrabold text-amber-700 dark:text-amber-300 tabular-nums">{{ data.debt | currencyDisplay: 0 }}</p>
+      <div class="mt-5 rounded-2xl tone-amber p-4">
+        <p class="text-xs uppercase tracking-wide opacity-80">{{ 'pos.debit' | translate }}</p>
+        <p class="text-3xl font-extrabold tabular-nums">{{ data.debt | currencyDisplay: 0 }}</p>
       </div>
       } @else {
-      <div class="mt-5 rounded-xl bg-green-50 dark:bg-green-900/30 p-4">
-        <p class="text-xs uppercase tracking-wide text-green-700 dark:text-green-300">{{ 'pos.change' | translate }}</p>
-        <p class="text-4xl font-extrabold text-green-700 dark:text-green-300 tabular-nums">{{ data.change | currencyDisplay: 0 }}</p>
+      <div class="mt-5 rounded-2xl tone-green p-4">
+        <p class="text-xs uppercase tracking-wide opacity-80">{{ 'pos.change' | translate }}</p>
+        <p class="text-4xl font-extrabold tabular-nums">{{ data.change | currencyDisplay: 0 }}</p>
       </div>
       }
 
@@ -47,7 +47,7 @@ export interface PosSuccessDialogData {
           {{ 'pos.newSale' | translate }}
         </button>
       </div>
-      <p class="mt-3 text-xs text-gray-400">Enter — {{ 'pos.newSale' | translate }}</p>
+      <p class="mt-3 text-xs text-muted">Enter — {{ 'pos.newSale' | translate }}</p>
     </div>
   `
 })

@@ -1,0 +1,192 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.products' | translate }}</p>
+      <h1 class="page-title">{{ 'header.quickEntry' | translate }}</h1>
+      <p class="page-subtitle">{{ 'quick.subtitle' | translate }}</p>
+    </div>
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/products/create"><mat-icon>edit_note</mat-icon>{{ 'quick.fullForm' | translate }}</a>
+      <a mat-stroked-button routerLink="/products/list"><mat-icon>inventory_2</mat-icon>{{ 'buttons.list' | translate }}</a>
+    </div>
+  </div>
+
+  <div class="qe-grid">
+    <!-- Entry -->
+    <section class="card overflow-hidden">
+      <div class="qe-scan">
+        <mat-icon class="qe-scan__icon">qr_code_scanner</mat-icon>
+        <input
+          #barcodeInput
+          class="qe-scan__input money"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          autofocus
+          [ngModel]="barcode()"
+          (ngModelChange)="barcode.set($event); match.set(undefined)"
+          (keydown.enter)="$event.preventDefault(); lookup()"
+          (keydown.escape)="reset()"
+          [placeholder]="'quick.scanPlaceholder' | translate"
+        />
+        <button mat-icon-button type="button" (click)="scan()" [matTooltip]="'products.scanBarcode' | translate">
+          <mat-icon>photo_camera</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="generate()" [matTooltip]="'products.generateBarcode' | translate">
+          <mat-icon>auto_awesome</mat-icon>
+        </button>
+      </div>
+
+      @switch (match()) {
+      @case (undefined) {
+      <div class="empty-state">
+        <mat-icon>qr_code_2</mat-icon>
+        <p class="empty-state__title">{{ 'quick.waiting' | translate }}</p>
+        <p class="text-sm max-w-sm">{{ 'quick.waitingHint' | translate }}</p>
+      </div>
+      }
+      @case (null) {
+      <form class="p-5 space-y-4" (ngSubmit)="save()">
+        <div class="flex items-center gap-2">
+          <span class="badge badge--brand"><mat-icon class="!w-4 !h-4 !text-base">add_circle</mat-icon>{{ 'quick.newProduct' | translate }}</span>
+          <span class="text-sm text-muted">{{ 'quick.newProductHint' | translate }}</span>
+        </div>
+        <label class="qe-field">
+          <span>{{ 'form.productName' | translate }} *</span>
+          <input #nameInput class="qe-input qe-input--lg" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" autocomplete="off" required />
+        </label>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <label class="qe-field col-span-2">
+            <span>{{ 'products.category' | translate }}</span>
+            <select class="qe-input" [ngModel]="categoryId()" (ngModelChange)="categoryId.set($event)" name="category">
+              <option value="">—</option>
+              @for (c of categories(); track c.id) { <option [value]="c.id">{{ c.name }}</option> }
+            </select>
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.unit' | translate }}</span>
+            <select class="qe-input" [ngModel]="unit()" (ngModelChange)="unit.set($event)" name="unit">
+              @for (u of units; track u) { <option [value]="u">{{ 'units.' + u | translate }}</option> }
+            </select>
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.quantity' | translate }}</span>
+            <input class="qe-input money" type="number" min="0" step="any" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="qty" placeholder="0" />
+          </label>
+          @if (canSeeCost()) {
+          <label class="qe-field">
+            <span>{{ 'products.costPrice' | translate }} *</span>
+            <input class="qe-input money" type="number" min="0" step="any" [ngModel]="cost()" (ngModelChange)="cost.set($event)" name="cost" />
+          </label>
+          }
+          <label class="qe-field">
+            <span>{{ 'products.sellingPrice' | translate }} *</span>
+            <input class="qe-input money" type="number" min="0" step="any" [ngModel]="price()" (ngModelChange)="price.set($event)" name="price" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.wholesalePrice' | translate }}</span>
+            <input class="qe-input money" type="number" min="0" step="any" [ngModel]="wholesalePrice()" (ngModelChange)="wholesalePrice.set($event)" name="wholesale" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.expiryDate' | translate }}</span>
+            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="expiryDate.set($event)" name="expiry" />
+          </label>
+        </div>
+        @if (canSeeCost() && margin(); as m) {
+        <p class="text-sm" [class.text-loss]="m.belowCost" [class.text-profit]="!m.belowCost">
+          {{ (m.belowCost ? 'products.belowCost' : 'products.profit') | translate }}: <b class="money">{{ m.profit | currencyDisplay:0 }}</b> ({{ m.percent }}%)
+        </p>
+        }
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button mat-button type="button" (click)="reset()">{{ 'common.cancel' | translate }} <span class="text-xs opacity-60">Esc</span></button>
+          <button mat-flat-button color="primary" type="submit" class="!h-11" [disabled]="!canSave()">
+            <mat-icon>check</mat-icon>{{ 'common.save' | translate }} <span class="text-xs opacity-70">Enter</span>
+          </button>
+        </div>
+      </form>
+      }
+      @default {
+      @let p = match()!;
+      <form class="p-5 space-y-4" (ngSubmit)="save()">
+        <div class="qe-found">
+          <span class="qe-found__avatar">
+            @if (p.imageUrl) { <img [src]="p.imageUrl" alt="" /> } @else { <mat-icon>inventory_2</mat-icon> }
+          </span>
+          <div class="min-w-0 flex-1">
+            <span class="badge badge--green mb-1"><mat-icon class="!w-4 !h-4 !text-base">check_circle</mat-icon>{{ 'quick.found' | translate }}</span>
+            <p class="font-bold text-lg leading-snug truncate">{{ p.name }}</p>
+            <p class="text-sm text-muted">{{ 'quick.onHand' | translate }}: <b class="money">{{ p.quantity | sum:2 }} {{ unitLabel(p.unit) }}</b></p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label class="qe-field">
+            <span>{{ 'quick.addQuantity' | translate }} *</span>
+            <input #qtyInput class="qe-input qe-input--lg money" type="number" min="0" step="any" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="qty" placeholder="0" />
+          </label>
+          @if (canSeeCost()) {
+          <label class="qe-field">
+            <span>{{ 'products.costPrice' | translate }}</span>
+            <input class="qe-input qe-input--lg money" type="number" min="0" step="any" [ngModel]="cost()" (ngModelChange)="cost.set($event)" name="cost" />
+          </label>
+          }
+          <label class="qe-field">
+            <span>{{ 'products.sellingPrice' | translate }}</span>
+            <input class="qe-input qe-input--lg money" type="number" min="0" step="any" [ngModel]="price()" (ngModelChange)="price.set($event)" name="price" />
+          </label>
+        </div>
+        @if (+(quantity() ?? 0) > 0) {
+        <p class="text-sm text-muted">{{ 'quick.after' | translate }}: <b class="money">{{ p.quantity + +(quantity() ?? 0) | sum:2 }} {{ unitLabel(p.unit) }}</b></p>
+        }
+        <div class="flex items-center justify-end gap-2">
+          <button mat-button type="button" (click)="reset()">{{ 'common.cancel' | translate }} <span class="text-xs opacity-60">Esc</span></button>
+          <button mat-flat-button color="primary" type="submit" class="!h-11" [disabled]="!canSave()">
+            <mat-icon>move_to_inbox</mat-icon>{{ 'stock.stockIn' | translate }} <span class="text-xs opacity-70">Enter</span>
+          </button>
+        </div>
+      </form>
+      }
+      }
+    </section>
+
+    <!-- Session -->
+    <aside class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="stat !p-4">
+          <p class="stat__label">{{ 'quick.created' | translate }}</p>
+          <p class="stat__value !mt-1 !text-xl">{{ summary().created }}</p>
+        </div>
+        <div class="stat !p-4">
+          <p class="stat__label">{{ 'quick.restockedCount' | translate }}</p>
+          <p class="stat__value !mt-1 !text-xl">{{ summary().restocked }}</p>
+        </div>
+        @if (canSeeCost()) {
+        <div class="stat !p-4 col-span-2">
+          <p class="stat__label">{{ 'quick.valueAtCost' | translate }}</p>
+          <p class="stat__value !mt-1 !text-xl money">{{ summary().costValue | currencyDisplay:0 }}</p>
+        </div>
+        }
+      </div>
+      <div class="card overflow-hidden">
+        <div class="card__head !py-3"><h2 class="card__title">{{ 'quick.session' | translate }}</h2></div>
+        @if (log().length === 0) {
+        <p class="p-5 text-sm text-muted text-center">{{ 'quick.sessionEmpty' | translate }}</p>
+        } @else {
+        <ul class="max-h-[420px] overflow-y-auto">
+          @for (row of log(); track $index) {
+          <li class="qe-log">
+            <span class="stat__icon !w-8 !h-8" [class.tone-brand]="row.kind === 'new'" [class.tone-green]="row.kind === 'restock'">
+              <mat-icon class="!text-[18px] !w-[18px] !h-[18px]">{{ row.kind === 'new' ? 'add' : 'south' }}</mat-icon>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold truncate">{{ row.name }}</span>
+              <span class="block text-xs text-muted">{{ row.at | date: 'HH:mm' }} · {{ row.price | currencyDisplay:0 }}</span>
+            </span>
+            <span class="text-sm font-bold money">+{{ row.quantity | sum:2 }} {{ unitLabel(row.unit) }}</span>
+          </li>
+          }
+        </ul>
+        }
+      </div>
+    </aside>
+  </div>
+</div>

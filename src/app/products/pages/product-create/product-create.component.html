@@ -1,13 +1,27 @@
-<div class="max-w-4xl mx-auto">
-  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'form.createProduct' | translate }}</h1>
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.products' | translate }}</p>
+      <h1 class="page-title">{{ 'form.createProduct' | translate }}</h1>
+      <p class="page-subtitle">{{ 'products.createSubtitle' | translate }}</p>
+    </div>
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/products/quick"><mat-icon>bolt</mat-icon>{{ 'header.quickEntry' | translate }}</a>
+      <a mat-stroked-button routerLink="/products/import"><mat-icon>upload_file</mat-icon>Excel</a>
+    </div>
+  </div>
 
-  <form (ngSubmit)="createProduct()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-5">
-    <!-- Basic info: the name drives the automatic search keywords -->
-    <section class="space-y-4">
-      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-        <mat-icon class="text-orange-500">inventory_2</mat-icon>{{ 'products.sectionBasic' | translate }}
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+  <form (ngSubmit)="createProduct()" class="pc-layout">
+    <div class="min-w-0 space-y-5">
+      <section class="form-section ">
+        <header class="form-section__head">
+          <span class="form-section__icon"><mat-icon>inventory_2</mat-icon></span>
+          <div class="min-w-0 flex-1">
+            <h2 class="form-section__title"><span class="pc-step">1</span>{{ 'products.sectionBasic' | translate }}</h2>
+            <p class="form-section__hint">{{ 'products.sectionBasicHint' | translate }}</p>
+          </div>
+        </header>
+        <div class="field-grid">
         <mat-form-field appearance="outline" class="w-full min-w-0 md:col-span-2" subscriptSizing="dynamic">
           <mat-label>{{ 'form.productName' | translate }}</mat-label>
           <input
@@ -48,11 +62,11 @@
           @if (keywordList().length > 0) {
           <div class="flex flex-wrap gap-1.5">
             @for (keyword of keywordList(); track keyword) {
-            <span class="inline-flex items-center gap-1 rounded-full bg-orange-50 py-0.5 pl-2.5 pr-1 text-xs text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">
+            <span class="inline-flex items-center gap-1 rounded-full bg-brand-50 py-0.5 pl-2.5 pr-1 text-xs text-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
               {{ keyword }}
               <button
                 type="button"
-                class="rounded-full px-1 leading-none hover:bg-orange-200 dark:hover:bg-orange-800"
+                class="rounded-full px-1 leading-none hover:bg-brand-200 dark:hover:bg-brand-800"
                 [attr.aria-label]="('common.delete' | translate) + ' ' + keyword"
                 (click)="removeKeyword(keyword)"
               >&times;</button>
@@ -71,15 +85,31 @@
           </mat-select>
         </mat-form-field>
 
-      </div>
-    </section>
+        </div>
+        <div class="mt-3">
+    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+      <mat-label>{{ 'products.description' | translate }}</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="product.description"
+        name="description"
+        rows="2"
+        [placeholder]="'form.enterDescription' | translate"
+      ></textarea>
+    </mat-form-field>
 
-    <!-- Codes: barcode (scan / type / generate), SKU, MXIK -->
-    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
-      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-        <mat-icon class="text-orange-500">qr_code_scanner</mat-icon>{{ 'products.sectionCodes' | translate }}
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+        </div>
+      </section>
+
+      <section class="form-section ">
+        <header class="form-section__head">
+          <span class="form-section__icon"><mat-icon>qr_code_2</mat-icon></span>
+          <div class="min-w-0 flex-1">
+            <h2 class="form-section__title"><span class="pc-step">2</span>{{ 'products.sectionCodes' | translate }}</h2>
+            <p class="form-section__hint">{{ 'products.sectionCodesHint' | translate }}</p>
+          </div>
+        </header>
+        <div class="field-grid">
         <mat-form-field appearance="outline" class="w-full min-w-0" subscriptSizing="dynamic">
           <mat-label>{{ 'form.barcode' | translate }}</mat-label>
           <input matInput [(ngModel)]="product.barcode" [errorStateMatcher]="fields.matcher('barcode')" name="barcode" inputmode="numeric" (keydown.enter)="$event.preventDefault()" [placeholder]="'form.enterBarcode' | translate" />
@@ -141,15 +171,18 @@
           </mat-hint>
           <mat-error>{{ fields.message('mxik') | translate }}</mat-error>
         </mat-form-field>
-      </div>
-    </section>
+        </div>
+      </section>
 
-    <!-- Prices -->
-    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
-      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-        <mat-icon class="text-orange-500">payments</mat-icon>{{ 'products.sectionPrices' | translate }}
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 items-start">
+      <section class="form-section ">
+        <header class="form-section__head">
+          <span class="form-section__icon"><mat-icon>payments</mat-icon></span>
+          <div class="min-w-0 flex-1">
+            <h2 class="form-section__title"><span class="pc-step">3</span>{{ 'products.sectionPrices' | translate }}</h2>
+            <p class="form-section__hint">{{ 'products.sectionPricesHint' | translate }}</p>
+          </div>
+        </header>
+        <div class="field-grid">
         @if (canSeeCost()) {
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'products.costPrice' | translate }}</mat-label>
@@ -170,15 +203,21 @@
           }
           <mat-error>{{ fields.message('price') | translate }}</mat-error>
         </mat-form-field>
-      </div>
-    </section>
+        </div>
+        <div class="mt-3">
+          <app-product-extras section="pricing" [draft]="extras" [unitLabel]="unitLabel(product.unit)" [price]="product.price" [cost]="product.cost" [showCost]="canSeeCost()" />
+        </div>
+      </section>
 
-    <!-- Stock -->
-    <section class="space-y-4 border-t border-gray-200 pt-5 dark:border-gray-700">
-      <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-        <mat-icon class="text-orange-500">warehouse</mat-icon>{{ 'products.sectionStock' | translate }}
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-start">
+      <section class="form-section ">
+        <header class="form-section__head">
+          <span class="form-section__icon"><mat-icon>warehouse</mat-icon></span>
+          <div class="min-w-0 flex-1">
+            <h2 class="form-section__title"><span class="pc-step">4</span>{{ 'products.sectionStock' | translate }}</h2>
+            <p class="form-section__hint">{{ 'products.sectionStockHint' | translate }}</p>
+          </div>
+        </header>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-3 items-start">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>{{ 'products.quantity' | translate }}</mat-label>
           <input matInput type="number" min="0" step="0.01" [(ngModel)]="product.quantity" [errorStateMatcher]="fields.matcher('quantity')" name="quantity" placeholder="0" />
@@ -199,42 +238,20 @@
           <input matInput type="number" step="0.01" [(ngModel)]="product.minQuantity" name="minQuantity" min="0" placeholder="0" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="w-full md:col-span-3" subscriptSizing="dynamic">
-          <mat-label>{{ 'products.altUnits' | translate }}</mat-label>
-          <input
-            matInput
-            [(ngModel)]="altUnitsInput"
-            name="altUnitsInput"
-            placeholder="quti:20,karobka:100"
-          />
-          <mat-hint>{{ 'products.altUnitsHint' | translate }}</mat-hint>
-        </mat-form-field>
-      </div>
-    </section>
-
-    <section class="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="font-semibold text-gray-900 dark:text-white">{{ 'products.productImage' | translate }}</h2>
-          <p class="text-sm text-gray-500">{{ 'products.imageHint' | translate }}</p>
         </div>
-        <input type="file" accept="image/*" (change)="selectImage($event)" [disabled]="submitting()" />
-      </div>
-      @if (imagePreview(); as preview) {
-      <img [src]="preview" [alt]="product.name" class="h-32 w-32 rounded-lg object-cover" />
-      }
-      <p class="text-xs text-gray-500">{{ 'products.requiredImageMaxSize' | translate }}</p>
-    </section>
+        <div class="mt-4">
+          <app-product-extras section="stock" [draft]="extras" [unitLabel]="unitLabel(product.unit)" />
+        </div>
+      </section>
 
-    <!-- Variants: characteristics (Hajm, Quvvat, Rang...) -> one product per combination -->
-    <section class="space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-      <div>
-        <h2 class="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-          <mat-icon class="text-orange-500">tune</mat-icon>{{ 'products.variants' | translate }}
-        </h2>
-        <p class="text-sm text-gray-500">{{ 'products.variantsIntro' | translate }}</p>
-      </div>
-
+      <section class="form-section ">
+        <header class="form-section__head">
+          <span class="form-section__icon"><mat-icon>tune</mat-icon></span>
+          <div class="min-w-0 flex-1">
+            <h2 class="form-section__title"><span class="pc-step">5</span>{{ 'products.variants' | translate }}</h2>
+            <p class="form-section__hint">{{ 'products.variantsIntro' | translate }}</p>
+          </div>
+        </header>
       <!-- 1. Characteristics -->
       @for (axis of axes; track $index; let j = $index) {
       <div class="grid grid-cols-[1fr_auto] gap-x-2 sm:grid-cols-[minmax(0,14rem)_1fr_auto] items-start">
@@ -278,13 +295,13 @@
         @for (preset of unusedPresets(); track preset.name) {
         <button
           type="button"
-          class="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-700 hover:border-orange-400 hover:bg-orange-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-orange-900/30"
+          class="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-700 hover:border-brand-400 hover:bg-brand-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-brand-900/30"
           (click)="addAxis(preset.name)"
         >+ {{ preset.name }}</button>
         }
         <button
           type="button"
-          class="rounded-full border border-dashed border-gray-400 px-2.5 py-0.5 text-xs text-gray-600 hover:border-orange-400 dark:text-gray-300"
+          class="rounded-full border border-dashed border-gray-400 px-2.5 py-0.5 text-xs text-gray-600 hover:border-brand-400 dark:text-gray-300"
           (click)="addAxis()"
         >+ {{ 'products.customAttribute' | translate }}</button>
       </div>
@@ -301,7 +318,7 @@
       </div>
 
       <!-- 2. Values of the main product (the fields above are its code, price and stock) -->
-      <div class="rounded-lg border border-orange-200 bg-orange-50/60 p-3 dark:border-orange-900/50 dark:bg-orange-900/10">
+      <div class="rounded-lg border border-brand-200 bg-brand-50/60 p-3 dark:border-brand-900/50 dark:bg-brand-900/10">
         <p class="mb-2 text-sm font-medium text-gray-800 dark:text-gray-100">
           {{ 'products.baseVariant' | translate }}
           <span class="font-normal text-gray-500">— {{ 'products.baseVariantNote' | translate }}</span>
@@ -413,32 +430,77 @@
         </div>
       </div>
       }
-    </section>
+      </section>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>{{ 'products.description' | translate }}</mat-label>
-      <textarea
-        matInput
-        [(ngModel)]="product.description"
-        name="description"
-        rows="4"
-        [placeholder]="'form.enterDescription' | translate"
-      ></textarea>
-    </mat-form-field>
-
-    @if (errorKey(); as key) {
-    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-      {{ key | translate }}
     </div>
-    }
 
-    <div class="flex gap-4 pt-2">
-      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
-        {{ 'form.createProduct' | translate }}
-      </button>
-      <a mat-button routerLink="/products/list">
-        {{ 'common.cancel' | translate }}
-      </a>
-    </div>
+    <aside class="pc-aside">
+      <div class="card overflow-hidden">
+        <div class="p-4">
+          <app-image-dropzone [preview]="imagePreview()" [disabled]="submitting()" [removable]="true" aspect="1 / 1" (selected)="selectImageFile($event)" (removed)="clearImage()" />
+        </div>
+        <div class="px-5 pb-5 space-y-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-muted">{{ 'products.preview' | translate }}</p>
+            <p class="mt-1 text-lg font-bold leading-snug break-words">{{ product.name || ('form.productName' | translate) }}</p>
+            @if (categoryName(); as cat) { <span class="badge badge--gray mt-1">{{ cat }}</span> }
+          </div>
+          <div class="flex items-end justify-between gap-2">
+            <div>
+              <p class="text-xs text-muted">{{ 'products.sellingPrice' | translate }}</p>
+              <p class="text-2xl font-extrabold money">{{ (product.price || 0) | currencyDisplay:0 }}</p>
+            </div>
+            @if (+(extras.wholesalePrice ?? 0) > 0) {
+            <div class="text-right">
+              <p class="text-xs text-muted">{{ 'pos.wholesaleShort' | translate }}</p>
+              <p class="font-bold money">{{ extras.wholesalePrice | currencyDisplay:0 }}</p>
+            </div>
+            }
+          </div>
+          @if (canSeeCost()) {
+          @if (margin(product.cost, product.price); as m) {
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-muted">{{ (m.belowCost ? 'products.belowCost' : 'products.profit') | translate }}</span>
+              <span class="font-semibold money" [class.text-loss]="m.belowCost" [class.text-profit]="!m.belowCost">{{ formatNumber(m.profit) }} · {{ m.percent }}%</span>
+            </div>
+            <div class="h-1.5 rounded-full overflow-hidden" style="background: var(--surface-3)">
+              <div class="h-full rounded-full" [style.width.%]="marginBar(m.percent)" [style.background]="m.belowCost ? 'var(--danger)' : 'var(--success)'"></div>
+            </div>
+          </div>
+          }
+          }
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="kpi-tile !p-3">
+              <p class="kpi-tile__label">{{ 'products.quantity' | translate }}</p>
+              <p class="font-bold money">{{ product.quantity || 0 }} {{ unitLabel(product.unit) }}</p>
+            </div>
+            <div class="kpi-tile !p-3">
+              <p class="kpi-tile__label">{{ 'products.variantsShort' | translate }}</p>
+              <p class="font-bold money">{{ variants.length + 1 }}</p>
+            </div>
+          </div>
+          @if (product.barcode) {
+          <p class="text-center text-xs text-muted" style="font-family: var(--font-mono)">{{ product.barcode }}</p>
+          }
+        </div>
+      </div>
+
+      @if (errorKey(); as key) {
+      <div class="badge badge--red !flex !rounded-xl !px-3 !py-2.5 !text-sm !font-medium">
+        <mat-icon class="!w-5 !h-5 !text-[20px] shrink-0">error</mat-icon>{{ key | translate }}
+      </div>
+      }
+
+      <div class="pc-actions">
+        <button mat-flat-button color="primary" type="submit" class="!h-12" [disabled]="submitting()">
+          <mat-icon>check</mat-icon>{{ 'form.createProduct' | translate }}
+        </button>
+        <button mat-stroked-button type="button" class="!h-11" [disabled]="submitting()" (click)="createProduct(true)">
+          <mat-icon>library_add</mat-icon>{{ 'products.saveAndNew' | translate }}
+        </button>
+        <a mat-button routerLink="/products/list">{{ 'common.cancel' | translate }}</a>
+      </div>
+    </aside>
   </form>
 </div>

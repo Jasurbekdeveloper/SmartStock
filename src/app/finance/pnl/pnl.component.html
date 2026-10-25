@@ -1,0 +1,111 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupFinance' | translate }}</p>
+      <h1 class="page-title">{{ 'navigation.pnl' | translate }}</h1>
+      <p class="page-subtitle">{{ range().from | date: 'd MMM' }} — {{ range().to | date: 'd MMM yyyy' }} · {{ 'finance.pnlSubtitle' | translate }}</p>
+    </div>
+    <div class="page-actions">
+      <button mat-stroked-button type="button" (click)="export()" [disabled]="loading()"><mat-icon>download</mat-icon>Excel</button>
+      <a mat-flat-button color="primary" routerLink="/finance/expenses"><mat-icon>add</mat-icon>{{ 'finance.newExpense' | translate }}</a>
+    </div>
+  </div>
+
+  <app-period-picker [(value)]="period" />
+
+  @let r = report();
+  <!-- Headline -->
+  <div class="pl-hero">
+    <div class="pl-hero__main">
+      <p class="pl-hero__label">{{ 'finance.netProfit' | translate }}</p>
+      <p class="pl-hero__value money" [class.pl-hero__value--neg]="r.netProfit < 0">{{ r.netProfit | currencyDisplay:0 }}</p>
+      <p class="pl-hero__sub">
+        {{ 'finance.netMargin' | translate }} <b>{{ r.netMargin * 100 | number: '1.0-1' }}%</b>
+        @if (delta(netPick); as d) {
+        <span class="pl-chip" [class.pl-chip--up]="d >= 0">{{ d >= 0 ? '▲' : '▼' }} {{ (d * 100) | number: '1.0-0' }}%</span>
+        }
+      </p>
+    </div>
+    <div class="pl-hero__flow">
+      <div>
+        <p class="pl-hero__label">{{ 'finance.grossProfit' | translate }}</p>
+        <p class="pl-hero__num money">{{ r.grossProfit | currencyDisplay:0 }}</p>
+      </div>
+      <mat-icon>remove</mat-icon>
+      <div>
+        <p class="pl-hero__label">{{ 'navigation.expenses' | translate }}</p>
+        <p class="pl-hero__num money">{{ r.expensesTotal | currencyDisplay:0 }}</p>
+      </div>
+      <mat-icon>drag_handle</mat-icon>
+      <div>
+        <p class="pl-hero__label">{{ 'finance.netProfit' | translate }}</p>
+        <p class="pl-hero__num money">{{ r.netProfit | currencyDisplay:0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="stat">
+      <p class="stat__label">{{ 'finance.netRevenue' | translate }}</p>
+      <p class="stat__value money">{{ r.netRevenue | currencyDisplay:0 }}</p>
+      @if (delta(revenuePick); as d) { <p class="stat__foot"><span class="font-semibold" [class.text-profit]="d >= 0" [class.text-loss]="d < 0">{{ d >= 0 ? '▲' : '▼' }} {{ (d * 100) | number: '1.0-0' }}%</span> {{ 'finance.vsPrevious' | translate }}</p> }
+    </div>
+    <div class="stat">
+      <p class="stat__label">{{ 'finance.grossProfit' | translate }}</p>
+      <p class="stat__value money">{{ r.grossProfit | currencyDisplay:0 }}</p>
+      <p class="stat__foot">{{ 'finance.margin' | translate }} {{ r.grossMargin * 100 | number: '1.0-1' }}%</p>
+    </div>
+    <div class="stat">
+      <p class="stat__label">{{ 'finance.receipts' | translate }}</p>
+      <p class="stat__value">{{ r.receipts }}</p>
+      <p class="stat__foot">{{ 'finance.avgReceipt' | translate }} <span class="money">{{ r.avgReceipt | currencyDisplay:0 }}</span></p>
+    </div>
+    <div class="stat">
+      <p class="stat__label">{{ 'finance.totalExpenses' | translate }}</p>
+      <p class="stat__value money">{{ r.expensesTotal | currencyDisplay:0 }}</p>
+      @if (delta(expensePick); as d) { <p class="stat__foot"><span class="font-semibold" [class.text-loss]="d > 0" [class.text-profit]="d <= 0">{{ d >= 0 ? '▲' : '▼' }} {{ (d * 100) | number: '1.0-0' }}%</span> {{ 'finance.vsPrevious' | translate }}</p> }
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-4 items-start">
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">{{ 'finance.trend' | translate }}</h2></div>
+      <div class="card__body">
+        @if (loading()) {
+        <div class="h-80 grid place-items-center text-muted text-sm">…</div>
+        } @else if (r.receipts === 0 && r.expensesTotal === 0) {
+        <div class="empty-state h-80"><mat-icon>query_stats</mat-icon><p class="empty-state__title">{{ 'statistics.noData' | translate }}</p></div>
+        } @else {
+        <div class="h-80"><canvas baseChart [type]="'bar'" [data]="chartData()" [options]="chartOptions"></canvas></div>
+        }
+      </div>
+    </section>
+
+    <!-- Statement -->
+    <section class="card overflow-hidden">
+      <div class="card__head"><h2 class="card__title">{{ 'finance.statement' | translate }}</h2></div>
+      <div class="py-2">
+        @for (row of statement(); track row.key) {
+        <div class="pl-row" [class.pl-row--sub]="row.kind === 'subtotal'" [class.pl-row--total]="row.kind === 'total'">
+          <span class="flex items-center gap-1">
+            {{ row.key | translate }}
+            @if (row.hint) { <mat-icon class="!w-4 !h-4 !text-base text-muted cursor-help" [matTooltip]="row.hint | translate">info</mat-icon> }
+          </span>
+          <span class="money" [class.text-loss]="row.kind === 'total' && row.value < 0" [class.text-profit]="row.kind === 'total' && row.value >= 0">
+            {{ row.kind === 'minus' ? '−' : '' }}{{ row.value | currencyDisplay:0 }}
+          </span>
+        </div>
+        @if (row.key === 'finance.totalExpenses') {
+        @for (c of r.expensesByCategory; track c.category) {
+        <div class="pl-row pl-row--detail">
+          <span class="flex items-center gap-2"><mat-icon class="!w-4 !h-4 !text-base">{{ icons[c.category] }}</mat-icon>{{ 'finance.cat.' + c.category | translate }}</span>
+          <span class="money">{{ c.amount | currencyDisplay:0 }}</span>
+        </div>
+        }
+        }
+        }
+      </div>
+      <p class="px-5 pb-4 text-xs text-muted">{{ 'finance.accrualNote' | translate }}</p>
+    </section>
+  </div>
+</div>

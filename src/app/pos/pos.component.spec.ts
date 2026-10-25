@@ -15,6 +15,7 @@ import { ShiftService } from '../core/services/shift.service';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
 import { SettingsService } from '../core/services/settings.service';
+import { CashMovementService } from '../core/services/cash-movement.service';
 
 const cement: Product = {
   id: 'p1', name: 'Sement M400', barcode: '2000000000008', price: 50000, cost: 42000,
@@ -23,6 +24,10 @@ const cement: Product = {
 const nails: Product = {
   id: 'p2', name: 'Mix 100 mm', barcode: '2000000000015', price: 3000, cost: 2000,
   quantity: 500, unit: 'dona', categoryId: 'c2', sku: 'MIX-100'
+};
+const tiles: Product = {
+  id: 'p3', name: 'Kafel 30x30', barcode: '2000000000022', price: 12000, cost: 9000,
+  quantity: 400, unit: 'dona', categoryId: 'c2', wholesalePrice: 10000, wholesaleMinQty: 10
 };
 const cashier = { uid: 'u1', email: 'k@x.uz', displayName: 'Kassir', role: 'cashier' as const, tenantId: 't1', active: true };
 
@@ -39,12 +44,13 @@ describe('PosComponent checkout (cashier)', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
-        { provide: ProductService, useValue: { getProducts: () => of([cement, nails]) } },
+        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles]) } },
         { provide: CategoryService, useValue: { getCategories: () => of([]) } },
-        { provide: SalesService, useValue: { getSalesInRange: () => of([]), createSale } },
+        { provide: SalesService, useValue: { getSalesInRange: () => of([]), getReturnsForShift: () => of([]), createSale } },
+        { provide: CashMovementService, useValue: { getForShift: () => of([]), add: vi.fn(() => of('m1')) } },
         { provide: DebtService, useValue: { getCustomers: () => of([]), getCustomerDebts: () => of([]) } },
         { provide: AuthService, useValue: { currentUser$: of(cashier), getCurrentUser: () => cashier, can: () => true } },
-        { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }) } },
+        { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }), getShiftSales: () => of([]) } },
         { provide: TranslationService, useValue: { translate: (k: string) => k } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
         { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm") } }
@@ -171,5 +177,28 @@ describe('PosComponent checkout (cashier)', () => {
     await payAndFinish(t);
     expect(createSale).toHaveBeenCalledTimes(1);
     expect(t.fixture.componentInstance.cart()).toEqual([]);
+  });
+
+  it('applies the wholesale price from the threshold and the ticket switch', async () => {
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+
+    t.tile('Kafel').click();
+    await t.settle();
+    expect(pos.cart()[0].price).toBe(12000);
+
+    pos.updateQuantity('p3', 10);
+    await t.settle();
+    expect(pos.cart()[0]).toMatchObject({ price: 10000, tier: 'wholesale' });
+
+    pos.updateQuantity('p3', 2);
+    expect(pos.cart()[0].price).toBe(12000);
+
+    pos.setPriceTier('wholesale');
+    expect(pos.cart()[0].price).toBe(10000);
+
+    await payAndFinish(t);
+    expect(createSale.mock.calls[0][0].items[0]).toMatchObject({ price: 10000, priceTier: 'wholesale' });
+    expect(pos.priceTier()).toBe('retail');
   });
 });

@@ -1,0 +1,163 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupFinance' | translate }}</p>
+      <h1 class="page-title">{{ 'navigation.expenses' | translate }}</h1>
+      <p class="page-subtitle">{{ 'finance.expensesSubtitle' | translate }}</p>
+    </div>
+    <div class="page-actions">
+      <button mat-stroked-button type="button" (click)="export()" [disabled]="visible().length === 0">
+        <mat-icon>download</mat-icon>Excel
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="add()">
+        <mat-icon>add</mat-icon>{{ 'finance.newExpense' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <app-period-picker [(value)]="period" />
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="stat">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'finance.totalExpenses' | translate }}</p>
+          <p class="stat__value money">{{ total() | currencyDisplay:0 }}</p>
+          @if (change(); as c) {
+          <p class="stat__foot"><span class="font-semibold" [class.text-loss]="c > 0" [class.text-profit]="c <= 0">{{ c > 0 ? '▲' : '▼' }} {{ (c * 100) | number: '1.0-0' }}%</span> {{ 'finance.vsPrevious' | translate }}</p>
+          }
+        </div>
+        <span class="stat__icon tone-red"><mat-icon>trending_down</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'finance.perDay' | translate }}</p>
+          <p class="stat__value money">{{ perDay() | currencyDisplay:0 }}</p>
+        </div>
+        <span class="stat__icon tone-blue"><mat-icon>calendar_today</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'finance.topCategory' | translate }}</p>
+          <p class="stat__value !text-xl">{{ byCategory()[0] ? ('finance.cat.' + byCategory()[0].category | translate) : '—' }}</p>
+          @if (byCategory()[0]; as top) {
+          <p class="stat__foot money">{{ top.amount | currencyDisplay:0 }} · {{ (top.share * 100) | number: '1.0-0' }}%</p>
+          }
+        </div>
+        <span class="stat__icon tone-amber"><mat-icon>{{ byCategory()[0] ? icons[byCategory()[0].category] : 'category' }}</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="stat__label">{{ 'finance.paidFromTill' | translate }}</p>
+          <p class="stat__value money">{{ fromTill() | currencyDisplay:0 }}</p>
+          <p class="stat__foot">{{ expenses().length }} {{ 'finance.records' | translate }}</p>
+        </div>
+        <span class="stat__icon tone-green"><mat-icon>point_of_sale</mat-icon></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-4 items-start">
+    <!-- Category breakdown -->
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">{{ 'finance.byCategory' | translate }}</h2></div>
+      <div class="card__body space-y-1">
+        @if (byCategory().length === 0) {
+        <p class="text-sm text-muted text-center py-6">{{ 'finance.noExpenses' | translate }}</p>
+        }
+        @for (row of byCategory(); track row.category) {
+        <button type="button" class="xc-row" [class.xc-row--on]="categoryFilter() === row.category" (click)="categoryFilter.set(categoryFilter() === row.category ? null : row.category)">
+          <span class="stat__icon !w-9 !h-9 tone-gray"><mat-icon class="!text-[20px] !w-5 !h-5">{{ icons[row.category] }}</mat-icon></span>
+          <span class="min-w-0 flex-1">
+            <span class="flex justify-between gap-2 text-sm">
+              <span class="font-medium truncate">{{ 'finance.cat.' + row.category | translate }}</span>
+              <span class="font-semibold money">{{ row.amount | currencyDisplay:0 }}</span>
+            </span>
+            <span class="xc-bar"><span [style.width.%]="row.share * 100"></span></span>
+          </span>
+        </button>
+        }
+      </div>
+    </section>
+
+    <!-- List -->
+    <section class="card overflow-hidden">
+      <div class="card__head">
+        <h2 class="card__title">
+          {{ 'finance.records' | translate }}
+          @if (categoryFilter(); as cat) {
+          <button type="button" class="badge badge--brand ml-2" (click)="categoryFilter.set(null)">{{ 'finance.cat.' + cat | translate }} ✕</button>
+          }
+        </h2>
+      </div>
+      @if (visible().length === 0) {
+      <div class="empty-state">
+        <mat-icon>receipt</mat-icon>
+        <p class="empty-state__title">{{ 'finance.noExpenses' | translate }}</p>
+        <p class="text-sm">{{ 'finance.noExpensesHint' | translate }}</p>
+        <button mat-flat-button color="primary" class="mt-2" type="button" (click)="add()"><mat-icon>add</mat-icon>{{ 'finance.newExpense' | translate }}</button>
+      </div>
+      } @else {
+      <div class="overflow-x-auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ 'finance.category' | translate }}</th>
+              <th>{{ 'finance.date' | translate }}</th>
+              <th>{{ 'finance.method' | translate }}</th>
+              <th class="text-right">{{ 'finance.amount' | translate }}</th>
+              <th class="w-10"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of visible(); track e.id) {
+            <tr>
+              <td>
+                <div class="flex items-center gap-3">
+                  <span class="stat__icon !w-9 !h-9 tone-gray shrink-0"><mat-icon class="!text-[20px] !w-5 !h-5">{{ icons[e.category] }}</mat-icon></span>
+                  <div class="min-w-0">
+                    <p class="font-medium">{{ 'finance.cat.' + e.category | translate }}</p>
+                    @if (e.note) { <p class="text-xs text-muted truncate max-w-[280px]">{{ e.note }}</p> }
+                  </div>
+                </div>
+              </td>
+              <td class="whitespace-nowrap text-muted">{{ e.date | date: 'dd.MM.yyyy' }}</td>
+              <td>
+                <span class="badge badge--gray">{{ 'finance.methods.' + e.method | translate }}</span>
+                @if (e.cashMovementId) { <span class="badge badge--amber ml-1">{{ 'finance.tillShort' | translate }}</span> }
+              </td>
+              <td class="text-right font-semibold money">{{ e.amount | currencyDisplay:0 }}</td>
+              <td>
+                <button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" [attr.aria-label]="'common.actions' | translate">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #rowMenu="matMenu" xPosition="before">
+                  <button mat-menu-item (click)="edit(e)"><mat-icon>edit</mat-icon>{{ 'common.edit' | translate }}</button>
+                  @if (!e.cashMovementId) {
+                  <button mat-menu-item (click)="remove(e)"><mat-icon>delete</mat-icon>{{ 'common.delete' | translate }}</button>
+                  }
+                </mat-menu>
+              </td>
+            </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">{{ 'finance.total' | translate }}</td>
+              <td class="text-right money">{{ visibleTotal() | currencyDisplay:0 }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      }
+    </section>
+  </div>
+</div>

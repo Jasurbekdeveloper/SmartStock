@@ -296,8 +296,37 @@ service cloud.firestore {
         && request.resource.data.tenantId == resource.data.tenantId
         && resource.data.cashierId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status','closedAt','countedCash','expectedCash','variance','salesCount','totalRevenue','cashTotal','cardTotal','refundTotal','notes']);
+             .hasOnly(['status','closedAt','countedCash','expectedCash','variance','salesCount','totalRevenue','cashTotal','cardTotal','refundTotal','cashInTotal','cashOutTotal','notes']);
       allow delete: if canAdminWrite(resource.data.tenantId);
+    }
+
+    // cashMovements/{id}: cash put into / taken out of a drawer during a shift. Only the
+    // cashier who owns the (still open) shift may record one; immutable afterwards so the
+    // Z-report stays reproducible. Staff read everything; a cashier reads their own.
+    match /cashMovements/{id} {
+      allow read: if isStaffOrOwner(resource.data.tenantId, resource.data.cashierId);
+      allow create: if canWrite(request.resource.data.tenantId)
+        && request.resource.data.cashierId == request.auth.uid
+        && request.resource.data.type in ['in', 'out']
+        && request.resource.data.amount is number && request.resource.data.amount > 0
+        && get(/databases/$(database)/documents/shifts/$(request.resource.data.shiftId)).data.cashierId == request.auth.uid
+        && get(/databases/$(database)/documents/shifts/$(request.resource.data.shiftId)).data.status == 'open';
+      allow update, delete: if false;
+    }
+
+    // expenses/{id}: rent, salaries, utilities… for the P&L. Staff only (finance.manage).
+    // An expense paid from a till is linked to an immutable cash movement, so its amount
+    // can't change afterwards.
+    match /expenses/{id} {
+      allow read: if isTenantStaff(resource.data.tenantId);
+      allow create: if canStaffWrite(request.resource.data.tenantId)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.amount is number && request.resource.data.amount > 0;
+      allow update: if canStaffWrite(resource.data.tenantId)
+        && request.resource.data.tenantId == resource.data.tenantId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && (!('cashMovementId' in resource.data) || request.resource.data.amount == resource.data.amount);
+      allow delete: if canStaffWrite(resource.data.tenantId) && !('cashMovementId' in resource.data);
     }
 
     // suppliers/{id}: purchasing contacts (name/phone/address/etc.). Any signed-in

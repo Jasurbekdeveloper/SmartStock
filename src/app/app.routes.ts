@@ -2,8 +2,6 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProductListComponent } from './products/pages/product-list/product-list.component';
-import { ProductCreateComponent } from './products/pages/product-create/product-create.component';
-import { ProductEditComponent } from './products/pages/product-edit/product-edit.component';
 import { StockInComponent } from './stock/pages/stock-in/stock-in.component';
 import { StockOutComponent } from './stock/pages/stock-out/stock-out.component';
 import { StockAdjustmentComponent } from './stock/pages/stock-adjustment/stock-adjustment.component';
@@ -104,8 +102,24 @@ export const routes: Routes = [
         path: 'products',
         children: [
           { path: 'list', component: ProductListComponent, canActivate: [permissionGuard('products.view')] },
-          { path: 'create', component: ProductCreateComponent, canActivate: [permissionGuard('products.manage')] },
-          { path: 'edit/:id', component: ProductEditComponent, canActivate: [permissionGuard('products.manage')] },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import('./products/pages/product-create/product-create.component').then((m) => m.ProductCreateComponent),
+            canActivate: [permissionGuard('products.manage')]
+          },
+          {
+            path: 'quick',
+            loadComponent: () =>
+              import('./products/pages/product-quick/product-quick.component').then((m) => m.ProductQuickComponent),
+            canActivate: [permissionGuard('products.manage')]
+          },
+          {
+            path: 'edit/:id',
+            loadComponent: () =>
+              import('./products/pages/product-edit/product-edit.component').then((m) => m.ProductEditComponent),
+            canActivate: [permissionGuard('products.manage')]
+          },
           {
             path: 'import',
             loadComponent: () =>
@@ -126,7 +140,24 @@ export const routes: Routes = [
           { path: 'in', component: StockInComponent },
           { path: 'out', component: StockOutComponent },
           { path: 'adjustment', component: StockAdjustmentComponent },
-          { path: 'history', component: StockHistoryComponent }
+          { path: 'history', component: StockHistoryComponent },
+          {
+            path: 'expiry',
+            loadComponent: () => import('./stock/pages/expiry/expiry.component').then((m) => m.ExpiryComponent)
+          }
+        ]
+      },
+      {
+        path: 'finance',
+        canActivate: [permissionGuard('finance.manage')],
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'pnl' },
+          { path: 'pnl', loadComponent: () => import('./finance/pnl/pnl.component').then((m) => m.PnlComponent) },
+          {
+            path: 'expenses',
+            loadComponent: () => import('./finance/expenses/expenses.component').then((m) => m.ExpensesComponent)
+          },
+          { path: 'cash', loadComponent: () => import('./finance/cashbook/cashbook.component').then((m) => m.CashbookComponent) }
         ]
       },
       { path: 'pos', component: PosComponent, canActivate: [permissionGuard('pos.sell')] },

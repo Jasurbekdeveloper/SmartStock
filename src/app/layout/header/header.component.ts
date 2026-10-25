@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ThemeService } from '../../core/services/theme.service';
 import { Language, TranslationService } from '../../core/services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
-import { roleCan } from '../../core/auth/permissions';
+import { Permission, roleCan } from '../../core/auth/permissions';
 import { SidebarStateService } from '../sidebar/sidebar-state.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -46,6 +46,26 @@ export class HeaderComponent {
       .toUpperCase()
   );
   storeName = inject(SettingsService).storeName;
+
+  firstName = computed(() => (this.currentUser()?.displayName || '').trim().split(/\s+/)[0] || '');
+
+  greetingKey = computed(() => {
+    const h = new Date().getHours();
+    return h < 5 ? 'header.goodNight' : h < 12 ? 'header.goodMorning' : h < 18 ? 'header.goodAfternoon' : 'header.goodEvening';
+  });
+
+  /** Shortcuts for the most frequent data-entry tasks, filtered by role. */
+  quickActions = computed(() => {
+    const role = this.currentUser()?.role;
+    const all: { label: string; path: string; icon: string; permission: Permission }[] = [
+      { label: 'header.newProduct', path: '/products/create', icon: 'add_box', permission: 'products.manage' },
+      { label: 'header.quickEntry', path: '/products/quick', icon: 'bolt', permission: 'products.manage' },
+      { label: 'stock.stockIn', path: '/stock/in', icon: 'move_to_inbox', permission: 'stock.manage' },
+      { label: 'header.newExpense', path: '/finance/expenses', icon: 'payments', permission: 'finance.manage' },
+      { label: 'header.newCustomer', path: '/customers/create', icon: 'person_add', permission: 'customers.manage' }
+    ];
+    return all.filter((a) => roleCan(role, a.permission));
+  });
   readonly today = new Date();
 
   readonly languages: { code: Language; name: string }[] = [

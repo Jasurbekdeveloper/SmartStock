@@ -32,11 +32,11 @@
   } @else {
   <div class="grid gap-4 lg:grid-cols-2">
     @for (lead of visible(); track lead.id) {
-    <mat-card class="!p-5" [style.border-left]="lead.status === 'new' ? '4px solid #f97316' : null">
+    <mat-card class="!p-5" [style.border-left]="lead.status === 'new' ? '4px solid var(--brand)' : null">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <h2 class="text-lg font-bold truncate">{{ lead.name }}</h2>
-          <a [href]="tel(lead.phone)" class="text-orange-600 dark:text-orange-400 font-semibold tabular-nums">{{ lead.phone }}</a>
+          <a [href]="tel(lead.phone)" class="text-brand-600 dark:text-brand-400 font-semibold tabular-nums">{{ lead.phone }}</a>
           <p class="text-xs text-gray-500 mt-0.5">{{ lead.createdAt | date: 'dd.MM.yyyy HH:mm' }}</p>
         </div>
         <span class="shrink-0 text-xs px-2 py-1 rounded-full" [class]="badge[lead.status]">{{ 'platform.leads.status.' + lead.status | translate }}</span>

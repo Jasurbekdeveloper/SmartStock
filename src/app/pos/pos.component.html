@@ -1,36 +1,51 @@
 <div class="pos">
   <!-- ============ LEFT: catalog ============ -->
   <section class="pos__catalog">
-    <!-- Shift strip -->
-    @if (!activeShift()) {
-    <div class="pos-shift pos-shift--closed">
-      <mat-icon>warning</mat-icon>
-      <span class="flex-1 font-medium">{{ 'shifts.openShiftPrompt' | translate }}</span>
-      <input
-        type="number"
-        min="0"
-        step="1000"
-        [ngModel]="startingCashInput()"
-        (ngModelChange)="startingCashInput.set(+$event)"
-        [placeholder]="'shifts.startingCash' | translate"
-        class="pos-input w-36"
-      />
-      <button mat-flat-button color="primary" [disabled]="openingShift()" (click)="openShiftInline()">
-        {{ 'shifts.openShift' | translate }}
-      </button>
-    </div>
-    } @else {
-    <div class="pos-shift pos-shift--open">
-      <span class="pos-shift__dot"></span>
-      <span class="font-medium">{{ 'shifts.shiftOpen' | translate }}</span>
-      <span class="text-sm opacity-80">· {{ 'shifts.startingCash' | translate }}: {{ activeShift()!.startingCash | currencyDisplay:0 }}</span>
-      <span class="flex-1"></span>
-      <a mat-button [routerLink]="['/shifts/close', activeShift()!.id]">
+    <div class="pos-top">
+      @if (!activeShift()) {
+      <div class="pos-shift pos-shift--closed">
         <mat-icon>lock_clock</mat-icon>
-        {{ 'shifts.closeShift' | translate }}
+        <span class="font-medium">{{ 'shifts.openShiftPrompt' | translate }}</span>
+        <input
+          type="number"
+          min="0"
+          step="1000"
+          [ngModel]="startingCashInput()"
+          (ngModelChange)="startingCashInput.set(+$event)"
+          [placeholder]="'shifts.startingCash' | translate"
+          class="pos-input w-32"
+        />
+        <button mat-flat-button color="primary" [disabled]="openingShift()" (click)="openShiftInline()">
+          {{ 'shifts.openShift' | translate }}
+        </button>
+      </div>
+      } @else {
+      <div class="pos-shift pos-shift--open">
+        <span class="pos-shift__dot"></span>
+        <span class="font-semibold">{{ 'shifts.shiftOpen' | translate }}</span>
+        <span class="pos-shift__sep"></span>
+        <span class="text-muted">{{ 'finance.inDrawer' | translate }}</span>
+        <b class="money">{{ drawerCash() | currencyDisplay:0 }}</b>
+      </div>
+      <button mat-stroked-button type="button" (click)="openCashDialog()">
+        <mat-icon>swap_vert</mat-icon>
+        <span class="hidden sm:inline">{{ 'finance.cashMovement' | translate }}</span>
+      </button>
+      <a mat-stroked-button [routerLink]="['/shifts/close', activeShift()!.id]">
+        <mat-icon>lock_clock</mat-icon>
+        <span class="hidden sm:inline">{{ 'shifts.closeShift' | translate }}</span>
       </a>
+      }
+      <span class="flex-1"></span>
+      <div class="seg !hidden md:!inline-flex" role="group" [attr.aria-label]="'pos.view' | translate">
+        <button type="button" [class.seg--on]="viewMode() === 'grid'" (click)="setViewMode('grid')" [matTooltip]="'pos.viewGrid' | translate">
+          <mat-icon class="!align-middle !text-[18px] !w-[18px] !h-[18px]">grid_view</mat-icon>
+        </button>
+        <button type="button" [class.seg--on]="viewMode() === 'list'" (click)="setViewMode('list')" [matTooltip]="'pos.viewList' | translate">
+          <mat-icon class="!align-middle !text-[18px] !w-[18px] !h-[18px]">view_list</mat-icon>
+        </button>
+      </div>
     </div>
-    }
 
     <!-- Search -->
     <div class="pos-search">
@@ -44,65 +59,97 @@
         [placeholder]="'pos.searchProduct' | translate"
         class="pos-search__input"
       />
-      <kbd class="pos-kbd !hidden md:!inline-flex">F2</kbd>
-      <button
-        mat-icon-button
-        type="button"
-        [attr.aria-label]="'pos.scanBarcode' | translate"
-        [matTooltip]="'pos.scanBarcode' | translate"
-        (click)="openScannerDialog()"
-      >
+      @if (searchQuery()) {
+      <button type="button" class="pos-search__clear" (click)="searchQuery.set('')" aria-label="clear">
+        <mat-icon>close</mat-icon>
+      </button>
+      }
+      <kbd class="kbd !hidden md:!inline-flex">F2</kbd>
+      <button type="button" class="pos-search__scan" [attr.aria-label]="'pos.scanBarcode' | translate" [matTooltip]="'pos.scanBarcode' | translate" (click)="openScannerDialog()">
         <mat-icon>qr_code_scanner</mat-icon>
       </button>
     </div>
 
     <!-- Category chips -->
     <div class="pos-chips">
-      <button type="button" class="pos-chip" [class.pos-chip--active]="!selectedCategoryId() && !searchQuery()" (click)="selectCategory(null)">
+      <button type="button" class="chip" [class.chip--active]="!selectedCategoryId() && !searchQuery()" (click)="selectCategory(null)">
         <mat-icon class="!text-base !w-4 !h-4">local_fire_department</mat-icon>
         {{ 'pos.popular' | translate }}
       </button>
       @for (category of sortedCategories(); track category.id) {
-      <button
-        type="button"
-        class="pos-chip"
-        [class.pos-chip--active]="selectedCategoryId() === category.id && !searchQuery()"
-        (click)="selectCategory(category.id)"
-      >
+      <button type="button" class="chip" [class.chip--active]="selectedCategoryId() === category.id && !searchQuery()" (click)="selectCategory(category.id)">
         {{ category.name }}
       </button>
       }
     </div>
 
-    <!-- Product grid -->
+    <!-- Products -->
     <div class="pos-grid-wrap">
       @if (displayedProducts().length === 0) {
-      <div class="pos-empty">
-        <mat-icon>inventory_2</mat-icon>
-        <p>{{ 'messages.noProducts' | translate }}</p>
+      <div class="empty-state">
+        <mat-icon>{{ searchQuery() ? 'search_off' : 'inventory_2' }}</mat-icon>
+        <p class="empty-state__title">{{ 'messages.noProducts' | translate }}</p>
+        @if (searchQuery()) {
+        <p class="text-sm">«{{ searchQuery() }}»</p>
+        }
       </div>
-      } @else {
+      } @else if (viewMode() === 'grid') {
       <div class="pos-grid">
         @for (product of displayedProducts(); track product.id) {
-        <button type="button" class="pos-tile" [class.pos-tile--out]="product.quantity <= 0" (click)="addToCart(product)">
-          @if (product.imageUrl) {
-          <img class="pos-tile__image" [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
-          } @else {
-          <span class="pos-tile__image pos-tile__image--empty"><mat-icon>inventory_2</mat-icon></span>
-          }
-          <span class="pos-tile__name">{{ product.name }}</span>
-          @if (variantLabel(product); as variant) {
-          <span class="pos-tile__variant">{{ variant }}</span>
-          }
-          <span class="pos-tile__barcode">{{ product.barcode }}</span>
-          <span class="pos-tile__price">{{ product.price | currencyDisplay:0 }}</span>
-          <span class="pos-tile__stock" [class.pos-tile__stock--low]="product.minQuantity !== undefined && product.quantity <= product.minQuantity">
-            @if (product.quantity <= 0) {
-              {{ 'pos.outOfStock' | translate }}
+        @let inCart = cartQty().get(product.id);
+        @let exp = expiryOf(product);
+        <button type="button" class="pos-tile" [class.pos-tile--out]="product.quantity <= 0" [class.pos-tile--in]="!!inCart" (click)="addToCart(product)">
+          <span class="pos-tile__media">
+            @if (product.imageUrl) {
+            <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
             } @else {
-              {{ product.quantity | sum:2 }} {{ unitDisplayLabel(product.unit) }}
+            <span class="pos-tile__initials">{{ initials(product.name) }}</span>
+            }
+            @if (inCart) {
+            <span class="pos-tile__qty money">×{{ inCart | sum:2 }}</span>
+            }
+            @if (exp === 'expired' || exp === 'soon') {
+            <span class="pos-tile__flag" [class.pos-tile__flag--red]="exp === 'expired'">
+              <mat-icon>event_busy</mat-icon>
+            </span>
             }
           </span>
+          <span class="pos-tile__body">
+            <span class="pos-tile__name">{{ product.name }}</span>
+            @if (variantLabel(product); as variant) {
+            <span class="pos-tile__variant">{{ variant }}</span>
+            }
+            <span class="pos-tile__foot">
+              <span class="pos-tile__price money">{{ shownPrice(product) | currencyDisplay:0 }}</span>
+              <span class="pos-tile__stock" [class.pos-tile__stock--low]="isLow(product)" [class.pos-tile__stock--out]="product.quantity <= 0">
+                @if (product.quantity <= 0) {
+                  {{ 'pos.outOfStock' | translate }}
+                } @else {
+                  {{ product.quantity | sum:2 }} {{ unitDisplayLabel(product.unit) }}
+                }
+              </span>
+            </span>
+          </span>
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="pos-list">
+        @for (product of displayedProducts(); track product.id) {
+        @let inCart = cartQty().get(product.id);
+        <button type="button" class="pos-row" [class.pos-tile--out]="product.quantity <= 0" [class.pos-row--in]="!!inCart" (click)="addToCart(product)">
+          <span class="pos-row__avatar">
+            @if (product.imageUrl) { <img [src]="product.imageUrl" alt="" loading="lazy" /> } @else { {{ initials(product.name) }} }
+          </span>
+          <span class="min-w-0 flex-1 text-left">
+            <span class="block font-semibold truncate">{{ productDisplayName(product) }}</span>
+            <span class="block text-xs text-muted money">{{ product.barcode }}@if (product.sku) { · {{ product.sku }} }</span>
+          </span>
+          <span class="pos-tile__stock" [class.pos-tile__stock--low]="isLow(product)" [class.pos-tile__stock--out]="product.quantity <= 0">
+            {{ product.quantity | sum:2 }} {{ unitDisplayLabel(product.unit) }}
+          </span>
+          @if (inCart) { <span class="badge badge--brand money">×{{ inCart | sum:2 }}</span> }
+          <span class="pos-row__price money">{{ shownPrice(product) | currencyDisplay:0 }}</span>
         </button>
         }
       </div>
@@ -113,18 +160,12 @@
   <!-- ============ RIGHT: ticket ============ -->
   <section class="pos__ticket">
     <header class="pos-ticket__head">
-      <div>
-        <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ 'pos.cart' | translate }}</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ itemCount() }} {{ 'pos.positions' | translate }}</p>
+      <div class="min-w-0">
+        <h2 class="pos-ticket__title">{{ 'pos.cart' | translate }}</h2>
+        <p class="text-xs text-muted">{{ itemCount() }} {{ 'pos.positions' | translate }} · {{ totalUnits() | sum:2 }} {{ 'pos.units' | translate }}</p>
       </div>
       <div class="flex items-center">
-        <button
-          mat-icon-button
-          type="button"
-          [disabled]="cart().length === 0"
-          (click)="holdCart()"
-          [matTooltip]="('pos.holdCart' | translate) + ' (F9)'"
-        >
+        <button mat-icon-button type="button" [disabled]="cart().length === 0" (click)="holdCart()" [matTooltip]="('pos.holdCart' | translate) + ' (F9)'">
           <mat-icon>pause_circle</mat-icon>
         </button>
         <button
@@ -140,13 +181,7 @@
         >
           <mat-icon>inventory</mat-icon>
         </button>
-        <button
-          mat-icon-button
-          type="button"
-          [disabled]="cart().length === 0"
-          (click)="confirmClearCart()"
-          [matTooltip]="('pos.clearCart' | translate) + ' (F8)'"
-        >
+        <button mat-icon-button type="button" [disabled]="cart().length === 0" (click)="confirmClearCart()" [matTooltip]="('pos.clearCart' | translate) + ' (F8)'">
           <mat-icon>delete_sweep</mat-icon>
         </button>
       </div>
@@ -174,39 +209,53 @@
       </mat-menu>
     </header>
 
+    <!-- Retail / wholesale -->
+    @if (anyWholesale()) {
+    <div class="pos-tier">
+      <div class="seg w-full">
+        <button type="button" class="flex-1" [class.seg--on]="priceTier() === 'retail'" (click)="setPriceTier('retail')">
+          {{ 'pos.retail' | translate }}
+        </button>
+        <button type="button" class="flex-1" [class.seg--on]="priceTier() === 'wholesale'" (click)="setPriceTier('wholesale')">
+          {{ 'pos.wholesale' | translate }}
+        </button>
+      </div>
+    </div>
+    }
+
     <!-- Lines -->
     <div class="pos-lines">
       @if (cart().length === 0) {
-      <div class="pos-empty">
-        <mat-icon>shopping_cart</mat-icon>
-        <p>{{ 'pos.emptyCartHint' | translate }}</p>
+      <div class="empty-state">
+        <mat-icon>shopping_basket</mat-icon>
+        <p class="empty-state__title">{{ 'pos.emptyCart' | translate }}</p>
+        <p class="text-sm max-w-[240px]">{{ 'pos.emptyCartHint' | translate }}</p>
       </div>
       } @else {
       @for (item of cart(); track item.productId; let i = $index) {
-      <div
-        class="pos-line"
-        [class.pos-line--selected]="selectedLineId() === item.productId"
-        (click)="selectedLineId.set(item.productId)"
-      >
-        <div class="flex items-start gap-2">
+      <div class="pos-line animate-fade-up" [class.pos-line--selected]="selectedLineId() === item.productId" (click)="selectedLineId.set(item.productId)">
+        <div class="flex items-start gap-3">
+          <span class="pos-line__index money">{{ i + 1 }}</span>
           <div class="flex-1 min-w-0">
             <p class="pos-line__name">{{ item.productName }}</p>
             <p class="pos-line__meta">
-              {{ item.price | currencyDisplay:0 }} × {{ item.quantity | sum:3 }} {{ unitDisplayLabel(item.unit) }}
+              <span class="money">{{ item.price | currencyDisplay:0 }}</span>
+              @if (item.tier === 'wholesale') { <span class="badge badge--blue !py-0">{{ 'pos.wholesaleShort' | translate }}</span> }
+              @if (item.priceOverridden) { <span class="badge badge--gray !py-0">{{ 'pos.manualPrice' | translate }}</span> }
               @if (isOverStock(item)) {
-              <span class="text-red-600 dark:text-red-400 font-semibold">· {{ 'pos.inStock' | translate }}: {{ stockOf(item.productId) | sum:2 }}</span>
+              <span class="badge badge--red !py-0">{{ 'pos.inStock' | translate }}: {{ stockOf(item.productId) | sum:2 }}</span>
               }
             </p>
           </div>
           <div class="text-right shrink-0">
-            <p class="pos-line__total">{{ lineTotal(i) | currencyDisplay:0 }}</p>
+            <p class="pos-line__total money">{{ lineTotal(i) | currencyDisplay:0 }}</p>
             @if (item.discount) {
-            <p class="text-xs text-brand-600 dark:text-brand-400">−{{ item.discount | currencyDisplay:0 }}</p>
+            <p class="text-xs font-medium text-profit money">−{{ item.discount | currencyDisplay:0 }}</p>
             }
           </div>
         </div>
 
-        <div class="flex items-center gap-2 mt-2">
+        <div class="flex items-center gap-2 mt-2 pl-8">
           <div class="pos-stepper" (click)="$event.stopPropagation()">
             <button type="button" (click)="stepQuantity(item.productId, -1)" [attr.aria-label]="('pos.decreaseQuantity' | translate) + ' ' + item.productName">
               <mat-icon>remove</mat-icon>
@@ -215,7 +264,7 @@
               type="number"
               [value]="cartLineDisplayQty(item)"
               (change)="updateQuantity(item.productId, +$any($event.target).value)"
-              (focus)="selectedLineId.set(item.productId)"
+              (focus)="selectedLineId.set(item.productId); $any($event.target).select()"
               min="0.001"
               step="any"
             />
@@ -224,48 +273,29 @@
             </button>
           </div>
           @if (item.altUnits && item.altUnits.length > 0) {
-          <select
-            class="pos-input !py-1 !px-2 text-xs"
-            [value]="cartLineUnitLabel(item)"
-            (click)="$event.stopPropagation()"
-            (change)="setCartLineUnit(item.productId, $any($event.target).value)"
-          >
+          <select class="pos-input !w-auto !py-1.5 !px-2 text-xs" [value]="cartLineUnitLabel(item)" (click)="$event.stopPropagation()" (change)="setCartLineUnit(item.productId, $any($event.target).value)">
             @for (opt of cartLineUnitOptions(item); track opt.unit) {
             <option [value]="opt.unit">{{ unitDisplayLabel(opt.unit) }}</option>
             }
           </select>
           } @else {
-          <span class="text-xs text-gray-500 dark:text-gray-400">{{ unitDisplayLabel(item.unit) }}</span>
+          <span class="text-xs text-muted">{{ unitDisplayLabel(item.unit) }}</span>
           }
           <span class="flex-1"></span>
-          <button mat-icon-button type="button" class="!w-8 !h-8 !p-1" (click)="removeFromCart(item.productId); $event.stopPropagation()" aria-label="remove">
-            <mat-icon class="!text-xl text-gray-400">close</mat-icon>
+          <button type="button" class="pos-line__remove" (click)="removeFromCart(item.productId); $event.stopPropagation()" [attr.aria-label]="'common.delete' | translate">
+            <mat-icon>close</mat-icon>
           </button>
         </div>
 
         @if (selectedLineId() === item.productId) {
-        <div class="grid grid-cols-2 gap-2 mt-2" (click)="$event.stopPropagation()">
+        <div class="grid grid-cols-2 gap-2 mt-3 pl-8" (click)="$event.stopPropagation()">
           <label class="pos-field">
             <span>{{ 'form.price' | translate }}</span>
-            <input
-              type="number"
-              class="pos-input"
-              [value]="item.price"
-              [disabled]="!canEditPrice()"
-              (change)="updatePrice(item.productId, +$any($event.target).value)"
-              step="any"
-            />
+            <input type="number" class="pos-input" [value]="item.price" [disabled]="!canEditPrice()" (change)="updatePrice(item.productId, +$any($event.target).value)" step="any" />
           </label>
           <label class="pos-field">
             <span>{{ 'pos.itemDiscount' | translate }}</span>
-            <input
-              type="number"
-              class="pos-input"
-              [value]="item.discount || 0"
-              (change)="updateLineDiscount(item.productId, +$any($event.target).value)"
-              min="0"
-              step="any"
-            />
+            <input type="number" class="pos-input" [value]="item.discount || 0" (change)="updateLineDiscount(item.productId, +$any($event.target).value)" min="0" step="any" />
           </label>
         </div>
         }
@@ -279,34 +309,35 @@
     <footer class="pos-ticket__foot">
       <div class="pos-sum-row">
         <span>{{ 'pos.subtotal' | translate }}</span>
-        <span>{{ s.gross | currencyDisplay }}</span>
+        <span class="money">{{ s.gross | currencyDisplay }}</span>
       </div>
       @if (s.lineDiscounts > 0) {
-      <div class="pos-sum-row text-brand-600 dark:text-brand-400">
+      <div class="pos-sum-row text-profit">
         <span>{{ 'pos.discount' | translate }}</span>
-        <span>−{{ s.lineDiscounts | currencyDisplay }}</span>
+        <span class="money">−{{ s.lineDiscounts | currencyDisplay }}</span>
       </div>
       }
       @if (vatRate() > 0) {
-      <div class="pos-sum-row text-gray-500 dark:text-gray-400">
+      <div class="pos-sum-row text-muted">
         <span>{{ (pricesIncludeVat() ? 'pos.vatIncluded' : 'pos.vatAdded') | translate }} ({{ vatRate() * 100 | number: '1.0-2' }}%)</span>
-        <span>{{ s.vat | currencyDisplay }}</span>
+        <span class="money">{{ s.vat | currencyDisplay }}</span>
       </div>
       }
 
       <button type="button" class="pos-pay" [disabled]="cart().length === 0 || submitting()" (click)="openPaymentDialog()">
         <span class="flex flex-col items-start leading-tight">
-          <span class="text-sm font-medium opacity-90">{{ 'pos.proceedToPay' | translate }}</span>
-          <span class="text-xs opacity-75">F4 / Enter</span>
+          <span class="text-sm font-semibold">{{ 'pos.proceedToPay' | translate }}</span>
+          <span class="text-[11px] opacity-75">F4 · Enter</span>
         </span>
-        <span class="text-2xl font-extrabold tabular-nums">{{ s.total | currencyDisplay:0 }}</span>
+        <span class="pos-pay__total money">{{ s.total | currencyDisplay:0 }}</span>
       </button>
 
       <div class="pos-hints">
-        <span><kbd class="pos-kbd">F2</kbd> {{ 'pos.hintSearch' | translate }}</span>
-        <span><kbd class="pos-kbd">+</kbd><kbd class="pos-kbd">−</kbd> {{ 'form.quantity' | translate }}</span>
-        <span><kbd class="pos-kbd">F9</kbd> {{ 'pos.holdCart' | translate }}</span>
-        <span><kbd class="pos-kbd">Esc</kbd> {{ 'pos.hintClearSearch' | translate }}</span>
+        <span><kbd class="kbd">F2</kbd> {{ 'pos.hintSearch' | translate }}</span>
+        <span><kbd class="kbd">+</kbd><kbd class="kbd">−</kbd> {{ 'form.quantity' | translate }}</span>
+        <span><kbd class="kbd">F7</kbd> {{ 'pos.wholesale' | translate }}</span>
+        <span><kbd class="kbd">F9</kbd> {{ 'pos.holdCart' | translate }}</span>
+        <span><kbd class="kbd">Esc</kbd> {{ 'pos.hintClearSearch' | translate }}</span>
       </div>
     </footer>
   </section>

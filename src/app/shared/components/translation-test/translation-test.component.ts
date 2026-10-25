@@ -30,7 +30,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
             </p>
           </div>
           
-          <div class="p-4 bg-orange-50 dark:bg-orange-900 rounded">
+          <div class="p-4 bg-brand-50 dark:bg-brand-900 rounded">
             <p class="text-gray-700 dark:text-gray-300">
               <strong>{{ 'pos.title' | translate }}:</strong> {{ 'pos.title' | translate }}
             </p>

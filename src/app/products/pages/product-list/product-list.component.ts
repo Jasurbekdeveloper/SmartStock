@@ -71,6 +71,33 @@ export class ProductListComponent {
   searchQuery = signal('');
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
+  categoryFilter = signal<string | null>(null);
+  stockFilter = signal<'all' | 'low' | 'out'>('all');
+
+  summary = computed(() => {
+    const list = this.products();
+    return {
+      count: list.length,
+      low: list.filter((p) => p.quantity > 0 && this.isLowStock(p)).length,
+      out: list.filter((p) => p.quantity <= 0).length,
+      costValue: list.reduce((s, p) => s + Math.max(0, p.quantity) * (p.cost || 0), 0),
+      retailValue: list.reduce((s, p) => s + Math.max(0, p.quantity) * (p.price || 0), 0)
+    };
+  });
+
+  setCategory(id: string | null) {
+    this.categoryFilter.set(id);
+    this.pagination.reset();
+  }
+
+  setStockFilter(f: 'all' | 'low' | 'out') {
+    this.stockFilter.set(f);
+    this.pagination.reset();
+  }
+
+  initials(name: string): string {
+    return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
+  }
 
   filteredProducts = computed(() => {
     const rawQuery = this.searchQuery().trim();
@@ -81,8 +108,13 @@ export class ProductListComponent {
     const normalizedQuery = normalizeForSearch(rawQuery);
     const from = this.fromDate();
     const to = this.toDate();
+    const category = this.categoryFilter();
+    const stock = this.stockFilter();
 
     return this.products().filter((product) => {
+      if (category && product.categoryId !== category) return false;
+      if (stock === 'out' && product.quantity > 0) return false;
+      if (stock === 'low' && !(product.quantity > 0 && this.isLowStock(product))) return false;
       if (query) {
         const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
         const matchesVariant = normalizeForSearch(`${variantLabel(product)} ${product.sku ?? ''}`).includes(normalizedQuery);
@@ -113,6 +145,8 @@ export class ProductListComponent {
 
   clearFilters() {
     this.searchQuery.set('');
+    this.categoryFilter.set(null);
+    this.stockFilter.set('all');
     this.fromDate.set(null);
     this.toDate.set(null);
     this.pagination.reset();

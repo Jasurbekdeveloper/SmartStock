@@ -1,0 +1,85 @@
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupFinance' | translate }}</p>
+      <h1 class="page-title">{{ 'navigation.cashbook' | translate }}</h1>
+      <p class="page-subtitle">{{ 'finance.cashbookSubtitle' | translate }}</p>
+    </div>
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/shifts/history"><mat-icon>schedule</mat-icon>{{ 'shifts.shiftHistory' | translate }}</a>
+      @if (openShift()) {
+      <button mat-flat-button color="primary" type="button" (click)="record()"><mat-icon>swap_vert</mat-icon>{{ 'finance.cashMovement' | translate }}</button>
+      }
+    </div>
+  </div>
+
+  @if (!openShift()) {
+  <div class="badge badge--amber !flex !rounded-xl !px-4 !py-3 !text-sm !font-medium">
+    <mat-icon class="!w-5 !h-5 !text-[20px] shrink-0">info</mat-icon>{{ 'finance.needOpenShift' | translate }}
+  </div>
+  }
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <app-period-picker [(value)]="period" />
+    <div class="seg">
+      <button type="button" [class.seg--on]="typeFilter() === 'all'" (click)="typeFilter.set('all')">{{ 'finance.all' | translate }}</button>
+      <button type="button" [class.seg--on]="typeFilter() === 'in'" (click)="typeFilter.set('in')">{{ 'finance.cashIn' | translate }}</button>
+      <button type="button" [class.seg--on]="typeFilter() === 'out'" (click)="typeFilter.set('out')">{{ 'finance.cashOut' | translate }}</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0"><p class="stat__label">{{ 'finance.cashIn' | translate }}</p><p class="stat__value money text-profit">+{{ totalIn() | currencyDisplay:0 }}</p></div>
+        <span class="stat__icon tone-green"><mat-icon>south_west</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0"><p class="stat__label">{{ 'finance.cashOut' | translate }}</p><p class="stat__value money text-loss">−{{ totalOut() | currencyDisplay:0 }}</p></div>
+        <span class="stat__icon tone-red"><mat-icon>north_east</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0"><p class="stat__label">{{ 'finance.reason.collection' | translate }}</p><p class="stat__value money">{{ collections() | currencyDisplay:0 }}</p></div>
+        <span class="stat__icon tone-blue"><mat-icon>account_balance</mat-icon></span>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0"><p class="stat__label">{{ 'finance.paidFromTill' | translate }}</p><p class="stat__value money">{{ tillExpenses() | currencyDisplay:0 }}</p></div>
+        <span class="stat__icon tone-amber"><mat-icon>payments</mat-icon></span>
+      </div>
+    </div>
+  </div>
+
+  <section class="card overflow-hidden">
+    @if (days().length === 0) {
+    <div class="empty-state">
+      <mat-icon>account_balance</mat-icon>
+      <p class="empty-state__title">{{ 'finance.noMovements' | translate }}</p>
+      <p class="text-sm max-w-md">{{ 'finance.noMovementsHint' | translate }}</p>
+    </div>
+    }
+    @for (day of days(); track day.date.getTime()) {
+    <div class="flex items-center justify-between px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted" style="background: var(--surface-2); border-bottom: 1px solid var(--border)">
+      <span>{{ day.date | date: 'EEEE, d MMMM' }}</span>
+      <span class="money" [class.text-profit]="day.net >= 0" [class.text-loss]="day.net < 0">{{ day.net >= 0 ? '+' : '−' }}{{ (day.net < 0 ? -day.net : day.net) | currencyDisplay:0 }}</span>
+    </div>
+    @for (m of day.items; track m.id) {
+    <div class="flex items-center gap-3 px-5 py-3" style="border-bottom: 1px solid var(--border)">
+      <span class="stat__icon !w-9 !h-9" [class.tone-green]="m.type === 'in'" [class.tone-red]="m.type === 'out'">
+        <mat-icon class="!text-[20px] !w-5 !h-5">{{ m.type === 'in' ? 'south_west' : 'north_east' }}</mat-icon>
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="font-medium">{{ 'finance.reason.' + m.reason | translate }}</p>
+        <p class="text-xs text-muted truncate">{{ m.createdAt | date: 'HH:mm' }} · {{ m.cashierName }}@if (m.note) { · {{ m.note }} }</p>
+      </div>
+      <span class="font-bold money" [class.text-profit]="m.type === 'in'" [class.text-loss]="m.type === 'out'">{{ m.type === 'in' ? '+' : '−' }}{{ m.amount | currencyDisplay:0 }}</span>
+    </div>
+    }
+    }
+  </section>
+</div>

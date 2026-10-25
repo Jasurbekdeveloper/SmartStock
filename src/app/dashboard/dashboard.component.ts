@@ -19,6 +19,9 @@ import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { formatNumber } from '../core/utils/format-number';
 import { daysAgo } from '../core/utils/date-range';
+import { expiryState } from '../core/utils/price-tier';
+import { AuthService } from '../core/services/auth.service';
+import { Permission } from '../core/auth/permissions';
 import {
   debtDueToastStorageKey,
   debtsNeedingTelegramAlert,
@@ -114,9 +117,9 @@ export class DashboardComponent implements OnInit {
     const debt = sales.reduce((s, x) => s + (x.debtAmount ?? 0), 0);
     const total = cash + card + debt || 1;
     return [
-      { key: 'pos.cash', value: cash, pct: (cash / total) * 100, bar: 'bg-emerald-500' },
-      { key: 'pos.card', value: card, pct: (card / total) * 100, bar: 'bg-sky-500' },
-      { key: 'pos.debit', value: debt, pct: (debt / total) * 100, bar: 'bg-amber-500' }
+      { key: 'pos.cash', value: cash, pct: (cash / total) * 100, bar: 'var(--success)' },
+      { key: 'pos.card', value: card, pct: (card / total) * 100, bar: 'var(--info)' },
+      { key: 'pos.debit', value: debt, pct: (debt / total) * 100, bar: 'var(--warning)' }
     ];
   });
 
@@ -145,6 +148,35 @@ export class DashboardComponent implements OnInit {
     }));
   });
 
+  private auth = inject(AuthService);
+
+  /** Things that need someone's attention today, each linking to where it's handled. */
+  attention = computed(() => {
+    const products = this.latestProducts() ?? [];
+    const expired = products.filter((p) => p.quantity > 0 && expiryState(p.expiryDate) === 'expired').length;
+    const expiring = products.filter((p) => p.quantity > 0 && expiryState(p.expiryDate) === 'soon').length;
+    const overdue = (this.latestDebts() ?? []).filter((d) => isOverdueDebt(d)).length;
+    return [
+      { key: 'dashboard.attnLowStock', count: this.lowStockProducts().length, icon: 'inventory', tone: 'tone-red', link: '/products/list' },
+      { key: 'dashboard.attnExpired', count: expired, icon: 'event_busy', tone: 'tone-red', link: '/stock/expiry' },
+      { key: 'dashboard.attnExpiring', count: expiring, icon: 'hourglass_bottom', tone: 'tone-amber', link: '/stock/expiry' },
+      { key: 'dashboard.attnOverdue', count: overdue, icon: 'schedule', tone: 'tone-amber', link: '/debts/list' }
+    ];
+  });
+
+  /** Shortcut tiles, filtered by role. */
+  shortcuts = computed(() => {
+    const all: { key: string; icon: string; link: string; permission: Permission }[] = [
+      { key: 'navigation.pos', icon: 'point_of_sale', link: '/pos', permission: 'pos.sell' },
+      { key: 'header.quickEntry', icon: 'bolt', link: '/products/quick', permission: 'products.manage' },
+      { key: 'stock.stockIn', icon: 'move_to_inbox', link: '/stock/in', permission: 'stock.manage' },
+      { key: 'header.newExpense', icon: 'payments', link: '/finance/expenses', permission: 'finance.manage' },
+      { key: 'navigation.pnl', icon: 'query_stats', link: '/finance/pnl', permission: 'finance.manage' },
+      { key: 'navigation.debts', icon: 'account_balance_wallet', link: '/debts/list', permission: 'debts.manage' }
+    ];
+    return all.filter((s) => this.auth.can(s.permission));
+  });
+
   outstandingDebt = computed(() =>
     (this.latestDebts() ?? []).reduce((sum, d) => sum + Math.max(0, d.remainingAmount), 0)
   );
@@ -164,33 +196,33 @@ export class DashboardComponent implements OnInit {
         label: 'dashboard.todayRevenue',
         value: money(this.todayRevenue()),
         icon: 'payments',
-        tone: 'bg-brand-100 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300',
+        tone: 'tone-brand',
         hint: changeHint
       },
       {
         label: 'dashboard.receiptsToday',
         value: formatNumber(this.receiptsToday(), 0),
         icon: 'receipt_long',
-        tone: 'bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-300'
+        tone: 'tone-blue'
       },
       {
         label: 'dashboard.avgReceiptValue',
         value: money(this.avgReceiptValue()),
         icon: 'shopping_basket',
-        tone: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300'
+        tone: 'tone-gray'
       },
       {
         label: 'dashboard.todayNetProfit',
         value: money(this.todayNetProfit()),
         icon: 'savings',
-        tone: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300',
+        tone: 'tone-green',
         caveat: 'dashboard.profitCaveat'
       },
       {
         label: 'dashboard.outstandingDebt',
         value: money(this.outstandingDebt()),
         icon: 'account_balance_wallet',
-        tone: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300'
+        tone: 'tone-amber'
       }
     ];
   });

@@ -8,9 +8,27 @@
     <span class="font-bold truncate">{{ storeName() }}</span>
   </a>
 
-  <div class="hidden lg:block text-sm text-gray-500 dark:text-gray-400">{{ today | date: 'EEEE, d MMMM' }}</div>
+  <div class="hidden lg:flex flex-col leading-tight">
+    <span class="text-sm font-semibold">{{ greetingKey() | translate }}, {{ firstName() }}</span>
+    <span class="text-xs capitalize topbar__muted">{{ today | date: 'EEEE, d MMMM' }}</span>
+  </div>
 
   <span class="flex-1"></span>
+
+  @if (quickActions().length > 0) {
+  <button type="button" class="topbar__quick" [matMenuTriggerFor]="quickMenu">
+    <mat-icon>add</mat-icon>
+    <span class="hidden md:inline">{{ 'header.quickAdd' | translate }}</span>
+  </button>
+  <mat-menu #quickMenu="matMenu" xPosition="before">
+    @for (action of quickActions(); track action.path) {
+    <a mat-menu-item [routerLink]="action.path">
+      <mat-icon>{{ action.icon }}</mat-icon>
+      {{ action.label | translate }}
+    </a>
+    }
+  </mat-menu>
+  }
 
   <button mat-button [matMenuTriggerFor]="langMenu" class="!min-w-0" aria-label="Language">
     <mat-icon>translate</mat-icon>

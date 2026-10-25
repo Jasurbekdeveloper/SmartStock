@@ -23,7 +23,7 @@ import { TelegramLinkDialogComponent } from '../shared/components/telegram-link-
           <a routerLink="/platform" class="flex items-center gap-2 shrink-0">
             <img src="/logo.svg" alt="" class="w-9 h-9" />
             <span class="font-extrabold text-lg">MarketHisob</span>
-            <span class="hidden sm:inline text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-orange-300">{{ 'platform.badge' | translate }}</span>
+            <span class="hidden sm:inline text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-brand-300">{{ 'platform.badge' | translate }}</span>
           </a>
           <span class="flex-1"></span>
           <button mat-button [matMenuTriggerFor]="langMenu" class="!text-white !min-w-0" aria-label="Language">
@@ -57,7 +57,7 @@ import { TelegramLinkDialogComponent } from '../shared/components/telegram-link-
           @for (tab of tabs; track tab.path) {
           <a
             [routerLink]="tab.path"
-            routerLinkActive="!text-white !border-orange-400"
+            routerLinkActive="!text-white !border-brand-400"
             [routerLinkActiveOptions]="{ exact: tab.exact }"
             class="flex items-center gap-1.5 px-3 py-2.5 border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap"
           >

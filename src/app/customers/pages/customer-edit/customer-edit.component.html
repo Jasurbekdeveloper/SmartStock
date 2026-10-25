@@ -1,8 +1,8 @@
 <div class="max-w-2xl mx-auto">
   @if (customer(); as c) {
-  <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">{{ 'customers.editCustomer' | translate }}</h1>
+  <h1 class="page-title mb-6">{{ 'customers.editCustomer' | translate }}</h1>
 
-  <form (ngSubmit)="updateCustomer()" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-2">
+  <form (ngSubmit)="updateCustomer()" class="card p-6 space-y-2">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>{{ 'customers.name' | translate }}</mat-label>

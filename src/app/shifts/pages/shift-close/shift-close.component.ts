@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ShiftService, computeShiftTotals } from '../../../core/services/shift.service';
 import { SalesService } from '../../../core/services/sales.service';
+import { CashMovementService } from '../../../core/services/cash-movement.service';
 import { roundMoney } from '../../../core/utils/pos-math';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
@@ -45,6 +46,7 @@ export class ShiftCloseComponent {
   shift = toSignal(this.shiftService.getShiftById(this.shiftId), { initialValue: undefined });
   sales = toSignal(this.shiftService.getShiftSales(this.shiftId), { initialValue: [] });
   returns = toSignal(this.salesService.getReturnsForShift(this.shiftId), { initialValue: [] });
+  movements = toSignal(inject(CashMovementService).getForShift(this.shiftId), { initialValue: [] });
 
   /** Signal, not a plain field: `variance` below is a computed and would never
    *  recompute off a plain field in this zoneless app. */
@@ -54,7 +56,7 @@ export class ShiftCloseComponent {
   alreadyClosed = computed(() => this.shift()?.status === 'closed');
 
   /** Same function ShiftService.closeShift() uses, so the preview always matches the saved Z-report. */
-  totals = computed(() => computeShiftTotals(this.sales(), this.returns()));
+  totals = computed(() => computeShiftTotals(this.sales(), this.returns(), this.movements()));
 
   expectedCash = computed(() => roundMoney((this.shift()?.startingCash ?? 0) + this.totals().cashDrawerDelta));
 

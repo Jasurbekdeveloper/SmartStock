@@ -1,109 +1,126 @@
-<div class="space-y-6">
-  <div class="flex flex-wrap items-end justify-between gap-3">
+<div class="page">
+  <div class="page-head">
     <div>
-      <h1 class="page-title">{{ 'navigation.dashboard' | translate }}</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'dashboard.subtitle' | translate }}</p>
+      <p class="page-head__eyebrow">{{ 'navigation.dashboard' | translate }}</p>
+      <h1 class="page-title">{{ 'dashboard.todayTitle' | translate }}</h1>
+      <p class="page-subtitle">{{ 'dashboard.subtitle' | translate }}</p>
     </div>
-    <div class="flex gap-2">
-      <a mat-stroked-button routerLink="/sales/history">
-        <mat-icon>receipt_long</mat-icon>
-        {{ 'sales.salesHistory' | translate }}
-      </a>
-      <a mat-flat-button color="primary" routerLink="/pos">
-        <mat-icon>point_of_sale</mat-icon>
-        {{ 'dashboard.newSale' | translate }}
-      </a>
+    <div class="page-actions">
+      <a mat-stroked-button routerLink="/sales/history"><mat-icon>receipt_long</mat-icon>{{ 'sales.salesHistory' | translate }}</a>
+      <a mat-flat-button color="primary" routerLink="/pos"><mat-icon>point_of_sale</mat-icon>{{ 'dashboard.newSale' | translate }}</a>
     </div>
   </div>
 
   <!-- KPI row -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-    @for (stat of stats(); track stat.label) {
-    <mat-card class="!p-5">
+    @for (stat of stats(); track stat.label; let first = $first) {
+    <div class="stat animate-fade-up" [class.db-hero]="first">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          <p class="stat__label">
             {{ stat.label | translate }}
             @if (stat.caveat) {
-            <mat-icon class="!w-4 !h-4 !text-base text-gray-400 cursor-help" [matTooltip]="stat.caveat | translate">info</mat-icon>
+            <mat-icon class="!w-4 !h-4 !text-base opacity-60 cursor-help" [matTooltip]="stat.caveat | translate">info</mat-icon>
             }
           </p>
-          <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white tabular-nums truncate">{{ stat.value }}</p>
+          <p class="stat__value">{{ stat.value }}</p>
           @if (stat.hint) {
-          <p class="mt-0.5 text-xs font-semibold" [class]="stat.hint.startsWith('▲') ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
-            {{ stat.hint }} <span class="font-normal text-gray-500 dark:text-gray-400">{{ 'dashboard.vsYesterday' | translate }}</span>
+          <p class="stat__foot">
+            <span class="font-semibold" [class.db-up]="stat.hint.startsWith('▲')" [class.db-down]="!stat.hint.startsWith('▲')">{{ stat.hint }}</span>
+            {{ 'dashboard.vsYesterday' | translate }}
           </p>
           }
         </div>
-        <span class="grid place-items-center w-11 h-11 rounded-xl shrink-0" [class]="stat.tone">
-          <mat-icon>{{ stat.icon }}</mat-icon>
-        </span>
+        <span class="stat__icon" [class]="first ? 'db-hero__icon' : stat.tone"><mat-icon>{{ stat.icon }}</mat-icon></span>
       </div>
-    </mat-card>
+    </div>
     }
   </div>
 
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
     <!-- 7 day chart -->
-    <mat-card class="!p-5 xl:col-span-2">
-      <h2 class="font-bold text-gray-900 dark:text-white mb-4">{{ 'dashboard.last7Days' | translate }}</h2>
-      <div class="flex items-end gap-2 sm:gap-4 h-48">
-        @for (day of last7Days(); track $index) {
-        <div class="flex-1 flex flex-col items-center gap-2 h-full">
-          <div class="flex-1 w-full flex items-end">
-            <div
-              class="w-full rounded-t-lg transition-all"
-              [class]="day.isToday ? 'bg-brand-500' : 'bg-brand-200 dark:bg-brand-900/60'"
-              [style.height.%]="day.pct"
-              [matTooltip]="(day.value | currencyDisplay:0)"
-            ></div>
-          </div>
-          <span class="text-xs capitalize" [class]="day.isToday ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'">{{ day.label }}</span>
-        </div>
-        }
+    <section class="card xl:col-span-2">
+      <div class="card__head">
+        <h2 class="card__title">{{ 'dashboard.last7Days' | translate }}</h2>
+        <a mat-button routerLink="/statistics">{{ 'navigation.statistics' | translate }}<mat-icon iconPositionEnd>arrow_forward</mat-icon></a>
       </div>
-    </mat-card>
+      <div class="card__body">
+        <div class="flex items-end gap-2 sm:gap-4 h-52">
+          @for (day of last7Days(); track $index) {
+          <div class="flex-1 flex flex-col items-center gap-2 h-full">
+            <span class="text-[11px] font-semibold money" [class.text-muted]="!day.isToday">{{ day.value > 0 ? (day.value | sum:0) : '' }}</span>
+            <div class="flex-1 w-full flex items-end">
+              <div class="db-bar" [class.db-bar--today]="day.isToday" [style.height.%]="day.pct" [matTooltip]="(day.value | currencyDisplay:0)"></div>
+            </div>
+            <span class="text-xs capitalize" [class.font-bold]="day.isToday" [class.text-muted]="!day.isToday">{{ day.label }}</span>
+          </div>
+          }
+        </div>
+      </div>
+    </section>
 
     <!-- payment split -->
-    <mat-card class="!p-5">
-      <h2 class="font-bold text-gray-900 dark:text-white mb-4">{{ 'dashboard.todayPayments' | translate }}</h2>
-      <div class="space-y-4">
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">{{ 'dashboard.todayPayments' | translate }}</h2></div>
+      <div class="card__body space-y-4">
         @for (p of todayPayments(); track p.key) {
         <div>
           <div class="flex justify-between text-sm mb-1.5">
-            <span class="text-gray-600 dark:text-gray-300">{{ p.key | translate }}</span>
-            <span class="font-semibold text-gray-900 dark:text-white tabular-nums">{{ p.value | currencyDisplay:0 }}</span>
+            <span class="text-muted">{{ p.key | translate }}</span>
+            <span class="font-semibold money">{{ p.value | currencyDisplay:0 }}</span>
           </div>
-          <div class="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-            <div class="h-full rounded-full" [class]="p.bar" [style.width.%]="p.pct"></div>
+          <div class="h-2 rounded-full overflow-hidden" style="background: var(--surface-3)">
+            <div class="h-full rounded-full" [style.background]="p.bar" [style.width.%]="p.pct"></div>
           </div>
         </div>
         }
       </div>
-    </mat-card>
+    </section>
   </div>
 
-  @if (lowStockProducts().length > 0) {
-  <mat-card class="!p-5">
-    <div class="flex items-center gap-2 mb-3">
-      <mat-icon class="text-red-500">inventory</mat-icon>
-      <h2 class="font-bold text-gray-900 dark:text-white">{{ 'dashboard.lowStock' | translate }}</h2>
-      <span class="badge badge--red">{{ lowStockProducts().length }}</span>
-    </div>
-    <div class="flex flex-wrap gap-2">
-      @for (product of lowStockProducts(); track product.id) {
-      <span class="badge badge--red !py-1 !px-3 !font-medium">
-        {{ product.name }}: {{ product.quantity | sum:2 }} {{ 'units.' + product.unit | translate }}
-      </span>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- Attention -->
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">{{ 'dashboard.attention' | translate }}</h2></div>
+      <div class="grid grid-cols-2 gap-3 p-4">
+        @for (a of attention(); track a.key) {
+        <a [routerLink]="a.link" class="db-attn" [class.db-attn--zero]="a.count === 0">
+          <span class="stat__icon !w-10 !h-10" [class]="a.count === 0 ? 'tone-gray' : a.tone"><mat-icon>{{ a.icon }}</mat-icon></span>
+          <span class="min-w-0">
+            <span class="block text-2xl font-bold money leading-none">{{ a.count }}</span>
+            <span class="block text-xs text-muted mt-1">{{ a.key | translate }}</span>
+          </span>
+        </a>
+        }
+      </div>
+      @if (lowStockProducts().length > 0) {
+      <div class="px-5 pb-4 flex flex-wrap gap-1.5">
+        @for (product of lowStockProducts().slice(0, 12); track product.id) {
+        <span class="badge badge--red">{{ product.name }}: {{ product.quantity | sum:2 }}</span>
+        }
+        @if (lowStockProducts().length > 12) { <span class="badge badge--gray">+{{ lowStockProducts().length - 12 }}</span> }
+      </div>
       }
-    </div>
-  </mat-card>
-  }
+    </section>
 
-  <mat-card class="!p-0 overflow-hidden">
-    <div class="flex items-center justify-between px-5 py-4">
-      <h2 class="font-bold text-gray-900 dark:text-white">{{ 'dashboard.recentSales' | translate }}</h2>
-      <a mat-button routerLink="/sales/history">{{ 'dashboard.viewAll' | translate }}</a>
+    <!-- Shortcuts -->
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">{{ 'dashboard.shortcuts' | translate }}</h2></div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
+        @for (s of shortcuts(); track s.link) {
+        <a [routerLink]="s.link" class="db-short">
+          <mat-icon>{{ s.icon }}</mat-icon>
+          <span>{{ s.key | translate }}</span>
+        </a>
+        }
+      </div>
+    </section>
+  </div>
+
+  <section class="card overflow-hidden">
+    <div class="card__head">
+      <h2 class="card__title">{{ 'dashboard.recentSales' | translate }}</h2>
+      <a mat-button routerLink="/sales/history">{{ 'dashboard.viewAll' | translate }}<mat-icon iconPositionEnd>arrow_forward</mat-icon></a>
     </div>
     @if (sales().length > 0) {
     <div class="overflow-x-auto">
@@ -120,22 +137,26 @@
         <tbody>
           @for (sale of sales().slice(0, 8); track sale.id) {
           <tr class="cursor-pointer" [routerLink]="['/sales', sale.id]">
-            <td class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
+            <td class="money text-xs text-muted">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
             <td class="max-w-xs truncate">{{ itemNames(sale) }}</td>
-            <td>
+            <td class="whitespace-nowrap">
               <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
               @if (sale.debtAmount) { <span class="badge badge--amber ml-1">{{ 'pos.debit' | translate }}</span> }
               @if (sale.refundedAmount) { <span class="badge badge--red ml-1">{{ 'returns.short' | translate }}</span> }
             </td>
-            <td class="text-right font-semibold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
-            <td class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>
+            <td class="text-right font-semibold money">{{ sale.total | currencyDisplay:0 }}</td>
+            <td class="text-right text-muted whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>
           </tr>
           }
         </tbody>
       </table>
     </div>
     } @else {
-    <p class="text-gray-500 dark:text-gray-400 text-center py-10">{{ 'messages.noSalesYet' | translate }}</p>
+    <div class="empty-state">
+      <mat-icon>receipt_long</mat-icon>
+      <p class="empty-state__title">{{ 'messages.noSalesYet' | translate }}</p>
+      <a mat-flat-button color="primary" routerLink="/pos" class="mt-2"><mat-icon>point_of_sale</mat-icon>{{ 'dashboard.newSale' | translate }}</a>
+    </div>
     }
-  </mat-card>
+  </section>
 </div>

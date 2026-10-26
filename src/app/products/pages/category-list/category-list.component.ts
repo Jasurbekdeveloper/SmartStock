@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,7 +36,8 @@ import { createPagination } from '../../../core/utils/pagination';
     MatIconModule,
     MatTooltipModule,
     MatPaginatorModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSlideToggleModule
   ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.css'
@@ -67,11 +69,12 @@ export class CategoryListComponent {
   createForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
     imageUrl: [''],
-    variantAttributes: ['']
+    variantAttributes: [''],
+    trackExpiry: [false]
   });
 
   openCreateForm() {
-    this.createForm.reset({ name: '', imageUrl: '', variantAttributes: '' });
+    this.createForm.reset({ name: '', imageUrl: '', variantAttributes: '', trackExpiry: false });
     this.createImagePreviewUrl.set('');
     this.errorKey.set(null);
     this.showCreateForm.set(true);
@@ -130,9 +133,9 @@ export class CategoryListComponent {
 
     this.submitting.set(true);
     this.errorKey.set(null);
-    const { name, imageUrl, variantAttributes } = this.createForm.getRawValue();
+    const { name, imageUrl, variantAttributes, trackExpiry } = this.createForm.getRawValue();
 
-    this.categoryService.addCategory({ name, imageUrl: imageUrl.trim() || undefined, variantAttributes: parseAxisValues(variantAttributes) }).subscribe({
+    this.categoryService.addCategory({ name, imageUrl: imageUrl.trim() || undefined, variantAttributes: parseAxisValues(variantAttributes), trackExpiry }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.showCreateForm.set(false);
@@ -141,6 +144,15 @@ export class CategoryListComponent {
         console.error('Create category error:', err);
         this.errorKey.set('messages.error');
         this.submitting.set(false);
+      }
+    });
+  }
+
+  toggleTrackExpiry(category: Category, value: boolean) {
+    this.categoryService.setTrackExpiry(category.id, value).subscribe({
+      error: (err) => {
+        console.error('Update category error:', err);
+        this.errorKey.set('messages.error');
       }
     });
   }

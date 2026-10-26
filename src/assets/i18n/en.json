@@ -116,7 +116,8 @@
       "createdCount": "Created",
       "updatedCount": "Updated",
       "failedCount": "Failed",
-      "failedRows": "Failed rows"
+      "failedRows": "Failed rows",
+      "expiryColumns": "Expiry columns (optional)"
     },
     "costPrice": "Cost price (what you paid)",
     "sellingPrice": "Selling price",
@@ -189,7 +190,17 @@
     "stockAtCost": "Stock at cost",
     "stockAtRetail": "Stock at retail",
     "searchPlaceholder": "Name, barcode, SKU or keyword…",
-    "clearFilters": "Clear"
+    "clearFilters": "Clear",
+    "shelfLifeDays": "Shelf life (days)",
+    "shelfLifeHint": "If set, the expiry date is calculated from the manufacture date",
+    "batchForStock": "Dates for the stock on hand",
+    "batchForNew": "First batch dates",
+    "manufactureDate": "Manufacture date",
+    "expiryAuto": "calculated automatically",
+    "batchesViaStockIn": "Dates of new deliveries are entered per batch on the Stock in page",
+    "invalidShelfLife": "Shelf life must be a positive number",
+    "expiryRequired": "Enter the expiry date for this product",
+    "expiryBeforeManufacture": "The expiry date cannot be before the manufacture date"
   },
   "units": {
     "dona": "pcs",
@@ -213,7 +224,9 @@
     "noCategoriesFound": "No categories found",
     "confirmDelete": "Are you sure you want to delete this category?",
     "variantAttributes": "Variant characteristics",
-    "variantAttributesHint": "Suggested for new products, e.g. Volume, Power"
+    "variantAttributesHint": "Suggested for new products, e.g. Volume, Power",
+    "trackExpiry": "Track expiry dates",
+    "trackExpiryShort": "Expiry"
   },
   "pos": {
     "title": "POS System",
@@ -284,7 +297,10 @@
     "wholesale": "Wholesale",
     "wholesaleShort": "Wholesale",
     "manualPrice": "Manual",
-    "emptyCart": "Ticket is empty"
+    "emptyCart": "Ticket is empty",
+    "expiredBlocked": "only expired stock is left — it cannot be sold",
+    "sellExpiredTitle": "Expired goods",
+    "sellExpiredConfirm": "Only expired stock of this product is left. Sell it anyway?"
   },
   "stock": {
     "title": "Stock Management",
@@ -322,7 +338,9 @@
     "selectProductAndQuantity": "Select a product and enter a valid quantity",
     "insufficientQuantity": "Not enough stock available",
     "selectSupplier": "Supplier",
-    "supplierOther": "Other (enter manually)"
+    "supplierOther": "Other (enter manually)",
+    "batchDates": "Batch dates",
+    "reasonExpired": "Expired"
   },
   "sales": {
     "title": "Sales",
@@ -637,7 +655,9 @@
     "entityType": {
       "product": "Product",
       "user": "User"
-    }
+    },
+    "actionStockWriteOff": "Stock written off",
+    "actionBatchExpiryChanged": "Expiry date changed"
   },
   "messages": {
     "noSalesYet": "No sales yet",
@@ -1090,12 +1110,14 @@
       "repair": "Repairs",
       "supplies": "Supplies",
       "purchase": "Other purchases",
-      "other": "Other"
+      "other": "Other",
+      "writeOff": "Written-off goods"
     },
     "methods": {
       "cash": "Cash",
       "card": "Card",
-      "bank": "Bank transfer"
+      "bank": "Bank transfer",
+      "none": "No payment"
     },
     "newExpense": "Add expense",
     "editExpense": "Edit expense",
@@ -1162,7 +1184,15 @@
     "needsAttention": "Needs attention",
     "valueAtCost": "Value at cost",
     "allGood": "All good",
-    "howTo": "Turn on “Track expiry” in the product form and enter a date."
+    "howTo": "Turn on “Track expiry” in the product form and enter a date.",
+    "writeOff": "Write off",
+    "writeOffConfirm": "This batch leaves the stock and its cost is recorded as a loss in expenses.",
+    "writtenOff": "written off",
+    "changeDate": "Change date",
+    "currentDate": "Current date",
+    "newDate": "New date",
+    "dateChanged": "date changed",
+    "batches": "Batches (by expiry date)"
   },
   "period": {
     "today": "Today",

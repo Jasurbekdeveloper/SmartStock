@@ -274,8 +274,36 @@
 
       </div>
       <div class="mt-4">
-        <app-product-extras section="stock" [draft]="extras" [unitLabel]="unitLabel(p.unit)" />
+        <app-product-extras section="stock" [draft]="extras" [unitLabel]="unitLabel(p.unit)" [batchQuantity]="undatedStock(p)" batchMode="existing" />
       </div>
+      @if (activeBatches().length > 0) {
+      <div class="mt-4">
+        <p class="text-sm font-semibold mb-2">{{ 'expiry.batches' | translate }}</p>
+        <div class="rounded-xl border border-[var(--border)] divide-y divide-[var(--border)]">
+          @for (b of activeBatches(); track b.id) {
+          <div class="flex items-center gap-3 px-3 py-2">
+            <div class="min-w-0 flex-1">
+              <p class="text-sm">
+                <b>{{ b.expiryDate | date: 'dd.MM.yyyy' }}</b>
+                @switch (batchState(b)) {
+                @case ('expired') { <span class="badge badge--red !py-0 ml-1">{{ 'expiry.expired' | translate }}</span> }
+                @case ('soon') { <span class="badge badge--amber !py-0 ml-1">{{ 'expiry.soon' | translate }}</span> }
+                }
+              </p>
+              <p class="text-xs text-muted">
+                @if (b.batchNo) { #{{ b.batchNo }} · }
+                {{ b.quantity | sum:3 }} {{ unitLabel(p.unit) }}
+                @if (b.manufactureDate) { · {{ 'products.manufactureDate' | translate }}: {{ b.manufactureDate | date: 'dd.MM.yyyy' }} }
+              </p>
+            </div>
+            <button mat-stroked-button type="button" class="!h-9" [disabled]="changingBatch() === b.id" (click)="changeBatchDate(p, b)">
+              <mat-icon>edit_calendar</mat-icon>{{ 'expiry.changeDate' | translate }}
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+      }
     </section>
 
 

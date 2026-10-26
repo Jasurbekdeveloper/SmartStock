@@ -15,11 +15,12 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-shift-close',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,

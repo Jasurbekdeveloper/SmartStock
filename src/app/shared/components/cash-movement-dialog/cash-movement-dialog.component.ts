@@ -11,6 +11,7 @@ import {
   CashMovementInput,
   CashReason
 } from '../../../core/services/cash-movement.service';
+import { NumericInputDirective } from '../../directives/numeric-input.directive';
 
 export interface CashMovementDialogData {
   /** Pre-selected direction. */
@@ -23,7 +24,7 @@ export interface CashMovementDialogData {
 @Component({
   selector: 'app-cash-movement-dialog',
   standalone: true,
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, CurrencyDisplayPipe],
+  imports: [NumericInputDirective, FormsModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, CurrencyDisplayPipe],
   template: `
     <div class="cm">
       <div class="cm__head">

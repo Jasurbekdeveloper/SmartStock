@@ -33,10 +33,13 @@ import { DEFAULT_RANGE_DAYS, daysAgo } from '../core/utils/date-range';
 import { PosPaymentDialogComponent, PosPaymentDialogData, PosPaymentDialogResult } from './pos-payment-dialog/pos-payment-dialog.component';
 import { PosSuccessDialogComponent, PosSuccessDialogData } from './pos-success-dialog/pos-success-dialog.component';
 import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog.component';
+import { BatchService } from '../core/services/batch.service';
+import { ProductBatchSummary, allocateFefo, batchesByProduct, isBlockedExpired, summarizeBatches } from '../core/utils/batches';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
+import { NumericInputDirective } from '../shared/directives/numeric-input.directive';
 
 /** Browsing without a search shows this many products at most, most-sold first. */
 const BROWSE_LIMIT = 60;
@@ -45,7 +48,7 @@ const VIEW_MODE_STORAGE_KEY = 'smartstock_pos_view';
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
@@ -93,6 +96,7 @@ export class PosComponent implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private cashMovements = inject(CashMovementService);
+  private batchService = inject(BatchService);
 
   private scannerGun = createScannerGunDetector();
   /** Suppresses the global scanner listener while a dialog is open. */
@@ -109,6 +113,15 @@ export class PosComponent implements OnInit {
   @ViewChild('searchInput') private searchInputRef?: ElementRef<HTMLInputElement>;
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
+  /** Dated batches of tracked products (FEFO). Like `sales`, a failed read must not
+   *  break the till — the sale then just goes through without batch allocation. */
+  private batches = toSignal(this.batchService.getActiveBatches().pipe(catchError(() => of([]))), { initialValue: [] });
+  private batchMap = computed(() => batchesByProduct(this.batches()));
+  private batchSummaries = computed(() => {
+    const out = new Map<string, ProductBatchSummary>();
+    for (const [productId, list] of this.batchMap()) out.set(productId, summarizeBatches(list));
+    return out;
+  });
   /** Recent sales only drive the "most sold first" ordering of categories/products.
    *  A failing read (offline, index still building) must never break the till —
    *  toSignal rethrows errors on read — so it falls back to no ordering. */
@@ -171,7 +184,12 @@ export class PosComponent implements OnInit {
   }
 
   expiryOf(product: Product) {
-    return expiryState(product.expiryDate);
+    return this.batchSummaries().get(product.id)?.state ?? expiryState(product.expiryDate);
+  }
+
+  /** Only expired stock is left — a cashier may not sell it. */
+  private blockedExpired(product: Product): boolean {
+    return isBlockedExpired(product.quantity, this.batchSummaries().get(product.id));
   }
 
   initials(name: string): string {
@@ -318,8 +336,21 @@ export class PosComponent implements OnInit {
 
   // ---------------------------------------------------------------- cart
 
-  addToCart(product: Product) {
+  addToCart(product: Product, allowExpired = false) {
     const existing = this.cart().find((item) => item.productId === product.id);
+    if (!existing && !allowExpired && this.blockedExpired(product)) {
+      if (!this.canEditPrice()) {
+        this.toast.error(`${product.name}: ${this.translation.translate('pos.expiredBlocked')}`);
+        return;
+      }
+      this.dialog
+        .open(ConfirmDialogComponent, { data: { titleKey: 'pos.sellExpiredTitle', messageKey: 'pos.sellExpiredConfirm' } })
+        .afterClosed()
+        .subscribe((ok) => {
+          if (ok) this.addToCart(product, true);
+        });
+      return;
+    }
     if (existing) {
       // Scans/repeat clicks always add 1 primary unit, whatever unit the line displays.
       this.setLineQuantity(product.id, existing.quantity + 1);
@@ -341,11 +372,12 @@ export class PosComponent implements OnInit {
           discount: 0,
           unit: product.unit,
           altUnits: product.altUnits,
-          selectedUnit: product.unit
+          selectedUnit: product.unit,
+          ...(allowExpired ? { allowExpired: true } : {})
         }
       ]);
-      const exp = expiryState(product.expiryDate);
-      if (exp === 'expired') {
+      const exp = this.expiryOf(product);
+      if (exp === 'expired' && !allowExpired) {
         this.toast.error(`${product.name}: ${this.translation.translate('expiry.expiredWarning')}`);
       }
     }
@@ -543,7 +575,12 @@ export class PosComponent implements OnInit {
 
     const items: SaleItem[] = cart.map((item, i) => {
       const line = checkout.lines[i];
+      // Tracked goods leave from the batch that expires first (FEFO); the slices
+      // are stored on the line so a return can put them back.
+      const batches = this.batchMap().get(item.productId);
+      const allocations = batches?.length ? allocateFefo(batches, item.quantity, { allowExpired: item.allowExpired }).allocations : [];
       return {
+        ...(allocations.length ? { batches: allocations } : {}),
         productId: item.productId,
         productName: item.productName,
         categoryId: item.categoryId,
@@ -859,6 +896,8 @@ interface CartItem {
   altUnits?: { unit: string; factor: number }[];
   /** Display-only: which unit the quantity input currently shows. */
   selectedUnit?: string;
+  /** A manager confirmed selling expired stock on this line. */
+  allowExpired?: boolean;
 }
 
 interface HeldCart {

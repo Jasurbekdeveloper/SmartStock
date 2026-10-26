@@ -9,11 +9,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { StockService } from '../../../core/services/stock.service';
 import { SupplierService } from '../../../core/services/supplier.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { fromDateInput, toDateInput } from '../../../core/utils/product-extras';
+import { expiryFromShelfLife } from '../../../core/utils/batches';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 /** Special mat-select value that reveals the free-text fallback input, for
  *  one-off suppliers that aren't worth adding to the catalog. */
@@ -22,7 +26,7 @@ export const MANUAL_SUPPLIER_OPTION = '__manual__';
 @Component({
   selector: 'app-stock-in',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     TranslatePipe,
@@ -32,7 +36,8 @@ export const MANUAL_SUPPLIER_OPTION = '__manual__';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './stock-in.component.html',
   styleUrl: './stock-in.component.css'
@@ -57,6 +62,11 @@ export class StockInComponent {
   supplier = '';
   costPrice: number | null = null;
   sellingPrice: number | null = null;
+  /** Dates of this delivery — asked only for products with expiry tracking. */
+  manufactureDate = '';
+  expiryDate = '';
+  batchNo = '';
+  private expiryTouched = false;
 
   submitting = signal(false);
   errorKey = signal<string | null>(null);
@@ -71,6 +81,26 @@ export class StockInComponent {
     if (!product) return;
     this.costPrice = product.cost;
     this.sellingPrice = product.price;
+    this.manufactureDate = '';
+    this.expiryDate = '';
+    this.batchNo = '';
+    this.expiryTouched = false;
+  }
+
+  tracked(): boolean {
+    return !!this.selectedProduct()?.trackExpiry;
+  }
+
+  onManufactureChange(value: string) {
+    this.manufactureDate = value;
+    if (this.expiryTouched && this.expiryDate) return;
+    const exp = expiryFromShelfLife(fromDateInput(value), this.selectedProduct()?.shelfLifeDays);
+    if (exp) this.expiryDate = toDateInput(exp);
+  }
+
+  onExpiryChange(value: string) {
+    this.expiryDate = value;
+    this.expiryTouched = true;
   }
 
   /** Resolves the mat-select state into what `stockIn()` needs: a catalog
@@ -93,6 +123,17 @@ export class StockInComponent {
       return;
     }
 
+    const expiry = fromDateInput(this.expiryDate);
+    if (product.trackExpiry && !expiry) {
+      this.errorKey.set('products.expiryRequired');
+      return;
+    }
+    const mfg = fromDateInput(this.manufactureDate);
+    if (expiry && mfg && expiry.getTime() < mfg.getTime()) {
+      this.errorKey.set('products.expiryBeforeManufacture');
+      return;
+    }
+
     this.submitting.set(true);
     this.errorKey.set(null);
 
@@ -107,7 +148,8 @@ export class StockInComponent {
         supplierId,
         costPrice: this.costPrice ?? 0,
         currentCost: product.cost,
-        sellingPrice: this.sellingPrice ?? product.price
+        sellingPrice: this.sellingPrice ?? product.price,
+        batch: product.trackExpiry && expiry ? { expiryDate: expiry, manufactureDate: mfg, batchNo: this.batchNo } : undefined
       })
       .subscribe({
         next: () => {

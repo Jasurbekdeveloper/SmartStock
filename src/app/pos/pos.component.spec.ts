@@ -16,6 +16,8 @@ import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
 import { SettingsService } from '../core/services/settings.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
+import { BatchService } from '../core/services/batch.service';
+import { StockBatch } from '../core/utils/batches';
 
 const cement: Product = {
   id: 'p1', name: 'Sement M400', barcode: '2000000000008', price: 50000, cost: 42000,
@@ -29,6 +31,23 @@ const tiles: Product = {
   id: 'p3', name: 'Kafel 30x30', barcode: '2000000000022', price: 12000, cost: 9000,
   quantity: 400, unit: 'dona', categoryId: 'c2', wholesalePrice: 10000, wholesaleMinQty: 10
 };
+const milk: Product = {
+  id: 'p4', name: 'Sut 1L', barcode: '2000000000039', price: 12000, cost: 9000,
+  quantity: 5, unit: 'dona', categoryId: 'c3', trackExpiry: true
+};
+const inDays = (n: number) => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + n);
+  return d;
+};
+const activeBatches: StockBatch[] = [
+  // Cement: the later delivery is listed first — FEFO must still pick the nearer date.
+  { id: 'b-late', productId: 'p1', quantity: 60, initialQuantity: 60, expiryDate: inDays(200) },
+  { id: 'b-soon', productId: 'p1', quantity: 1, initialQuantity: 10, expiryDate: inDays(20) },
+  // Milk: only expired stock left.
+  { id: 'b-milk', productId: 'p4', quantity: 5, initialQuantity: 5, expiryDate: inDays(-2) }
+];
 const cashier = { uid: 'u1', email: 'k@x.uz', displayName: 'Kassir', role: 'cashier' as const, tenantId: 't1', active: true };
 
 /** The cashier's full flow through the real POS template and real Material dialogs:
@@ -44,7 +63,8 @@ describe('PosComponent checkout (cashier)', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
-        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles]) } },
+        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk]) } },
+        { provide: BatchService, useValue: { getActiveBatches: () => of(activeBatches) } },
         { provide: CategoryService, useValue: { getCategories: () => of([]) } },
         { provide: SalesService, useValue: { getSalesInRange: () => of([]), getReturnsForShift: () => of([]), createSale } },
         { provide: CashMovementService, useValue: { getForShift: () => of([]), add: vi.fn(() => of('m1')) } },
@@ -128,6 +148,28 @@ describe('PosComponent checkout (cashier)', () => {
     expect(createSale).toHaveBeenCalledTimes(2);
     expect(createSale.mock.calls[1][0].items).toHaveLength(1);
     expect(pos.cart()).toEqual([]);
+  });
+
+  it('takes tracked goods from the nearest-expiry batch and blocks expired-only stock for a cashier', async () => {
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+
+    t.tile('Sut').click();
+    await t.settle();
+    expect(pos.cart()).toEqual([]);
+
+    t.tile('Sement').click();
+    t.tile('Sement').click();
+    t.tile('Mix').click();
+    await t.settle();
+    await payAndFinish(t);
+
+    const [cementLine, nailsLine] = createSale.mock.calls[0][0].items;
+    expect(cementLine.batches).toEqual([
+      { batchId: 'b-soon', quantity: 1 },
+      { batchId: 'b-late', quantity: 1 }
+    ]);
+    expect(nailsLine.batches).toBeUndefined();
   });
 
   it('keeps the till usable when saving the sale fails', async () => {

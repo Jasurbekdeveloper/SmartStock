@@ -14,10 +14,15 @@ export const EXPENSE_CATEGORIES = [
   'repair',
   'supplies',
   'purchase',
+  'writeOff',
   'other'
 ] as const;
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+/** Categories offered in the "new expense" dialog. Write-offs are created by the
+ *  expiry page itself, with the batch's real cost. */
+export const MANUAL_EXPENSE_CATEGORIES = EXPENSE_CATEGORIES.filter((c) => c !== 'writeOff');
 
 export const EXPENSE_CATEGORY_ICONS: Record<ExpenseCategory, string> = {
   rent: 'storefront',
@@ -29,6 +34,7 @@ export const EXPENSE_CATEGORY_ICONS: Record<ExpenseCategory, string> = {
   repair: 'build',
   supplies: 'inventory',
   purchase: 'shopping_bag',
+  writeOff: 'delete_sweep',
   other: 'more_horiz'
 };
 

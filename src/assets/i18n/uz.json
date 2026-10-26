@@ -116,7 +116,8 @@
       "createdCount": "Yaratildi",
       "updatedCount": "Yangilandi",
       "failedCount": "Xato",
-      "failedRows": "Xato qatorlar"
+      "failedRows": "Xato qatorlar",
+      "expiryColumns": "Yaroqlilik muddati ustunlari (ixtiyoriy)"
     },
     "costPrice": "Tannarx (qanchadan tushgan)",
     "sellingPrice": "Sotish narxi",
@@ -189,7 +190,17 @@
     "stockAtCost": "Ombor (tannarxda)",
     "stockAtRetail": "Ombor (sotish narxida)",
     "searchPlaceholder": "Nomi, shtrix-kod, SKU yoki kalit so'z…",
-    "clearFilters": "Tozalash"
+    "clearFilters": "Tozalash",
+    "shelfLifeDays": "Saqlash muddati (kun)",
+    "shelfLifeHint": "Kiritilsa, yaroqlilik sanasi ishlab chiqarilgan sanadan avtomatik hisoblanadi",
+    "batchForStock": "Hozirgi qoldiq uchun sanalar",
+    "batchForNew": "Birinchi partiya sanalari",
+    "manufactureDate": "Ishlab chiqarilgan sana",
+    "expiryAuto": "avtomatik hisoblandi",
+    "batchesViaStockIn": "Yangi kelgan tovar sanalari Kirim sahifasida har bir partiya uchun kiritiladi",
+    "invalidShelfLife": "Saqlash muddati musbat son bo'lishi kerak",
+    "expiryRequired": "Bu mahsulot uchun yaroqlilik muddatini kiriting",
+    "expiryBeforeManufacture": "Yaroqlilik muddati ishlab chiqarilgan sanadan oldin bo'lishi mumkin emas"
   },
   "units": {
     "dona": "dona",
@@ -213,7 +224,9 @@
     "noCategoriesFound": "Kategoriyalar topilmadi",
     "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?",
     "variantAttributes": "Variant xususiyatlari",
-    "variantAttributesHint": "Yangi mahsulotda avtomatik taklif qilinadi, masalan: Hajm, Quvvat"
+    "variantAttributesHint": "Yangi mahsulotda avtomatik taklif qilinadi, masalan: Hajm, Quvvat",
+    "trackExpiry": "Yaroqlilik muddatini kuzatish",
+    "trackExpiryShort": "Muddat"
   },
   "pos": {
     "title": "POS Tizimi",
@@ -284,7 +297,10 @@
     "wholesale": "Ulgurji narx",
     "wholesaleShort": "Ulgurji",
     "manualPrice": "Qo'lda",
-    "emptyCart": "Chek bo'sh"
+    "emptyCart": "Chek bo'sh",
+    "expiredBlocked": "faqat muddati o'tgan qoldiq bor — sotib bo'lmaydi",
+    "sellExpiredTitle": "Muddati o'tgan tovar",
+    "sellExpiredConfirm": "Bu mahsulotning faqat muddati o'tgan qoldig'i bor. Baribir sotilsinmi?"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -322,7 +338,9 @@
     "selectProductAndQuantity": "Mahsulot va miqdorni to'g'ri kiriting",
     "insufficientQuantity": "Qoldiqda yetarli miqdor yo'q",
     "selectSupplier": "Ta'minotchi",
-    "supplierOther": "Boshqa (qo'lda kiritish)"
+    "supplierOther": "Boshqa (qo'lda kiritish)",
+    "batchDates": "Partiya sanalari",
+    "reasonExpired": "Muddati o'tgan"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -637,7 +655,9 @@
     "entityType": {
       "product": "Mahsulot",
       "user": "Foydalanuvchi"
-    }
+    },
+    "actionStockWriteOff": "Tovar hisobdan chiqarildi",
+    "actionBatchExpiryChanged": "Yaroqlilik muddati o'zgartirildi"
   },
   "messages": {
     "noSalesYet": "Sotuvlar yo'q",
@@ -1090,12 +1110,14 @@
       "repair": "Ta'mirlash",
       "supplies": "Xo'jalik mollari",
       "purchase": "Boshqa xarid",
-      "other": "Boshqa"
+      "other": "Boshqa",
+      "writeOff": "Hisobdan chiqarilgan tovar"
     },
     "methods": {
       "cash": "Naqd",
       "card": "Karta",
-      "bank": "Bank o'tkazma"
+      "bank": "Bank o'tkazma",
+      "none": "To'lovsiz"
     },
     "newExpense": "Xarajat qo'shish",
     "editExpense": "Xarajatni tahrirlash",
@@ -1162,7 +1184,15 @@
     "needsAttention": "E'tibor talab",
     "valueAtCost": "Tannarx qiymati",
     "allGood": "Hammasi joyida",
-    "howTo": "Mahsulot formasida «Yaroqlilik muddatini kuzatish»ni yoqib, sanani kiriting."
+    "howTo": "Mahsulot formasida «Yaroqlilik muddatini kuzatish»ni yoqib, sanani kiriting.",
+    "writeOff": "Hisobdan chiqarish",
+    "writeOffConfirm": "Bu partiya ombordan chiqariladi va tannarxi bo'yicha zarar sifatida xarajatlarga yoziladi.",
+    "writtenOff": "hisobdan chiqarildi",
+    "changeDate": "Muddatni o'zgartirish",
+    "currentDate": "Hozirgi muddat",
+    "newDate": "Yangi muddat",
+    "dateChanged": "muddat o'zgartirildi",
+    "batches": "Partiyalar (yaroqlilik muddati bo'yicha)"
   },
   "period": {
     "today": "Bugun",

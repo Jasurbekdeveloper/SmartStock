@@ -24,6 +24,11 @@ export interface ParsedProductRow {
   altUnitsRaw?: string;
   searchKeywordsRaw?: string;
   description?: string;
+  /** Expiry tracking (any store type: dairy, detergent, cement, paint…). */
+  manufactureDate?: Date;
+  expiryDate?: Date;
+  batchNo?: string;
+  shelfLifeDays?: number;
 }
 
 /** Documented column headers this importer expects (single sheet, first row).
@@ -46,7 +51,11 @@ export const PRODUCT_IMPORT_HEADERS = {
   category: 'Kategoriya',
   altUnits: 'Muqobil birliklar',
   searchKeywords: "Kalit so'zlar",
-  description: 'Tavsif'
+  description: 'Tavsif',
+  manufactureDate: 'Ishlab chiqarilgan',
+  expiryDate: 'Yaroqlilik muddati',
+  batchNo: 'Partiya',
+  shelfLifeDays: 'Saqlash muddati (kun)'
 } as const;
 
 function findValue(row: Record<string, unknown>, header: string): unknown {
@@ -60,6 +69,28 @@ function toNumber(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') return undefined;
   const n = typeof value === 'number' ? value : Number(String(value).replace(',', '.').trim());
   return Number.isFinite(n) ? n : undefined;
+}
+
+/** Accepts an Excel date serial, a Date, "2026-11-30", "30.11.2026" or "30/11/2026". */
+export function toImportDate(value: unknown): Date | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const d = new Date(1899, 11, 30);
+    d.setDate(d.getDate() + Math.floor(value));
+    return d;
+  }
+  const text = String(value).trim();
+  let m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(text);
+  if (m) return validDate(+m[1], +m[2], +m[3]);
+  m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(text);
+  if (m) return validDate(+m[3], +m[2], +m[1]);
+  return undefined;
+}
+
+function validDate(y: number, mo: number, d: number): Date | undefined {
+  const date = new Date(y, mo - 1, d);
+  return date.getFullYear() === y && date.getMonth() === mo - 1 && date.getDate() === d ? date : undefined;
 }
 
 function toText(value: unknown): string {
@@ -109,6 +140,13 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           const searchKeywordsRaw = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.searchKeywords)) || undefined;
           const description = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.description)) || undefined;
 
+          const manufactureRaw = findValue(rawRow, PRODUCT_IMPORT_HEADERS.manufactureDate);
+          const expiryRaw = findValue(rawRow, PRODUCT_IMPORT_HEADERS.expiryDate);
+          const manufactureDate = toImportDate(manufactureRaw);
+          const expiryDate = toImportDate(expiryRaw);
+          const batchNo = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.batchNo)) || undefined;
+          const shelfLifeDays = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.shelfLifeDays));
+
           const isBlank = !name && !barcode && price === undefined && quantity === undefined && !unit;
           if (isBlank) return;
 
@@ -119,6 +157,14 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           if (quantity === undefined)
             rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.quantity} is missing or invalid`);
           if (!unit) rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.unit} is missing`);
+          if (toText(manufactureRaw) && !manufactureDate)
+            rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.manufactureDate} is invalid`);
+          if (toText(expiryRaw) && !expiryDate)
+            rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.expiryDate} is invalid`);
+          if (shelfLifeDays !== undefined && shelfLifeDays <= 0)
+            rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.shelfLifeDays} is invalid`);
+          if (manufactureDate && expiryDate && expiryDate < manufactureDate)
+            rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.expiryDate} < ${PRODUCT_IMPORT_HEADERS.manufactureDate}`);
 
           if (rowErrors.length > 0) {
             errors.push(...rowErrors);
@@ -142,7 +188,11 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
             categoryName,
             altUnitsRaw,
             searchKeywordsRaw,
-            description
+            description,
+            manufactureDate,
+            expiryDate,
+            batchNo,
+            shelfLifeDays
           });
         });
 
@@ -175,10 +225,25 @@ export function generateProductImportTemplate(): void {
     [PRODUCT_IMPORT_HEADERS.category]: 'Qurilish materiallari',
     [PRODUCT_IMPORT_HEADERS.altUnits]: 'quti:20,karobka:100',
     [PRODUCT_IMPORT_HEADERS.searchKeywords]: 'sement, tsement',
-    [PRODUCT_IMPORT_HEADERS.description]: 'M400 markali sement, 50 kg qop'
+    [PRODUCT_IMPORT_HEADERS.description]: 'M400 markali sement, 50 kg qop',
+    [PRODUCT_IMPORT_HEADERS.manufactureDate]: '2026-09-01',
+    [PRODUCT_IMPORT_HEADERS.expiryDate]: '2027-03-01',
+    [PRODUCT_IMPORT_HEADERS.batchNo]: 'A-102',
+    [PRODUCT_IMPORT_HEADERS.shelfLifeDays]: 180
+  };
+  // A product without expiry tracking just leaves the four date columns empty.
+  const plainRow: Record<string, unknown> = {
+    [PRODUCT_IMPORT_HEADERS.name]: 'Mix 100 mm',
+    [PRODUCT_IMPORT_HEADERS.sku]: 'NAIL-100',
+    [PRODUCT_IMPORT_HEADERS.barcode]: '1234567890124',
+    [PRODUCT_IMPORT_HEADERS.price]: 28000,
+    [PRODUCT_IMPORT_HEADERS.cost]: 22000,
+    [PRODUCT_IMPORT_HEADERS.quantity]: 40,
+    [PRODUCT_IMPORT_HEADERS.unit]: 'kg',
+    [PRODUCT_IMPORT_HEADERS.category]: 'Qurilish materiallari'
   };
 
-  const worksheet = XLSX.utils.json_to_sheet([exampleRow], { header: Object.values(PRODUCT_IMPORT_HEADERS) });
+  const worksheet = XLSX.utils.json_to_sheet([exampleRow, plainRow], { header: Object.values(PRODUCT_IMPORT_HEADERS) });
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Mahsulotlar');
   XLSX.writeFile(workbook, 'mahsulotlar_shablon.xlsx');

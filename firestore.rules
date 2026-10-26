@@ -228,6 +228,25 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity', 'updatedAt']));
     }
 
+    // stockBatches/{id}: dated batches of products with expiry tracking. Staff create
+    // them (stock in, new product, import) and write them off. A sale or return by any
+    // active user (cashiers too) may only move the remaining quantity, in the same
+    // atomic batch as the sale itself. (No lower bound: two tills selling the last
+    // units at once must not make one of the sales fail — same as product stock.)
+    match /stockBatches/{id} {
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create: if canStaffWrite(request.resource.data.tenantId)
+        && request.resource.data.quantity is number && request.resource.data.quantity >= 0
+        && request.resource.data.expiryDate is timestamp;
+      allow update: if (canStaffWrite(resource.data.tenantId)
+          && request.resource.data.tenantId == resource.data.tenantId
+          && request.resource.data.productId == resource.data.productId)
+        || (canWrite(resource.data.tenantId)
+            && request.resource.data.tenantId == resource.data.tenantId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity', 'updatedAt']));
+      allow delete: if canStaffWrite(resource.data.tenantId);
+    }
+
     // stockEntries/{id}: stock in/out/adjustment audit log, managed by admin/manager
     // (the app's UI already restricts these routes to admin/manager).
     match /stockEntries/{id} {

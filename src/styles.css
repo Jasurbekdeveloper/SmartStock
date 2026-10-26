@@ -568,3 +568,8 @@ html.dark table {
   font-family: 'Material Icons' !important;
   font-feature-settings: 'liga' !important;
 }
+
+/* Expired stock rows (expiry page) */
+.data-table tr.row-expired td {
+  background: var(--danger-soft);
+}

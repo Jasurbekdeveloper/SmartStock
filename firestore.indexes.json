@@ -359,6 +359,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "stockBatches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "quantity",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -10,7 +10,7 @@
           type="number"
           min="0"
           step="1000"
-          [ngModel]="startingCashInput()"
+          [ngModel]="startingCashInput() || null"
           (ngModelChange)="startingCashInput.set(+$event)"
           [placeholder]="'shifts.startingCash' | translate"
           class="pos-input w-32"
@@ -291,11 +291,11 @@
         <div class="grid grid-cols-2 gap-2 mt-3 pl-8" (click)="$event.stopPropagation()">
           <label class="pos-field">
             <span>{{ 'form.price' | translate }}</span>
-            <input type="number" class="pos-input" [value]="item.price" [disabled]="!canEditPrice()" (change)="updatePrice(item.productId, +$any($event.target).value)" step="any" />
+            <input type="number" class="pos-input" [value]="item.price || ''" placeholder="0" [disabled]="!canEditPrice()" (change)="$any($event.target).value > 0 ? updatePrice(item.productId, +$any($event.target).value) : $any($event.target).value = item.price || ''" step="any" />
           </label>
           <label class="pos-field">
             <span>{{ 'pos.itemDiscount' | translate }}</span>
-            <input type="number" class="pos-input" [value]="item.discount || 0" (change)="updateLineDiscount(item.productId, +$any($event.target).value)" min="0" step="any" />
+            <input type="number" class="pos-input" [value]="item.discount || ''" placeholder="0" (change)="updateLineDiscount(item.productId, +$any($event.target).value)" min="0" step="any" />
           </label>
         </div>
         }

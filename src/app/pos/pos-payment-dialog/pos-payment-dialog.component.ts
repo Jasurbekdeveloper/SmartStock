@@ -22,6 +22,7 @@ import {
   resolveDiscount,
   splitPayment
 } from '../../core/utils/pos-math';
+import { NumericInputDirective } from '../../shared/directives/numeric-input.directive';
 
 export interface PosPaymentDialogData {
   lines: CheckoutLineInput[];
@@ -45,7 +46,7 @@ type Tender = 'cash' | 'card' | 'mixed' | 'debt';
 @Component({
   selector: 'app-pos-payment-dialog',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     TranslateModule,

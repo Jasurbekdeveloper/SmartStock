@@ -19,7 +19,12 @@ import { roleCan } from '../../../core/auth/permissions';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
-import { emptyExtras, extrasFromProduct, extrasToProductFields, validateExtras } from '../../../core/utils/product-extras';
+import { emptyExtras, extrasFromProduct, extrasToProductFields, initialBatchFromExtras, validateExtras } from '../../../core/utils/product-extras';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { BatchService } from '../../../core/services/batch.service';
+import { StockBatch, sortFefo } from '../../../core/utils/batches';
+import { expiryState } from '../../../core/utils/price-tier';
+import { ExpiryDateDialogComponent, ExpiryDateDialogData } from '../../../stock/components/expiry-date-dialog/expiry-date-dialog.component';
 import { ProductExtrasComponent } from '../../components/product-extras/product-extras.component';
 import { ImageDropzoneComponent, isAcceptableImage } from '../../../shared/components/image-dropzone/image-dropzone.component';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
@@ -35,11 +40,12 @@ import { FieldErrorState } from '../../../shared/forms/field-error-state';
 import { mergeKeywordsInput, parseKeywordsInput, suggestSearchKeywords } from '../../../core/utils/search-keywords';
 import { priceMargin } from '../../../core/utils/price-margin';
 import { formatNumber } from '../../../core/utils/format-number';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-product-edit',
   standalone: true,
-  imports: [
+  imports: [SumPipe, NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
@@ -68,6 +74,49 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private storageService = inject(StorageService);
+  private batchService = inject(BatchService);
+  /** Units of this product already in dated batches; null until loaded. */
+  batchedQty = signal<number | null>(null);
+  /** Batches with stock left, nearest expiry first — their dates can be changed here. */
+  activeBatches = signal<StockBatch[]>([]);
+  changingBatch = signal<string | null>(null);
+
+  batchState(b: StockBatch) {
+    return expiryState(b.expiryDate);
+  }
+
+  /** Extend or correct one batch's best-before date on a calendar. */
+  changeBatchDate(p: Product, b: StockBatch) {
+    const data: ExpiryDateDialogData = {
+      productName: p.name,
+      expiryDate: b.expiryDate,
+      manufactureDate: b.manufactureDate,
+      detail: `${b.batchNo ? '#' + b.batchNo + ' · ' : ''}${formatNumber(b.quantity, 3)} ${this.unitLabel(p.unit)}`
+    };
+    this.dialog
+      .open(ExpiryDateDialogComponent, { data, width: '380px', autoFocus: false })
+      .afterClosed()
+      .subscribe((date: Date | undefined) => {
+        if (!date) return;
+        this.changingBatch.set(b.id);
+        this.batchService.updateExpiry(b, date).subscribe({
+          next: () => this.changingBatch.set(null),
+          error: (err) => {
+            console.error('Change expiry error:', err);
+            this.changingBatch.set(null);
+            this.errorKey.set('messages.error');
+          }
+        });
+      });
+  }
+
+  /** Stock on hand with no batch yet (tracking just switched on, or an old single
+   *  expiry date): the form asks for its dates once, then it is a normal batch. */
+  undatedStock(p: Product): number {
+    const batched = this.batchedQty();
+    if (!this.extras.trackExpiry || batched === null) return 0;
+    return Math.max(0, Math.round((p.quantity - batched) * 1000) / 1000);
+  }
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
   readonly units = PRODUCT_UNITS;
@@ -187,6 +236,13 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
+      this.batchService.getBatchesForProduct(id).subscribe({
+        next: (batches) => {
+          this.batchedQty.set(batches.reduce((s, b) => s + Math.max(0, b.quantity), 0));
+          this.activeBatches.set(sortFefo(batches));
+        },
+        error: () => this.batchedQty.set(0)
+      });
       this.productService.getProductById(id).subscribe({
         next: (product) => {
           this.product.set(product ?? null);
@@ -234,7 +290,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
     this.submitting.set(true);
     this.errorKey.set(null);
 
-    const extrasError = validateExtras(this.extras);
+    const undated = this.undatedStock(product);
+    const extrasError = validateExtras(this.extras, { batchQuantity: undated });
     if (extrasError) {
       this.errorKey.set(extrasError);
       this.submitting.set(false);
@@ -274,6 +331,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
         }
       }
       await firstValueFrom(this.productService.updateProduct(product.id, payload));
+      const stockBatch = initialBatchFromExtras(this.extras, undated, payload.cost || undefined);
+      if (stockBatch) await firstValueFrom(this.batchService.create(product.id, stockBatch));
       this.logProductChanges(before, payload);
       await this.router.navigate(['/products/list']);
     } catch (err) {

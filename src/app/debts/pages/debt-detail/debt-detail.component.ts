@@ -12,11 +12,12 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-debt-detail',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     RouterModule,
     FormsModule,

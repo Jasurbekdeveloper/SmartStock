@@ -99,7 +99,7 @@
                     @if (variantLabel(product); as variant) { {{ variant }} · }
                     {{ product.sku }}
                     @if (product.wholesalePrice) { <span class="badge badge--blue !py-0 ml-1">{{ 'pos.wholesaleShort' | translate }}</span> }
-                    @if (product.expiryDate) { <span class="badge badge--amber !py-0 ml-1">{{ product.expiryDate | date: 'dd.MM.yy' }}</span> }
+                    @if (expiryBadge(product); as exp) { <span class="badge !py-0 ml-1" [class.badge--red]="exp.state === 'expired'" [class.badge--amber]="exp.state === 'soon'" [class.badge--green]="exp.state === 'ok'">{{ exp.date | date: 'dd.MM.yy' }}</span> }
                   </p>
                 </div>
               </div>

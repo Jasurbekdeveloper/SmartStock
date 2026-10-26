@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ThemeService } from './core/services/theme.service';
 import { TranslationService } from './core/services/translation.service';
 import { TranslatePipe } from './core/pipes/translate.pipe';
+import { installDatePickerOnClick, installSelectOnFocus } from './core/utils/select-on-focus';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 /** How often an open tab asks the server whether a newer version was deployed. */
@@ -33,6 +34,8 @@ export class App implements OnInit {
     this.themeService.getTheme();
     this.translationService.getLanguage();
     this.watchForUpdates();
+    installSelectOnFocus();
+    installDatePickerOnClick();
   }
 
   private watchForUpdates() {

@@ -88,7 +88,11 @@
             <input class="qe-input money" type="number" min="0" step="any" [ngModel]="wholesalePrice()" (ngModelChange)="wholesalePrice.set($event)" name="wholesale" />
           </label>
           <label class="qe-field">
-            <span>{{ 'products.expiryDate' | translate }}</span>
+            <span>{{ 'products.manufactureDate' | translate }}</span>
+            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="manufactureDate.set($event)" name="mfg" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.expiryDate' | translate }}{{ newTracked() ? ' *' : '' }}</span>
             <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="expiryDate.set($event)" name="expiry" />
           </label>
         </div>
@@ -134,6 +138,18 @@
             <input class="qe-input qe-input--lg money" type="number" min="0" step="any" [ngModel]="price()" (ngModelChange)="price.set($event)" name="price" />
           </label>
         </div>
+        @if (p.trackExpiry) {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="qe-field">
+            <span>{{ 'products.manufactureDate' | translate }}</span>
+            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="manufactureDate.set($event)" name="mfg" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.expiryDate' | translate }} *</span>
+            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="expiryDate.set($event)" name="expiry" />
+          </label>
+        </div>
+        }
         @if (+(quantity() ?? 0) > 0) {
         <p class="text-sm text-muted">{{ 'quick.after' | translate }}: <b class="money">{{ p.quantity + +(quantity() ?? 0) | sum:2 }} {{ unitLabel(p.unit) }}</b></p>
         }

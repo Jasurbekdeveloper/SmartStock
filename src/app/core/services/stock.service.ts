@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   where,
+  WriteBatch,
   writeBatch
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
@@ -16,6 +17,7 @@ import { AuditLogService } from './audit-log.service';
 import { roundMoney } from '../utils/pos-math';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
+import { BatchService } from './batch.service';
 
 export type StockMovementType = 'in' | 'out' | 'adjustment';
 
@@ -27,6 +29,8 @@ export interface StockEntry {
   previousQuantity: number;
   newQuantity: number;
   reason?: string;
+  /** Batch this movement created (stock in) or reduced (write-off). */
+  batchId?: string;
   /** Free-text supplier name, kept for backward compatibility with older entries
    *  and for one-off suppliers that never get added to the catalog. When
    *  `supplierId` is set, this is a denormalized copy of that supplier's name
@@ -51,6 +55,8 @@ export interface StockInInput {
   /** Product's cost before this delivery — for the weighted average. */
   currentCost?: number;
   sellingPrice: number;
+  /** Dates of this delivery — required for products with expiry tracking. */
+  batch?: { expiryDate: Date; manufactureDate?: Date | null; batchNo?: string | null };
 }
 
 export interface StockOutInput {
@@ -75,6 +81,7 @@ export class StockService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
   private auditLogService = inject(AuditLogService);
+  private batchService = inject(BatchService);
 
   getStockEntries(): Observable<StockEntry[]> {
     const entriesQuery = tenantQuery(this.firestore, 'stockEntries', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
@@ -130,7 +137,16 @@ export class StockService {
       },
       // Restocking is when cost/selling prices actually change in this business,
       // so keep the product record in sync instead of only logging it here.
-      { cost, price: input.sellingPrice }
+      { cost, price: input.sellingPrice },
+      input.batch
+        ? (wb) =>
+            this.batchService.addToWrite(wb, input.productId, {
+              ...input.batch!,
+              quantity: input.quantity,
+              costPrice: input.costPrice,
+              supplierId: input.supplierId ?? null
+            })
+        : undefined
     );
   }
 
@@ -160,10 +176,14 @@ export class StockService {
 
   private recordMovement(
     entry: Omit<StockEntry, 'id' | 'createdAt'>,
-    productUpdates?: Record<string, unknown>
+    productUpdates?: Record<string, unknown>,
+    /** Extra writes in the same batch; may return the id of a created stock batch. */
+    extra?: (wb: WriteBatch) => string | void
   ): Observable<void> {
     const batch = writeBatch(this.firestore);
     const entryRef = doc(collection(this.firestore, 'stockEntries'));
+    const batchId = extra?.(batch);
+    if (batchId) entry = { ...entry, batchId };
 
     const data: Record<string, unknown> = withTenant({ ...entry, createdAt: serverTimestamp() }, requireTenantId(this.authService));
     for (const key of Object.keys(data)) {

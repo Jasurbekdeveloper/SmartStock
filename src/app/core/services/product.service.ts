@@ -19,6 +19,7 @@ import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { TenantService } from './tenant.service';
 import { ProductAttribute } from '../utils/product-variants';
+import { NewBatchInput, batchDocData } from './batch.service';
 
 export interface Product {
   id: string;
@@ -51,9 +52,15 @@ export interface Product {
   wholesalePrice?: number | null;
   /** Quantity (primary unit) from which a line switches to the wholesale price by itself. 0/absent = manual only. */
   wholesaleMinQty?: number | null;
-  /** Best-before date of the stock on hand (pharmacy, grocery). null = not tracked. */
+  /** Stock is kept in dated batches (`stockBatches`): every delivery asks for its
+   *  expiry, sales take the nearest expiry first. Off for goods that don't spoil. */
+  trackExpiry?: boolean;
+  /** Typical shelf life in days — fills the expiry date from the manufacture date. */
+  shelfLifeDays?: number | null;
+  /** @deprecated Single expiry date from before batches existed. Still read (shown
+   *  as one batch) until the product is edited, which turns it into a real batch. */
   expiryDate?: Date | null;
-  /** Batch / lot number of the stock on hand. */
+  /** @deprecated See expiryDate. */
   batchNo?: string | null;
   categoryId: string;
   description?: string;
@@ -84,12 +91,18 @@ export class ProductService {
     return fromDocRef<Product>(doc(this.firestore, 'products', id));
   }
 
-  addProduct(product: Omit<Product, 'id'>): Observable<void> {
-    return this.addProducts([product]);
+  addProduct(product: Omit<Product, 'id'>, initialBatch?: NewBatchInput): Observable<string> {
+    return this.addProducts([product], [initialBatch]).pipe(map((ids) => ids[0]));
   }
 
-  addProducts(products: Omit<Product, 'id'>[]): Observable<void> {
-    return from(this.addProductsAsync(products));
+  /**
+   * Creates products in one atomic write (chunked past Firestore's 500-write batch
+   * limit). `initialBatches[i]`, when given, is the first stock batch of product i —
+   * written in the same batch, so a tracked product never exists without its dates.
+   * Resolves with the new product ids, in input order.
+   */
+  addProducts(products: Omit<Product, 'id'>[], initialBatches?: (NewBatchInput | undefined)[]): Observable<string[]> {
+    return from(this.addProductsAsync(products, initialBatches));
   }
 
   /** Throws PRODUCT_LIMIT_REACHED when the store's plan caps the catalog size. */
@@ -102,24 +115,34 @@ export class ProductService {
     }
   }
 
-  private async addProductsAsync(products: Omit<Product, 'id'>[]): Promise<void> {
+  private async addProductsAsync(products: Omit<Product, 'id'>[], initialBatches?: (NewBatchInput | undefined)[]): Promise<string[]> {
     const tenantId = requireTenantId(this.authService);
     await this.assertProductLimit(tenantId, products.length);
-    const batch = writeBatch(this.firestore);
-    for (const product of products) {
-      const productRef = doc(collection(this.firestore, 'products'));
-      // Firestore rejects explicit undefined values for optional product metadata.
-      const data: Record<string, unknown> = {
-        ...withTenant(product, tenantId),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      for (const key of Object.keys(data)) {
-        if (data[key] === undefined) delete data[key];
-      }
-      batch.set(productRef, data);
+    const ids: string[] = [];
+    // ≤ 2 writes per product (product + first batch), so 200 products stay under 500.
+    for (let start = 0; start < products.length; start += 200) {
+      const batch = writeBatch(this.firestore);
+      products.slice(start, start + 200).forEach((product, offset) => {
+        const productRef = doc(collection(this.firestore, 'products'));
+        ids.push(productRef.id);
+        // Firestore rejects explicit undefined values for optional product metadata.
+        const data: Record<string, unknown> = {
+          ...withTenant(product, tenantId),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        for (const key of Object.keys(data)) {
+          if (data[key] === undefined) delete data[key];
+        }
+        batch.set(productRef, data);
+        const first = initialBatches?.[start + offset];
+        if (first && first.quantity > 0) {
+          batch.set(doc(collection(this.firestore, 'stockBatches')), batchDocData(productRef.id, first, tenantId));
+        }
+      });
+      await batch.commit();
     }
-    await batch.commit();
+    return ids;
   }
 
   updateProduct(id: string, product: Partial<Product>): Observable<void> {

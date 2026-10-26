@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import { Sale, SalesService, saleCardIn, saleCashIn, saleNetProfit, saleNetTotal } from '../core/services/sales.service';
 import { roundMoney } from '../core/utils/pos-math';
 import { Product, ProductService } from '../core/services/product.service';
@@ -19,7 +21,8 @@ import { SumPipe } from '../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../core/pipes/currency-display.pipe';
 import { formatNumber } from '../core/utils/format-number';
 import { daysAgo } from '../core/utils/date-range';
-import { expiryState } from '../core/utils/price-tier';
+import { expiryAttention } from '../core/utils/batches';
+import { BatchService } from '../core/services/batch.service';
 import { AuthService } from '../core/services/auth.service';
 import { Permission } from '../core/auth/permissions';
 import {
@@ -149,12 +152,14 @@ export class DashboardComponent implements OnInit {
   });
 
   private auth = inject(AuthService);
+  private activeBatches = toSignal(inject(BatchService).getActiveBatches().pipe(catchError(() => of([]))), { initialValue: [] });
 
   /** Things that need someone's attention today, each linking to where it's handled. */
   attention = computed(() => {
     const products = this.latestProducts() ?? [];
-    const expired = products.filter((p) => p.quantity > 0 && expiryState(p.expiryDate) === 'expired').length;
-    const expiring = products.filter((p) => p.quantity > 0 && expiryState(p.expiryDate) === 'soon').length;
+    const dated = expiryAttention(products, this.activeBatches());
+    const expired = dated.expired.size;
+    const expiring = dated.expiring.size;
     const overdue = (this.latestDebts() ?? []).filter((d) => isOverdueDebt(d)).length;
     return [
       { key: 'dashboard.attnLowStock', count: this.lowStockProducts().length, icon: 'inventory', tone: 'tone-red', link: '/products/list' },

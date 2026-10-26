@@ -28,11 +28,12 @@ import {
 import { authCreateErrorKey } from '../../../core/firebase/create-auth-account';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { STATE_BADGE, generatePassword, money, stateKey } from '../../platform-ui';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-tenant-detail',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     DatePipe,
     FormsModule,
     ReactiveFormsModule,

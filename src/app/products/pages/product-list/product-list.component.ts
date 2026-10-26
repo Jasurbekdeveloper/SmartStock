@@ -26,6 +26,10 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 import { variantLabel } from '../../../core/utils/product-variants';
+import { BatchService } from '../../../core/services/batch.service';
+import { ProductBatchSummary, batchesByProduct, summarizeBatches } from '../../../core/utils/batches';
+import { expiryState } from '../../../core/utils/price-tier';
+import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-product-list',
@@ -60,6 +64,25 @@ export class ProductListComponent {
 
   products = toSignal(this.productService.getProducts(), { initialValue: [] });
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
+  private batchSummaries = toSignal(
+    inject(BatchService)
+      .getActiveBatches()
+      .pipe(catchError(() => of([]))),
+    { initialValue: [] }
+  );
+  private summaries = computed(() => {
+    const out = new Map<string, ProductBatchSummary>();
+    for (const [id, list] of batchesByProduct(this.batchSummaries())) out.set(id, summarizeBatches(list));
+    return out;
+  });
+
+  /** Nearest best-before date of what is in stock, and how urgent it is. */
+  expiryBadge(product: Product): { date: Date; state: string } | null {
+    const s = this.summaries().get(product.id);
+    if (s?.nearestExpiry) return { date: s.nearestExpiry, state: s.state };
+    if (product.expiryDate) return { date: product.expiryDate, state: expiryState(product.expiryDate) };
+    return null;
+  }
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   /** Cost price is purchasing/margin data — cashiers only need the selling price. */

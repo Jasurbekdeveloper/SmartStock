@@ -46,6 +46,31 @@
       </mat-form-field>
     </div>
 
+    @if (tracked()) {
+    <div class="rounded-2xl p-4 space-y-3" style="background: var(--warning-soft)">
+      <p class="flex items-center gap-2 text-sm font-semibold">
+        <mat-icon class="!w-5 !h-5 !text-[20px]">event</mat-icon>{{ 'stock.batchDates' | translate }}
+        @if (selectedProduct()?.shelfLifeDays; as days) {
+        <span class="font-normal text-muted">· {{ 'products.shelfLifeDays' | translate }}: {{ days }} {{ 'expiry.days' | translate }}</span>
+        }
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'products.manufactureDate' | translate }}</mat-label>
+          <input matInput type="date" [ngModel]="manufactureDate" (ngModelChange)="onManufactureChange($event)" name="manufactureDate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'products.expiryDate' | translate }} *</mat-label>
+          <input matInput type="date" [ngModel]="expiryDate" (ngModelChange)="onExpiryChange($event)" name="expiryDate" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'products.batchNo' | translate }}</mat-label>
+          <input matInput [(ngModel)]="batchNo" name="batchNo" maxlength="40" />
+        </mat-form-field>
+      </div>
+    </div>
+    }
+
     @if (errorKey(); as key) {
     <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
       {{ key | translate }}

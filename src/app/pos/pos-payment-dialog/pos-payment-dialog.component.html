@@ -41,7 +41,7 @@
     <div class="flex items-start gap-2 mt-4">
       <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
         <mat-label>{{ 'pos.discount' | translate }}</mat-label>
-        <input matInput type="number" min="0" step="any" [ngModel]="discountInput()" (ngModelChange)="setDiscount($event)" />
+        <input matInput type="number" min="0" step="any" [ngModel]="discountInput() || null" placeholder="0" (ngModelChange)="setDiscount($event)" />
         @if (discount() > 0 && discountMode() === 'percent') {
         <span matTextSuffix class="text-xs opacity-70">= {{ discount() | currencyDisplay:0 }}</span>
         }
@@ -57,7 +57,7 @@
     <mat-form-field appearance="outline" class="w-full mt-3" subscriptSizing="dynamic">
       <mat-label>{{ 'pos.card' | translate }}</mat-label>
       <mat-icon matPrefix class="mx-2">contactless</mat-icon>
-      <input matInput type="number" min="0" step="any" [ngModel]="cardInput()" (ngModelChange)="setCard($event)" />
+      <input matInput type="number" min="0" step="any" [ngModel]="cardInput() || null" placeholder="0" (ngModelChange)="setCard($event)" />
     </mat-form-field>
     }
 

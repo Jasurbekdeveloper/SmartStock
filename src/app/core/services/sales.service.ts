@@ -20,6 +20,7 @@ import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { roundMoney } from '../utils/pos-math';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
+import { BatchAllocation, mergeAllocations } from '../utils/batches';
 
 export interface SaleItem {
   productId: string;
@@ -46,6 +47,9 @@ export interface SaleItem {
   itemCostPrice?: number;
   /** Net-of-VAT revenue minus cost for this line. Can be negative. */
   netProfit?: number;
+  /** Stock batches this line was taken from (products with expiry tracking), so
+   *  a return can put the goods back into the same batches. */
+  batches?: BatchAllocation[];
 }
 
 export type PaymentMethod = 'cash' | 'card' | 'mixed';
@@ -99,6 +103,8 @@ export interface SaleReturnItem {
   productName: string;
   quantity: number;
   refund: number;
+  /** Batches the returned goods go back into (see restoreAllocation). */
+  batches?: BatchAllocation[];
 }
 
 export interface SaleReturn {
@@ -256,6 +262,7 @@ export class SalesService {
       batch,
       sale.items.map((item) => ({ productId: item.productId, delta: -item.quantity }))
     );
+    this.adjustBatchesInBatch(batch, sale.items.map((item) => item.batches), -1);
 
     return from(this.commit(batch).then(() => saleRef.id));
   }
@@ -276,6 +283,7 @@ export class SalesService {
       batch,
       ret.items.map((item) => ({ productId: item.productId, delta: item.quantity }))
     );
+    this.adjustBatchesInBatch(batch, ret.items.map((item) => item.batches), 1);
 
     return from(this.commit(batch).then(() => returnRef.id));
   }
@@ -289,6 +297,17 @@ export class SalesService {
       if (delta === 0) continue;
       batch.update(doc(this.firestore, 'products', productId), {
         quantity: increment(delta),
+        updatedAt: serverTimestamp()
+      });
+    }
+  }
+
+  /** Moves stock-batch quantities by the given slices (sign −1 = sale, +1 = return). */
+  private adjustBatchesInBatch(batch: WriteBatch, slices: (BatchAllocation[] | undefined)[], sign: 1 | -1) {
+    for (const [batchId, qty] of mergeAllocations(slices)) {
+      if (!qty) continue;
+      batch.update(doc(this.firestore, 'stockBatches', batchId), {
+        quantity: increment(sign * qty),
         updatedAt: serverTimestamp()
       });
     }

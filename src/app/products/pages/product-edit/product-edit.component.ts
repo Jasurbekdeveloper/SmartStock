@@ -22,6 +22,7 @@ import { PRODUCT_UNITS } from '../../../core/constants/units';
 import { emptyExtras, extrasFromProduct, extrasToProductFields, initialBatchFromExtras, validateExtras } from '../../../core/utils/product-extras';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { BatchService } from '../../../core/services/batch.service';
+import { StockService } from '../../../core/services/stock.service';
 import { StockBatch, sortFefo } from '../../../core/utils/batches';
 import { expiryState } from '../../../core/utils/price-tier';
 import { ExpiryDateDialogComponent, ExpiryDateDialogData } from '../../../stock/components/expiry-date-dialog/expiry-date-dialog.component';
@@ -30,7 +31,7 @@ import { ImageDropzoneComponent, isAcceptableImage } from '../../../shared/compo
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
 import { StorageService } from '../../../core/services/storage.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
 import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
 import { validateAttributeRows, validateProductForm } from '../../../core/utils/product-form-validation';
 import {
@@ -67,6 +68,7 @@ import { NumericInputDirective } from '../../../shared/directives/numeric-input.
 })
 export class ProductEditComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
+  private stockService = inject(StockService);
   private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
   private auditLogService = inject(AuditLogService);
@@ -243,7 +245,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
         },
         error: () => this.batchedQty.set(0)
       });
-      this.productService.getProductById(id).subscribe({
+      // One read: a live listener would reset the form whenever a sale changes the stock.
+      this.productService.getProductById(id).pipe(take(1)).subscribe({
         next: (product) => {
           this.product.set(product ?? null);
           this.originalProduct.set(product ? { ...product } : null);
@@ -330,7 +333,23 @@ export class ProductEditComponent implements OnInit, OnDestroy {
           return;
         }
       }
-      await firstValueFrom(this.productService.updateProduct(product.id, payload));
+      // Stock is never written as a plain number from this form: sales made while it
+      // was open would be lost. A changed quantity is booked as a stock correction
+      // (history + audit log) by the difference to what the form showed.
+      const { quantity: newQuantity, id: _id, ...fields } = payload;
+      await firstValueFrom(this.productService.updateProduct(product.id, fields));
+      const shownQuantity = before?.quantity ?? newQuantity;
+      if (Math.abs(newQuantity - shownQuantity) > 1e-9) {
+        await firstValueFrom(
+          this.stockService.adjustStock({
+            productId: product.id,
+            currentQuantity: shownQuantity,
+            countedQuantity: newQuantity,
+            mode: 'delta',
+            notes: 'products.editCorrection'
+          })
+        );
+      }
       const stockBatch = initialBatchFromExtras(this.extras, undated, payload.cost || undefined);
       if (stockBatch) await firstValueFrom(this.batchService.create(product.id, stockBatch));
       this.logProductChanges(before, payload);

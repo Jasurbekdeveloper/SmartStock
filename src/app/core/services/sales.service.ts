@@ -314,11 +314,21 @@ export class SalesService {
   }
 
   private commit(batch: WriteBatch): Promise<void> {
-    const committed = batch.commit();
-    const queued = new Promise<void>((resolve) => setTimeout(resolve, OFFLINE_COMMIT_GRACE_MS));
-    committed.catch((err) => console.error('Batch commit failed after grace period:', err));
-    return Promise.race([committed, queued]);
+    return commitOrQueue(batch);
   }
+}
+
+/**
+ * Commits a write batch, but does not keep the till waiting without a connection:
+ * offline, Firestore resolves `commit()` only once the server acks, so after a short
+ * grace period this resolves anyway — the writes are already in the local cache and
+ * sync when the connection returns.
+ */
+export function commitOrQueue(batch: WriteBatch): Promise<void> {
+  const committed = batch.commit();
+  const queued = new Promise<void>((resolve) => setTimeout(resolve, OFFLINE_COMMIT_GRACE_MS));
+  committed.catch((err) => console.error('Batch commit failed after grace period:', err));
+  return Promise.race([committed, queued]);
 }
 
 /**

@@ -41,7 +41,7 @@
     <div class="flex items-start gap-2 mt-4">
       <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">
         <mat-label>{{ 'pos.discount' | translate }}</mat-label>
-        <input matInput type="number" min="0" step="any" [ngModel]="discountInput() || null" placeholder="0" (ngModelChange)="setDiscount($event)" />
+        <input matInput type="number" min="0" step="any" [ngModel]="discountInput() || null" placeholder="0" (ngModelChange)="setDiscount($event)" (focus)="focusPad('discount')" />
         @if (discount() > 0 && discountMode() === 'percent') {
         <span matTextSuffix class="text-xs opacity-70">= {{ discount() | currencyDisplay:0 }}</span>
         }
@@ -57,7 +57,7 @@
     <mat-form-field appearance="outline" class="w-full mt-3" subscriptSizing="dynamic">
       <mat-label>{{ 'pos.card' | translate }}</mat-label>
       <mat-icon matPrefix class="mx-2">contactless</mat-icon>
-      <input matInput type="number" min="0" step="any" [ngModel]="cardInput() || null" placeholder="0" (ngModelChange)="setCard($event)" />
+      <input matInput type="number" min="0" step="any" [ngModel]="cardInput() || null" placeholder="0" (ngModelChange)="setCard($event)" (focus)="focusPad('card')" />
     </mat-form-field>
     }
 
@@ -74,13 +74,14 @@
         [ngModel]="cashInput()"
         (ngModelChange)="setCash($event)"
         (keydown.enter)="submit()"
+        (focus)="focusPad('cash')"
       />
     </mat-form-field>
 
     @if (tender() !== 'debt') {
     <div class="flex flex-wrap gap-2 mt-2">
       @for (amount of quickAmounts(); track amount) {
-      <button type="button" class="pay__quick" (click)="setCash(amount)">{{ amount | currencyDisplay:0 }}</button>
+      <button type="button" class="pay__quick" (click)="quickCash(amount)">{{ amount | currencyDisplay:0 }}</button>
       }
     </div>
     }
@@ -88,6 +89,17 @@
     <div class="pay__note mt-3">
       <mat-icon>contactless</mat-icon>
       {{ 'pos.cardFullHint' | translate }}
+    </div>
+    }
+
+    <!-- Touch keypad: types into the amount last tapped (cash by default) -->
+    @if (tender() !== 'card' || padTarget() === 'discount') {
+    <div class="pay__pad">
+      <p class="text-xs text-muted mb-1">
+        {{ 'pos.keypadTarget' | translate }}:
+        <b>{{ (padTarget() === 'cash' ? (tender() === 'debt' ? 'pos.prepayment' : 'pos.cashReceived') : padTarget() === 'card' ? 'pos.card' : 'pos.discount') | translate }}</b>
+      </p>
+      <app-numpad [value]="padFresh() ? '' : padText()" [decimal]="false" [okLabel]="'pos.pay' | translate" (valueChange)="onPad($event)" (enter)="submit()" />
     </div>
     }
 

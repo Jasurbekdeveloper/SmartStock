@@ -122,7 +122,11 @@ export class CashMovementDialogComponent {
   reason = signal<CashReason>(this.data.type === 'in' ? 'float' : 'collection');
   note = signal('');
 
-  reasons = computed<readonly CashReason[]>(() => (this.type() === 'in' ? CASH_IN_REASONS : CASH_OUT_REASONS));
+  /** Debt and supplier payments have their own flows (they also move the customer's /
+   *  supplier's balance), so they are not offered as a bare drawer movement. */
+  reasons = computed<readonly CashReason[]>(() =>
+    (this.type() === 'in' ? CASH_IN_REASONS : CASH_OUT_REASONS).filter((r) => r !== 'debtPayment' && r !== 'supplierPayment')
+  );
 
   overDrawer = computed(
     () => this.type() === 'out' && this.data.expectedCash !== undefined && this.amount() > this.data.expectedCash

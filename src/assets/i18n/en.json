@@ -17,7 +17,8 @@
     "updateAvailable": "A new version of the app is ready.",
     "updateNow": "Update",
     "new": "New",
-    "actions": "Actions"
+    "actions": "Actions",
+    "menu": "Menu"
   },
   "tenant": {
     "backToHome": "Back to home",
@@ -200,7 +201,9 @@
     "batchesViaStockIn": "Dates of new deliveries are entered per batch on the Stock in page",
     "invalidShelfLife": "Shelf life must be a positive number",
     "expiryRequired": "Enter the expiry date for this product",
-    "expiryBeforeManufacture": "The expiry date cannot be before the manufacture date"
+    "expiryBeforeManufacture": "The expiry date cannot be before the manufacture date",
+    "editCorrection": "Corrected in the product form",
+    "quantityEditHint": "A change is booked in stock history as a correction"
   },
   "units": {
     "dona": "pcs",
@@ -300,7 +303,13 @@
     "emptyCart": "Ticket is empty",
     "expiredBlocked": "only expired stock is left — it cannot be sold",
     "sellExpiredTitle": "Expired goods",
-    "sellExpiredConfirm": "Only expired stock of this product is left. Sell it anyway?"
+    "sellExpiredConfirm": "Only expired stock of this product is left. Sell it anyway?",
+    "addFirst": "Add first",
+    "keypad": "Keypad",
+    "keypadTarget": "Keypad types into",
+    "pay": "Pay",
+    "screenKeyboard": "On-screen keyboard",
+    "space": "space"
   },
   "stock": {
     "title": "Stock Management",
@@ -340,7 +349,35 @@
     "selectSupplier": "Supplier",
     "supplierOther": "Other (enter manually)",
     "batchDates": "Batch dates",
-    "reasonExpired": "Expired"
+    "reasonExpired": "Expired",
+    "addLinePlaceholder": "Product name or barcode — a scanner works too",
+    "addLines": "Add products to the receipt",
+    "addLinesHint": "Find or scan each item of the delivery note: quantity, cost and selling price",
+    "creditNeedsSupplier": "To buy on credit, pick the supplier from the list",
+    "drawerNeedsShift": "Paying from the till needs an open shift",
+    "dueDate": "Payment due",
+    "invoiceNo": "Invoice no.",
+    "lineTotal": "Amount",
+    "lines": "lines",
+    "paidNow": "Paid now",
+    "payCredit": "On credit",
+    "payFull": "Paid in full",
+    "payPartial": "Partly",
+    "payment": "Payment",
+    "receiptSaved": "Receipt saved",
+    "receiptSubtitle": "A supplier delivery: many products on one note, on credit or paid",
+    "receiptTitle": "Goods receipt",
+    "receiptTotal": "Total",
+    "saveReceipt": "Save receipt",
+    "toSupplierDebt": "Owed to supplier",
+    "tooManyLines": "At most 150 lines per receipt — split it",
+    "method": {
+      "bank": "Bank transfer",
+      "card": "Card",
+      "cash": "Cash (safe/owner)",
+      "drawer": "Cash from the till"
+    },
+    "reasonAdjustment": "Correction"
   },
   "sales": {
     "title": "Sales",
@@ -424,7 +461,18 @@
     "totalOwed": "Total Owed",
     "lastDebt": "Last Debt",
     "debtHistory": "Debt History",
-    "itemsPurchased": "Items purchased"
+    "itemsPurchased": "Items purchased",
+    "accept": "Accept",
+    "cashToDrawer": "Cash goes into this shift's drawer",
+    "collectShort": "Debt payment",
+    "collectTitle": "Take a debt payment",
+    "findCustomer": "Customer name or phone",
+    "noDebtors": "No customers owe money",
+    "noShiftCash": "No open shift — the cash is not added to a drawer",
+    "openDebts": "open debts",
+    "otherCustomer": "Other customer",
+    "overpayCapped": "More than owed — only the debt is taken",
+    "payAll": "All of it"
   },
   "customers": {
     "title": "Customers",
@@ -454,7 +502,21 @@
     "noPurchases": "No purchases yet",
     "totalPurchased": "Total Purchased",
     "deleteConfirm": "Are you sure you want to delete this supplier?",
-    "noSuppliersFound": "No suppliers found"
+    "noSuppliersFound": "No suppliers found",
+    "account": "Account",
+    "balance": "We owe",
+    "balanceChange": "Balance change",
+    "currentDebt": "Current debt",
+    "delivery": "Delivery",
+    "operation": "Operation",
+    "overdue": "Payment overdue",
+    "owe": "owe",
+    "pay": "Pay",
+    "payHint": "Record a payment to the supplier. Cash from the till leaves the shift's drawer.",
+    "payment": "Payment",
+    "paymentSaved": "Payment saved",
+    "totalPaid": "Total paid",
+    "totalPayable": "Total owed to suppliers"
   },
   "settings": {
     "title": "Settings",

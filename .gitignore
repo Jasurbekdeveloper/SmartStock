@@ -51,3 +51,6 @@ serviceAccount*.json
 
 # Cloudflare Worker local state
 .wrangler/
+
+# Local backups made while fixing dependencies
+*.bak-old

@@ -17,6 +17,7 @@ import { ToastService } from '../core/services/toast.service';
 import { SettingsService } from '../core/services/settings.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
 import { BatchService } from '../core/services/batch.service';
+import { TenantService } from '../core/services/tenant.service';
 import { StockBatch } from '../core/utils/batches';
 
 const cement: Product = {
@@ -65,6 +66,7 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
         { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk]) } },
         { provide: BatchService, useValue: { getActiveBatches: () => of(activeBatches) } },
+        { provide: TenantService, useValue: { tenant: signal({ name: 'Test' }) } },
         { provide: CategoryService, useValue: { getCategories: () => of([]) } },
         { provide: SalesService, useValue: { getSalesInRange: () => of([]), getReturnsForShift: () => of([]), createSale } },
         { provide: CashMovementService, useValue: { getForShift: () => of([]), add: vi.fn(() => of('m1')) } },
@@ -170,6 +172,22 @@ describe('PosComponent checkout (cashier)', () => {
       { batchId: 'b-late', quantity: 1 }
     ]);
     expect(nailsLine.batches).toBeUndefined();
+  });
+
+  it('sets quantity and discount of the selected line from the on-screen keypad', async () => {
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+    t.tile('Sement').click();
+    await t.settle();
+    pos.selectLine('p1', 'qty');
+    // The first key replaces the shown "1" instead of being appended to it.
+    pos.onNumpadInput('5');
+    pos.commitNumpad();
+    expect(pos.cart()[0].quantity).toBe(5);
+    pos.setNumpadMode('percent');
+    pos.onNumpadInput('10');
+    pos.commitNumpad();
+    expect(pos.cart()[0].discount).toBe(25000);
   });
 
   it('keeps the till usable when saving the sale fails', async () => {

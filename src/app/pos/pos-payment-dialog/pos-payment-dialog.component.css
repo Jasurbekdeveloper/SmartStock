@@ -123,3 +123,8 @@
   background: var(--warning-soft);
   color: var(--text);
 }
+
+.pay__pad {
+  margin-top: 0.75rem;
+  --np-key-h: 3rem;
+}

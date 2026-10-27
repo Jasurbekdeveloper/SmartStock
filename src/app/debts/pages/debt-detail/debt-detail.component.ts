@@ -7,17 +7,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialog } from '@angular/material/dialog';
+import { DebtPaymentDialogComponent } from '../../../shared/components/debt-payment-dialog/debt-payment-dialog.component';
 import { Customer, Debt, DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { TranslationService } from '../../../core/services/translation.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
-import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-debt-detail',
   standalone: true,
-  imports: [NumericInputDirective, 
+  imports: [
     CommonModule,
     RouterModule,
     FormsModule,
@@ -37,13 +38,11 @@ export class DebtDetailComponent implements OnInit {
   private route: ActivatedRoute = inject(ActivatedRoute);
   private translation: TranslationService = inject(TranslationService);
   private toast: ToastService = inject(ToastService);
+  private dialog = inject(MatDialog);
 
   customer = signal<Customer | null>(null);
   debts = signal<Debt[]>([]);
 
-  payingDebtId = signal<string | null>(null);
-  paymentAmount = signal(0);
-  submitting = signal(false);
 
   totalRemaining = computed(() => this.debts().reduce((sum, d) => sum + d.remainingAmount, 0));
 
@@ -64,34 +63,10 @@ export class DebtDetailComponent implements OnInit {
     return (debt.items ?? []).map((item) => `${item.productName} x${item.quantity}`).join(', ');
   }
 
-  startPayment(debt: Debt) {
-    this.payingDebtId.set(debt.id);
-    this.paymentAmount.set(debt.remainingAmount);
-  }
-
-  cancelPayment() {
-    this.payingDebtId.set(null);
-    this.paymentAmount.set(0);
-  }
-
-  confirmPayment(debt: Debt) {
-    // Never accept more than is owed — an overpayment would push remainingAmount negative.
-    const amount = Math.min(this.paymentAmount(), debt.remainingAmount);
-    if (amount <= 0) return;
-
-    this.submitting.set(true);
-    this.debtService.payDebt(debt.id, amount).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.payingDebtId.set(null);
-        this.paymentAmount.set(0);
-        this.toast.success(this.translation.translate('debts.paymentSuccess'));
-      },
-      error: (err) => {
-        console.error('Pay debt error:', err);
-        this.submitting.set(false);
-        this.toast.error(this.translation.translate('messages.error'));
-      }
-    });
+  /** One debt, or (no id) the customer's whole balance, oldest debts first. */
+  openPayment(debtId?: string) {
+    const customerId = this.customer()?.id ?? this.route.snapshot.paramMap.get('id') ?? undefined;
+    if (!customerId) return;
+    this.dialog.open(DebtPaymentDialogComponent, { data: { customerId, debtId }, width: '760px', maxWidth: '96vw', autoFocus: false });
   }
 }

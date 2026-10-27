@@ -1,75 +1,137 @@
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="page max-w-5xl">
   @if (supplier(); as s) {
-  <mat-card class="!p-6">
-    <div class="flex justify-between items-start flex-wrap gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ s.name }}</h1>
-        @if (s.phone) {
-        <p class="text-gray-500 dark:text-gray-400">{{ s.phone }}</p>
-        }
-        @if (s.contactPerson) {
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ s.contactPerson }}</p>
-        }
-        @if (s.address) {
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ s.address }}</p>
-        }
-        @if (s.notes) {
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ s.notes }}</p>
-        }
-      </div>
-      <div class="text-right">
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'suppliers.totalPurchased' | translate }}</p>
-        <p class="text-lg font-bold text-gray-900 dark:text-white">{{ totalPurchased() | currencyDisplay }}</p>
-      </div>
-    </div>
-    <div class="mt-4 pt-4 border-t dark:border-gray-700">
-      <a mat-button color="primary" [routerLink]="['/suppliers/edit', s.id]">
-        <mat-icon>edit</mat-icon>
-        {{ 'buttons.edit' | translate }}
-      </a>
-    </div>
-  </mat-card>
-  }
-
-  <div class="space-y-3">
-    <div class="flex justify-between items-center">
-      <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ 'suppliers.purchaseHistory' | translate }}</h2>
-      @if (stockEntries().length > 0) {
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        {{ stockEntries().length }} {{ 'stock.stockIn' | translate }} · {{ totalPurchased() | currencyDisplay }}
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'suppliers.title' | translate }}</p>
+      <h1 class="page-title">{{ s.name }}</h1>
+      <p class="page-subtitle">
+        {{ s.phone }}@if (s.contactPerson) { · {{ s.contactPerson }} }@if (s.address) { · {{ s.address }} }
       </p>
-      }
     </div>
+    <div class="flex flex-wrap gap-2">
+      <a mat-stroked-button routerLink="/stock/in"><mat-icon>move_to_inbox</mat-icon>{{ 'stock.receiptTitle' | translate }}</a>
+      <a mat-stroked-button [routerLink]="['/suppliers/edit', s.id]"><mat-icon>edit</mat-icon>{{ 'buttons.edit' | translate }}</a>
+    </div>
+  </div>
 
-    <mat-card>
-      <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-gray-100 dark:bg-gray-700">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="stat">
+      <p class="stat__label">{{ 'suppliers.balance' | translate }}</p>
+      <p class="stat__value money" [class.text-loss]="balance() > 0">{{ balance() | currencyDisplay:0 }}</p>
+      @if (overdue()) { <p class="stat__foot"><span class="badge badge--red">{{ 'suppliers.overdue' | translate }}</span></p> }
+    </div>
+    <div class="stat">
+      <p class="stat__label">{{ 'suppliers.totalPurchased' | translate }}</p>
+      <p class="stat__value money">{{ totalPurchased() | currencyDisplay:0 }}</p>
+    </div>
+    <div class="stat">
+      <p class="stat__label">{{ 'suppliers.totalPaid' | translate }}</p>
+      <p class="stat__value money">{{ totalPaid() | currencyDisplay:0 }}</p>
+    </div>
+  </div>
+
+  <section class="card p-4 lg:p-5">
+    @if (!paying()) {
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-muted max-w-xl">{{ 'suppliers.payHint' | translate }}</p>
+      <button mat-flat-button color="primary" class="!h-12" (click)="startPay()"><mat-icon>payments</mat-icon>{{ 'suppliers.pay' | translate }}</button>
+    </div>
+    } @else {
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-4 items-start">
+      <label class="block">
+        <span class="text-sm text-muted">{{ 'finance.amount' | translate }}</span>
+        <input class="sp-amount money" type="number" min="0" step="any" [value]="payAmount()" (input)="payAmount.set(+$any($event.target).value)" placeholder="0" />
+      </label>
+      <div class="space-y-3">
+        <div class="flex flex-wrap gap-2">
+          @for (m of ['bank', 'card', 'cash', 'drawer']; track m) {
+          <button type="button" class="chip" [class.chip--active]="payMethod() === m" (click)="payMethod.set($any(m))" [disabled]="m === 'drawer' && !hasShift()">
+            {{ 'stock.method.' + m | translate }}
+          </button>
+          }
+        </div>
+        <input class="sp-note" type="text" maxlength="200" [value]="payNote()" (input)="payNote.set($any($event.target).value)" [placeholder]="'finance.note' | translate" />
+        <div class="flex justify-end gap-2">
+          <button mat-button (click)="paying.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button mat-flat-button color="primary" class="!h-11" [disabled]="!(payAmount()! > 0) || saving()" (click)="pay()">
+            <mat-icon>check</mat-icon>{{ 'suppliers.pay' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </section>
+
+  <section class="card overflow-hidden">
+    <div class="px-5 pt-4 pb-2 font-semibold">{{ 'suppliers.account' | translate }}</div>
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
           <tr>
-            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
-            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.quantity' | translate }}</th>
-            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.costPrice' | translate }}</th>
-            <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.totalCost' | translate }}</th>
+            <th>{{ 'table.date' | translate }}</th>
+            <th>{{ 'suppliers.operation' | translate }}</th>
+            <th class="text-right">{{ 'finance.amount' | translate }}</th>
+            <th class="text-right">{{ 'suppliers.balanceChange' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of transactions(); track t.id) {
+          <tr>
+            <td class="whitespace-nowrap">{{ t.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              @if (t.type === 'purchase') {
+              <span class="font-medium">{{ 'suppliers.delivery' | translate }}</span>
+              @if (t.invoiceNo) { <span class="text-muted"> #{{ t.invoiceNo }}</span> }
+              <span class="text-xs text-muted"> · {{ t.itemsCount }} {{ 'stock.lines' | translate }}</span>
+              @if (t.paidNow) { <p class="text-xs text-muted">{{ 'stock.paidNow' | translate }}: {{ t.paidNow | sum:0 }} ({{ 'stock.method.' + (t.shiftId ? 'drawer' : t.method) | translate }})</p> }
+              @if (t.dueDate) { <p class="text-xs text-muted">{{ 'stock.dueDate' | translate }}: {{ t.dueDate | date: 'dd.MM.yyyy' }}</p> }
+              } @else {
+              <span class="font-medium">{{ 'suppliers.payment' | translate }}</span>
+              <span class="text-xs text-muted"> · {{ 'stock.method.' + (t.shiftId ? 'drawer' : t.method) | translate }}</span>
+              }
+              @if (t.note) { <p class="text-xs text-muted">{{ t.note }}</p> }
+            </td>
+            <td class="text-right money">{{ t.amount | sum:0 }}</td>
+            <td class="text-right money font-semibold" [class.text-loss]="t.balanceChange > 0" [class.text-profit]="t.balanceChange < 0">
+              {{ t.balanceChange > 0 ? '+' : '' }}{{ t.balanceChange | sum:0 }}
+            </td>
+          </tr>
+          } @empty {
+          <tr><td colspan="4" class="text-center text-muted py-8">{{ 'suppliers.noPurchases' | translate }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card overflow-hidden">
+    <div class="px-5 pt-4 pb-2 font-semibold">{{ 'suppliers.purchaseHistory' | translate }}</div>
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'table.date' | translate }}</th>
+            <th>{{ 'stock.invoiceNo' | translate }}</th>
+            <th class="text-right">{{ 'stock.quantity' | translate }}</th>
+            <th class="text-right">{{ 'stock.costPrice' | translate }}</th>
+            <th class="text-right">{{ 'stock.totalCost' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (entry of stockEntries(); track entry.id) {
-          <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'medium' }}</td>
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.quantity | sum:2 }}</td>
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.costPrice | currencyDisplay }}</td>
-            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ entry.totalCost | currencyDisplay }}</td>
+          <tr>
+            <td class="whitespace-nowrap">{{ entry.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td class="text-muted">{{ entry.invoiceNo || '—' }}</td>
+            <td class="text-right money">{{ entry.quantity | sum:2 }}</td>
+            <td class="text-right money">{{ entry.costPrice | sum:0 }}</td>
+            <td class="text-right money font-semibold">{{ entry.totalCost | sum:0 }}</td>
           </tr>
           } @empty {
-          <tr>
-            <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-              {{ 'suppliers.noPurchases' | translate }}
-            </td>
-          </tr>
+          <tr><td colspan="5" class="text-center text-muted py-8">{{ 'suppliers.noPurchases' | translate }}</td></tr>
           }
         </tbody>
       </table>
-      </div>
-    </mat-card>
-  </div>
+    </div>
+  </section>
+  }
 </div>

@@ -23,6 +23,9 @@ import {
   splitPayment
 } from '../../core/utils/pos-math';
 import { NumericInputDirective } from '../../shared/directives/numeric-input.directive';
+import { NumpadComponent } from '../../shared/components/numpad/numpad.component';
+
+type PadTarget = 'cash' | 'card' | 'discount';
 
 export interface PosPaymentDialogData {
   lines: CheckoutLineInput[];
@@ -46,7 +49,7 @@ type Tender = 'cash' | 'card' | 'mixed' | 'debt';
 @Component({
   selector: 'app-pos-payment-dialog',
   standalone: true,
-  imports: [NumericInputDirective, 
+  imports: [NumericInputDirective, NumpadComponent, 
     CommonModule,
     FormsModule,
     TranslateModule,
@@ -149,6 +152,33 @@ export class PosPaymentDialogComponent {
 
   constructor() {
     this.cashInput.set(Math.ceil(this.total()));
+  }
+
+  // ---------------------------------------------------------------- touch keypad
+  /** Which amount the on-screen keypad types into; the first key replaces it. */
+  padTarget = signal<PadTarget>('cash');
+  padText = signal('');
+  padFresh = signal(true);
+
+  focusPad(target: PadTarget) {
+    this.padTarget.set(target);
+    this.padFresh.set(true);
+    this.padText.set('');
+  }
+
+  onPad(text: string) {
+    this.padText.set(text);
+    this.padFresh.set(false);
+    const value = Number(text) || 0;
+    const target = this.padTarget();
+    if (target === 'cash') this.setCash(value);
+    else if (target === 'card') this.setCard(value);
+    else this.setDiscount(value);
+  }
+
+  quickCash(amount: number) {
+    this.setCash(amount);
+    this.focusPad('cash');
   }
 
   setTender(tender: Tender) {

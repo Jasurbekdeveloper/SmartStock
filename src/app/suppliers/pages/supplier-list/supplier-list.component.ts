@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
+import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { SupplierService } from '../../../core/services/supplier.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -21,7 +22,7 @@ import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 @Component({
   selector: 'app-supplier-list',
   standalone: true,
-  imports: [
+  imports: [CurrencyDisplayPipe, 
     CommonModule,
     FormsModule,
     RouterModule,
@@ -63,6 +64,9 @@ export class SupplierListComponent {
   });
 
   pagination = createPagination(this.filteredSuppliers);
+
+  /** What the store owes all suppliers together. */
+  totalPayable = computed(() => this.suppliers().reduce((sum, s) => sum + Math.max(0, s.balance ?? 0), 0));
 
   onSearchChange(value: string) {
     this.searchQuery.set(value);

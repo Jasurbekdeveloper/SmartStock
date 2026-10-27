@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, firstValueFrom, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   addDoc,
@@ -10,13 +10,72 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where
+  where,
+  writeBatch
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { Customer } from './customer.service';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
+import { commitOrQueue, stripUndefined } from './sales.service';
+import { roundMoney } from '../utils/pos-math';
+
+export type DebtPaymentMethod = 'cash' | 'card' | 'bank';
+
+/** One payment against one debt (`debtPayments/{id}`), immutable. */
+export interface DebtPayment {
+  id: string;
+  debtId: string;
+  customerId: string;
+  amount: number;
+  method: DebtPaymentMethod;
+  /** Shift the cash went into, when taken at a till. */
+  shiftId?: string;
+  cashMovementId?: string;
+  cashierId: string;
+  cashierName: string;
+  note?: string;
+  createdAt: Date;
+}
+
+export interface CollectPaymentInput {
+  customerId: string;
+  customerName?: string;
+  amount: number;
+  method: DebtPaymentMethod;
+  /** Open shift of the current user: cash then goes into that drawer. */
+  shiftId?: string;
+  /** Pay one specific debt; otherwise oldest debts are paid first. */
+  debtId?: string;
+  note?: string;
+}
+
+export interface CollectPaymentResult {
+  /** What was actually applied (never more than the customer owes). */
+  applied: number;
+  paidDebts: { debtId: string; amount: number }[];
+}
+
+/** Splits a payment over open debts, oldest first. Pure — unit tested. */
+export function allocateDebtPayment(
+  debts: Pick<Debt, 'id' | 'remainingAmount' | 'createdAt'>[],
+  amount: number
+): { debtId: string; amount: number }[] {
+  let left = roundMoney(amount);
+  const out: { debtId: string; amount: number }[] = [];
+  const open = debts
+    .filter((d) => d.remainingAmount > 0.005)
+    .slice()
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  for (const d of open) {
+    if (left <= 0.005) break;
+    const take = roundMoney(Math.min(d.remainingAmount, left));
+    out.push({ debtId: d.id, amount: take });
+    left = roundMoney(left - take);
+  }
+  return out;
+}
 
 // Customer now lives in customer.service.ts (its own CRUD module — see 5-band CRM
 // plan); re-exported here so existing imports across pos/sale-detail/statistics/debt
@@ -96,15 +155,100 @@ export class DebtService {
     return from(addDoc(collection(this.firestore, 'debts'), data)).pipe(map(() => undefined));
   }
 
-  /** Applies a relative payment without a read-then-write race. */
-  payDebt(debtId: string, amount: number): Observable<void> {
-    return from(
-      updateDoc(doc(this.firestore, 'debts', debtId), {
-        paidAmount: increment(amount),
-        remainingAmount: increment(-amount),
-        lastPaymentDate: serverTimestamp()
-      })
+  /** Payment history of one customer, newest first. */
+  getCustomerPayments(customerId: string): Observable<DebtPayment[]> {
+    const q = tenantQuery(this.firestore, 'debtPayments', requireTenantId(this.authService), where('customerId', '==', customerId));
+    return fromCollectionQuery<DebtPayment>(q).pipe(
+      map((list) => list.slice().sort((a, b) => (b.createdAt?.getTime?.() ?? Date.now()) - (a.createdAt?.getTime?.() ?? Date.now())))
     );
+  }
+
+  /** Pays one specific debt. */
+  payDebt(debtId: string, amount: number, method: DebtPaymentMethod = 'cash', shiftId?: string): Observable<CollectPaymentResult> {
+    return from(
+      this.getDebtOnce(debtId).then((d) =>
+        d ? this.collectPaymentAsync({ customerId: d.customerId, amount, method, shiftId, debtId }) : { applied: 0, paidDebts: [] }
+      )
+    );
+  }
+
+  /**
+   * A customer pays off debt — at the till by a cashier, or in the back office.
+   * One atomic write: each debt touched gets its paid/remaining amounts moved by an
+   * increment and a `debtPayments` record; cash taken during an open shift also
+   * becomes a "debt payment" cash-in of that drawer, so the Z-report and the drawer
+   * total include it.
+   */
+  collectPayment(input: CollectPaymentInput): Observable<CollectPaymentResult> {
+    return from(this.collectPaymentAsync(input));
+  }
+
+  private async getDebtOnce(id: string): Promise<Debt | undefined> {
+    return firstValueFrom(this.getDebtById(id));
+  }
+
+  private async collectPaymentAsync(input: CollectPaymentInput): Promise<CollectPaymentResult> {
+    const tenantId = requireTenantId(this.authService);
+    const user = this.authService.getCurrentUser();
+    const debts = input.debtId
+      ? [await this.getDebtOnce(input.debtId)].filter((d): d is Debt => !!d)
+      : await firstValueFrom(this.getCustomerDebts(input.customerId));
+    const slices = allocateDebtPayment(debts, input.amount);
+    const applied = roundMoney(slices.reduce((s, x) => s + x.amount, 0));
+    if (applied <= 0) return { applied: 0, paidDebts: [] };
+
+    const wb = writeBatch(this.firestore);
+    const cashIntoDrawer = input.method === 'cash' && !!input.shiftId;
+    const movementRef = cashIntoDrawer ? doc(collection(this.firestore, 'cashMovements')) : null;
+
+    for (const slice of slices) {
+      const paymentRef = doc(collection(this.firestore, 'debtPayments'));
+      wb.set(
+        paymentRef,
+        withTenant(
+          stripUndefined({
+            debtId: slice.debtId,
+            customerId: input.customerId,
+            amount: slice.amount,
+            method: input.method,
+            shiftId: input.shiftId,
+            cashMovementId: movementRef?.id,
+            cashierId: user?.uid ?? '',
+            cashierName: user?.displayName ?? '',
+            note: input.note?.trim() || undefined,
+            createdAt: serverTimestamp()
+          }),
+          tenantId
+        )
+      );
+      wb.update(doc(this.firestore, 'debts', slice.debtId), {
+        paidAmount: increment(slice.amount),
+        remainingAmount: increment(-slice.amount),
+        lastPaymentDate: serverTimestamp(),
+        lastPaymentId: paymentRef.id
+      });
+    }
+
+    if (movementRef) {
+      wb.set(
+        movementRef,
+        withTenant(
+          stripUndefined({
+            shiftId: input.shiftId,
+            type: 'in',
+            amount: applied,
+            reason: 'debtPayment',
+            note: input.customerName ? `${input.customerName}` : undefined,
+            cashierId: user?.uid ?? '',
+            cashierName: user?.displayName ?? '',
+            createdAt: serverTimestamp()
+          }),
+          tenantId
+        )
+      );
+    }
+    await commitOrQueue(wb);
+    return { applied, paidDebts: slices };
   }
 
   getCustomers(): Observable<Customer[]> {

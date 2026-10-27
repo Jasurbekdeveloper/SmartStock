@@ -296,11 +296,32 @@ service cloud.firestore {
       allow read: if isTenantMember(resource.data.tenantId);
       // A debt sale at the till creates the debt; collecting payments is staff work.
       allow create: if canWrite(request.resource.data.tenantId);
-      allow update: if canStaffWrite(resource.data.tenantId)
+      // A payment — by staff, or by a cashier at the till — only moves the paid /
+      // remaining amounts, and must come with its own debtPayments record in the same
+      // atomic write, for exactly the amount paid.
+      allow update: if canWrite(resource.data.tenantId)
         && request.resource.data.tenantId == resource.data.tenantId
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate']);
+             .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate', 'lastPaymentId'])
+        && (canStaffWrite(resource.data.tenantId) || (
+             request.resource.data.lastPaymentId is string
+             && existsAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId))
+             && getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.debtId == id
+             && request.resource.data.paidAmount
+                  == resource.data.paidAmount + getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.amount
+             && request.resource.data.remainingAmount >= -0.01));
       allow delete: if canStaffWrite(resource.data.tenantId);
+    }
+
+    // debtPayments/{id}: one customer payment against one debt. Written with the debt
+    // update (and, for cash at a till, the drawer's cash-in); never changed afterwards.
+    match /debtPayments/{id} {
+      allow read: if isStaffOrOwner(resource.data.tenantId, resource.data.cashierId);
+      allow create: if canWrite(request.resource.data.tenantId)
+        && request.resource.data.cashierId == request.auth.uid
+        && request.resource.data.amount is number && request.resource.data.amount > 0
+        && request.resource.data.method in ['cash', 'card', 'bank'];
+      allow update, delete: if false;
     }
 
     // shifts/{id}: cashier register sessions (open/close, Z-report). Any active user
@@ -351,6 +372,17 @@ service cloud.firestore {
     // suppliers/{id}: purchasing contacts (name/phone/address/etc.). Any signed-in
     // user can read (needed for the stock-in supplier picker); only admin/manager
     // may create/update/delete, matching the stock module's access level.
+    // supplierTransactions/{id}: purchases on credit and payments to a supplier — the
+    // supplier's balance (what the store owes) moves with them. Staff only, immutable.
+    match /supplierTransactions/{id} {
+      allow read: if isTenantStaff(resource.data.tenantId);
+      allow create: if canStaffWrite(request.resource.data.tenantId)
+        && request.resource.data.type in ['purchase', 'payment', 'adjustment']
+        && request.resource.data.amount is number
+        && request.resource.data.supplierId is string;
+      allow update, delete: if false;
+    }
+
     match /suppliers/{id} {
       allow read: if isTenantMember(resource.data.tenantId);
       allow create: if canStaffWrite(request.resource.data.tenantId);

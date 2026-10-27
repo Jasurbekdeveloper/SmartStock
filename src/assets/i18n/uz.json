@@ -17,7 +17,8 @@
     "updateAvailable": "Ilovaning yangi versiyasi tayyor.",
     "updateNow": "Yangilash",
     "new": "Yangi",
-    "actions": "Amallar"
+    "actions": "Amallar",
+    "menu": "Menyu"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",
@@ -200,7 +201,9 @@
     "batchesViaStockIn": "Yangi kelgan tovar sanalari Kirim sahifasida har bir partiya uchun kiritiladi",
     "invalidShelfLife": "Saqlash muddati musbat son bo'lishi kerak",
     "expiryRequired": "Bu mahsulot uchun yaroqlilik muddatini kiriting",
-    "expiryBeforeManufacture": "Yaroqlilik muddati ishlab chiqarilgan sanadan oldin bo'lishi mumkin emas"
+    "expiryBeforeManufacture": "Yaroqlilik muddati ishlab chiqarilgan sanadan oldin bo'lishi mumkin emas",
+    "editCorrection": "Mahsulot kartasida tuzatildi",
+    "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi"
   },
   "units": {
     "dona": "dona",
@@ -300,7 +303,13 @@
     "emptyCart": "Chek bo'sh",
     "expiredBlocked": "faqat muddati o'tgan qoldiq bor — sotib bo'lmaydi",
     "sellExpiredTitle": "Muddati o'tgan tovar",
-    "sellExpiredConfirm": "Bu mahsulotning faqat muddati o'tgan qoldig'i bor. Baribir sotilsinmi?"
+    "sellExpiredConfirm": "Bu mahsulotning faqat muddati o'tgan qoldig'i bor. Baribir sotilsinmi?",
+    "addFirst": "Birinchisini qo'shish",
+    "keypad": "Raqam klaviaturasi",
+    "keypadTarget": "Klaviatura yozadi",
+    "pay": "To'lash",
+    "screenKeyboard": "Ekran klaviaturasi",
+    "space": "bo'sh joy"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -340,7 +349,35 @@
     "selectSupplier": "Ta'minotchi",
     "supplierOther": "Boshqa (qo'lda kiritish)",
     "batchDates": "Partiya sanalari",
-    "reasonExpired": "Muddati o'tgan"
+    "reasonExpired": "Muddati o'tgan",
+    "addLinePlaceholder": "Mahsulot nomi yoki shtrix-kod — skaner ham ishlaydi",
+    "addLines": "Hujjatga mahsulot qo'shing",
+    "addLinesHint": "Nakladnoydagi har bir tovarni qidiring yoki skanerlang: miqdor, kirim narxi va sotish narxini kiriting",
+    "creditNeedsSupplier": "Nasiyaga olish uchun ta'minotchini ro'yxatdan tanlang",
+    "drawerNeedsShift": "Kassadan to'lash uchun smena ochiq bo'lishi kerak",
+    "dueDate": "To'lov muddati",
+    "invoiceNo": "Nakladnoy raqami",
+    "lineTotal": "Summa",
+    "lines": "pozitsiya",
+    "paidNow": "Hozir to'landi",
+    "payCredit": "Nasiyaga",
+    "payFull": "To'liq to'landi",
+    "payPartial": "Qisman",
+    "payment": "To'lov",
+    "receiptSaved": "Kirim saqlandi",
+    "receiptSubtitle": "Ta'minotchidan kelgan tovar: bir nakladnoyda ko'p mahsulot, nasiya yoki to'lov bilan",
+    "receiptTitle": "Kirim (nakladnoy)",
+    "receiptTotal": "Jami summa",
+    "saveReceipt": "Kirimni saqlash",
+    "toSupplierDebt": "Ta'minotchiga qarz",
+    "tooManyLines": "Bitta hujjatda 150 tadan ko'p pozitsiya bo'lmaydi — ikkiga bo'ling",
+    "method": {
+      "bank": "Bank o'tkazma",
+      "card": "Karta",
+      "cash": "Naqd (seyf/egasi)",
+      "drawer": "Kassadan naqd"
+    },
+    "reasonAdjustment": "Tuzatish"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -424,7 +461,18 @@
     "totalOwed": "Jami qarzi",
     "lastDebt": "Oxirgi olgan qarzi",
     "debtHistory": "Qarzlar tarixi",
-    "itemsPurchased": "Olingan mahsulotlar"
+    "itemsPurchased": "Olingan mahsulotlar",
+    "accept": "Qabul qilish",
+    "cashToDrawer": "Naqd pul shu smena kassasiga qo'shiladi",
+    "collectShort": "Qarz to'lovi",
+    "collectTitle": "Qarz to'lovini qabul qilish",
+    "findCustomer": "Mijoz ismi yoki telefoni",
+    "noDebtors": "Qarzdor mijozlar yo'q",
+    "noShiftCash": "Smena ochiq emas — naqd pul kassa hisobiga kirmaydi",
+    "openDebts": "ta qarz",
+    "otherCustomer": "Boshqa mijoz",
+    "overpayCapped": "Qarzdan ko'p kiritildi — faqat qarz miqdori qabul qilinadi",
+    "payAll": "Hammasini"
   },
   "customers": {
     "title": "Mijozlar",
@@ -454,7 +502,21 @@
     "noPurchases": "Hali xaridlar yo'q",
     "totalPurchased": "Jami xarid",
     "deleteConfirm": "Ushbu ta'minotchini o'chirishga ishonchingiz komilmi?",
-    "noSuppliersFound": "Ta'minotchilar topilmadi"
+    "noSuppliersFound": "Ta'minotchilar topilmadi",
+    "account": "Hisob-kitob",
+    "balance": "Qarzimiz",
+    "balanceChange": "Qarzga ta'siri",
+    "currentDebt": "Hozirgi qarzimiz",
+    "delivery": "Tovar keldi",
+    "operation": "Amal",
+    "overdue": "Muddati o'tgan to'lov bor",
+    "owe": "qarz",
+    "pay": "To'lov qilish",
+    "payHint": "Ta'minotchiga to'langan pulni yozing. Kassadan naqd to'lansa, u smena kassasidan chiqim bo'ladi.",
+    "payment": "To'lov",
+    "paymentSaved": "To'lov saqlandi",
+    "totalPaid": "Jami to'langan",
+    "totalPayable": "Ta'minotchilarga jami qarz"
   },
   "settings": {
     "title": "Sozlamalar",

@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy": "ng build --configuration production && firebase deploy --only hosting"
+    "deploy": "ng build --configuration production && firebase deploy --only hosting",
+    "release": "ng test --watch=false && ng build --configuration production && git add -A && git commit -m \"POS sensorli ekran, raqam klaviaturasi, kirim nakladnoy, ta'minotchi qarzi, kassada qarz to'lovi, yaroqlilik partiyalari\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push && firebase deploy --only hosting:app,firestore:rules,firestore:indexes"
   },
   "prettier": {
     "printWidth": 100,

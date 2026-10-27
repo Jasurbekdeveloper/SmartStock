@@ -1,85 +1,185 @@
-<div class="max-w-2xl mx-auto">
-  <h1 class="page-title mb-6">{{ 'stock.stockIn' | translate }}</h1>
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.groupCatalog' | translate }}</p>
+      <h1 class="page-title">{{ 'stock.receiptTitle' | translate }}</h1>
+      <p class="page-subtitle">{{ 'stock.receiptSubtitle' | translate }}</p>
+    </div>
+  </div>
 
-  <mat-card class="!p-6">
-    <form (ngSubmit)="addStock()" class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <mat-form-field appearance="outline" class="md:col-span-2">
-        <mat-label>{{ 'stock.product' | translate }}</mat-label>
-        <mat-select [(ngModel)]="productId" name="productId" (ngModelChange)="onProductSelected($event)">
-          @for (product of products(); track product.id) {
-          <mat-option [value]="product.id">{{ product.name }} ({{ 'stock.currentQuantity' | translate }}: {{ product.quantity | sum:0 }})</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.quantity' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="quantity" name="quantity" min="0.01" step="0.01" placeholder="0" />
-      </mat-form-field>
-
+  <section class="card p-4 lg:p-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4">
       <mat-form-field appearance="outline">
         <mat-label>{{ 'stock.selectSupplier' | translate }}</mat-label>
-        <mat-select [(ngModel)]="supplierId" name="supplierId">
+        <mat-select [value]="supplierId()" (valueChange)="supplierId.set($event)">
           @for (s of suppliers(); track s.id) {
-          <mat-option [value]="s.id">{{ s.name }}</mat-option>
+          <mat-option [value]="s.id">
+            {{ s.name }}
+            @if (s.balance) { <span class="text-xs text-loss"> · {{ 'suppliers.owe' | translate }} {{ s.balance | currencyDisplay:0 }}</span> }
+          </mat-option>
           }
           <mat-option [value]="manualSupplierOption">{{ 'stock.supplierOther' | translate }}</mat-option>
         </mat-select>
       </mat-form-field>
-
-      @if (supplierId === manualSupplierOption) {
+      @if (supplierId() === manualSupplierOption) {
       <mat-form-field appearance="outline">
         <mat-label>{{ 'stock.supplier' | translate }}</mat-label>
-        <input matInput [(ngModel)]="supplier" name="supplier" />
+        <input matInput [value]="supplierName()" (input)="supplierName.set($any($event.target).value)" />
       </mat-form-field>
       }
-
       <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.costPrice' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="costPrice" name="costPrice" step="0.01" placeholder="0.00" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.sellingPrice' | translate }}</mat-label>
-        <input matInput type="number" [(ngModel)]="sellingPrice" name="sellingPrice" step="0.01" placeholder="0.00" />
+        <mat-label>{{ 'stock.invoiceNo' | translate }}</mat-label>
+        <input matInput [value]="invoiceNo()" (input)="invoiceNo.set($any($event.target).value)" maxlength="40" />
       </mat-form-field>
     </div>
+    @if (selectedSupplier()?.balance; as bal) {
+    <p class="text-sm -mt-2 mb-1 text-loss">{{ 'suppliers.currentDebt' | translate }}: <b class="money">{{ bal | currencyDisplay:0 }}</b></p>
+    }
+  </section>
 
-    @if (tracked()) {
-    <div class="rounded-2xl p-4 space-y-3" style="background: var(--warning-soft)">
-      <p class="flex items-center gap-2 text-sm font-semibold">
-        <mat-icon class="!w-5 !h-5 !text-[20px]">event</mat-icon>{{ 'stock.batchDates' | translate }}
-        @if (selectedProduct()?.shelfLifeDays; as days) {
-        <span class="font-normal text-muted">· {{ 'products.shelfLifeDays' | translate }}: {{ days }} {{ 'expiry.days' | translate }}</span>
+  <section class="card overflow-hidden">
+    <div class="p-4 border-b border-[var(--border)] relative">
+      <label class="search-box !min-w-0">
+        <mat-icon>qr_code_scanner</mat-icon>
+        <input
+          type="search"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+          (keydown.enter)="addFromSearch(); $event.preventDefault()"
+          [placeholder]="'stock.addLinePlaceholder' | translate"
+          autocomplete="off"
+        />
+      </label>
+      @if (matches().length > 0) {
+      <div class="rc-suggest">
+        @for (p of matches(); track p.id) {
+        <button type="button" class="rc-suggest__row" (click)="addProduct(p)">
+          <span class="min-w-0 flex-1 text-left">
+            <span class="block font-semibold truncate">{{ p.name }}</span>
+            <span class="block text-xs text-muted money">{{ p.barcode }} · {{ 'stock.currentQuantity' | translate }}: {{ p.quantity | sum:2 }} {{ unitLabel(p.unit) }}</span>
+          </span>
+          @if (p.trackExpiry) { <span class="badge badge--amber">{{ 'categories.trackExpiryShort' | translate }}</span> }
+          <mat-icon>add_circle</mat-icon>
+        </button>
         }
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4">
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'products.manufactureDate' | translate }}</mat-label>
-          <input matInput type="date" [ngModel]="manufactureDate" (ngModelChange)="onManufactureChange($event)" name="manufactureDate" />
+      </div>
+      }
+    </div>
+
+    @if (rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>inventory</mat-icon>
+      <p class="empty-state__title">{{ 'stock.addLines' | translate }}</p>
+      <p class="text-sm max-w-md">{{ 'stock.addLinesHint' | translate }}</p>
+    </div>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="data-table rc-table">
+        <thead>
+          <tr>
+            <th>{{ 'stock.product' | translate }}</th>
+            <th class="w-32">{{ 'stock.quantity' | translate }}</th>
+            <th class="w-36">{{ 'stock.costPrice' | translate }}</th>
+            <th class="w-36">{{ 'stock.sellingPrice' | translate }}</th>
+            <th class="w-36 text-right">{{ 'stock.lineTotal' | translate }}</th>
+            <th class="w-12"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.product.id) {
+          <tr>
+            <td>
+              <p class="font-semibold">{{ r.product.name }}</p>
+              <p class="text-xs text-muted">{{ 'stock.currentQuantity' | translate }}: {{ r.product.quantity | sum:2 }} {{ unitLabel(r.product.unit) }}</p>
+            </td>
+            <td><input class="rc-input money" type="number" min="0" step="any" [value]="r.quantity" (input)="patch(r.product.id, { quantity: +$any($event.target).value })" placeholder="0" /></td>
+            <td><input class="rc-input money" type="number" min="0" step="any" [value]="r.costPrice" (input)="patch(r.product.id, { costPrice: +$any($event.target).value })" placeholder="0" /></td>
+            <td>
+              <input class="rc-input money" [class.rc-input--warn]="marginWarning(r)" type="number" min="0" step="any" [value]="r.sellingPrice" (input)="patch(r.product.id, { sellingPrice: +$any($event.target).value })" placeholder="0" />
+            </td>
+            <td class="text-right money font-semibold">{{ lineTotal(r) | sum:2 }}</td>
+            <td>
+              <button mat-icon-button type="button" (click)="remove(r.product.id)" [attr.aria-label]="'common.delete' | translate"><mat-icon>close</mat-icon></button>
+            </td>
+          </tr>
+          @if (r.product.trackExpiry) {
+          <tr class="rc-dates">
+            <td colspan="6">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs font-semibold flex items-center gap-1"><mat-icon class="!w-4 !h-4 !text-base">event</mat-icon>{{ 'stock.batchDates' | translate }}</span>
+                <label class="rc-date"><span>{{ 'products.manufactureDate' | translate }}</span>
+                  <input type="date" [value]="r.manufactureDate" (change)="onManufacture(r, $any($event.target).value)" />
+                </label>
+                <label class="rc-date"><span>{{ 'products.expiryDate' | translate }} *</span>
+                  <input type="date" [value]="r.expiryDate" (change)="patch(r.product.id, { expiryDate: $any($event.target).value, expiryTouched: true })" />
+                </label>
+                <label class="rc-date"><span>{{ 'products.batchNo' | translate }}</span>
+                  <input type="text" maxlength="40" [value]="r.batchNo" (input)="patch(r.product.id, { batchNo: $any($event.target).value })" />
+                </label>
+              </div>
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+
+  <section class="card p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="space-y-3">
+      <p class="font-semibold">{{ 'stock.payment' | translate }}</p>
+      <div class="seg w-full">
+        <button type="button" class="flex-1" [class.seg--on]="payMode() === 'credit'" (click)="setPayMode('credit')">{{ 'stock.payCredit' | translate }}</button>
+        <button type="button" class="flex-1" [class.seg--on]="payMode() === 'partial'" (click)="setPayMode('partial')">{{ 'stock.payPartial' | translate }}</button>
+        <button type="button" class="flex-1" [class.seg--on]="payMode() === 'full'" (click)="setPayMode('full')">{{ 'stock.payFull' | translate }}</button>
+      </div>
+      @if (payMode() !== 'credit') {
+      <div class="flex flex-wrap gap-2">
+        @for (m of ['bank', 'card', 'cash', 'drawer']; track m) {
+        <button type="button" class="chip" [class.chip--active]="payment() === m" (click)="payment.set($any(m))" [disabled]="m === 'drawer' && !hasShift()">
+          {{ 'stock.method.' + m | translate }}
+        </button>
+        }
+      </div>
+      @if (payMode() === 'partial') {
+      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+        <mat-label>{{ 'stock.paidNow' | translate }}</mat-label>
+        <input matInput type="number" min="0" step="any" [value]="paidNowInput()" (input)="paidNowInput.set(+$any($event.target).value)" />
+      </mat-form-field>
+      }
+      }
+      @if (owed() > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'stock.dueDate' | translate }}</mat-label>
+          <input matInput type="date" [value]="dueDate()" (change)="dueDate.set($any($event.target).value)" />
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'products.expiryDate' | translate }} *</mat-label>
-          <input matInput type="date" [ngModel]="expiryDate" (ngModelChange)="onExpiryChange($event)" name="expiryDate" required />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>{{ 'products.batchNo' | translate }}</mat-label>
-          <input matInput [(ngModel)]="batchNo" name="batchNo" maxlength="40" />
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'finance.note' | translate }}</mat-label>
+          <input matInput [value]="note()" (input)="note.set($any($event.target).value)" maxlength="200" />
         </mat-form-field>
       </div>
+      @if (!selectedSupplier()) {
+      <p class="badge badge--amber !rounded-lg !py-1.5 !px-3 w-full">{{ 'stock.creditNeedsSupplier' | translate }}</p>
+      }
+      }
     </div>
-    }
 
-    @if (errorKey(); as key) {
-    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-      {{ key | translate }}
+    <div class="rc-total">
+      <div class="flex justify-between"><span class="text-muted">{{ 'stock.lines' | translate }}</span><b>{{ rows().length }}</b></div>
+      <div class="flex justify-between items-baseline"><span class="text-muted">{{ 'stock.receiptTotal' | translate }}</span><b class="money text-2xl">{{ total() | currencyDisplay:0 }}</b></div>
+      <div class="flex justify-between"><span class="text-muted">{{ 'stock.paidNow' | translate }}</span><b class="money">{{ paidNow() | currencyDisplay:0 }}</b></div>
+      <div class="flex justify-between items-baseline" [class.text-loss]="owed() > 0">
+        <span>{{ 'stock.toSupplierDebt' | translate }}</span><b class="money text-xl">{{ owed() | currencyDisplay:0 }}</b>
+      </div>
+      @if (errorKey(); as key) {
+      <p class="badge badge--red !rounded-lg !py-2 !px-3 w-full">{{ key | translate }}</p>
+      }
+      <button mat-flat-button color="primary" type="button" class="w-full !h-14 !text-base" [disabled]="submitting() || rows().length === 0" (click)="save()">
+        <mat-icon>move_to_inbox</mat-icon>{{ 'stock.saveReceipt' | translate }}
+      </button>
     </div>
-    }
-
-    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()" class="w-full !py-3">
-      {{ 'stock.addStock' | translate }}
-    </button>
-    </form>
-  </mat-card>
+  </section>
 </div>

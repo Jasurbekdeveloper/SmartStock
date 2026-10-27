@@ -3,3 +3,11 @@
   min-height: 100vh;
   min-height: 100dvh;
 }
+
+
+/* Full-screen till: the page itself fits the viewport. */
+.pos-main {
+  height: 100dvh;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}

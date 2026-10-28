@@ -13,7 +13,8 @@ const CONFIG = {
 };
 
 const LANGS = ['uz', 'ru', 'en'];
-const CACHE_KEY = 'hisobla_site_v1';
+// Bumped with the 2026-10 redesign so cached content without the "modules" list isn't painted.
+const CACHE_KEY = 'hisobla_site_v2';
 
 // Icon names must match FEATURE_ICONS in src/app/platform/pages/site/site-content.ts.
 const ICONS = {
@@ -31,8 +32,13 @@ const ICONS = {
   cloud: '<path d="M7 18a5 5 0 01-.6-9.96A6 6 0 0118 9a4.5 4.5 0 01-.5 9z"/>',
   telegram: '<path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/><path d="M9 13l12-9"/>',
   print: '<path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 14h10v7H7z"/>',
+  wallet: '<path d="M4 7h15a2 2 0 012 2v9a2 2 0 01-2 2H5a1 1 0 01-1-1V6a2 2 0 012-2h11v3"/><path d="M16 13.5h1.5"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v3l2 1.5"/>',
   star: '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/>'
 };
+
+const CHECK = '<svg viewBox="0 0 24 24" class="ic-check"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 let content = null;
 let plans = [];
@@ -113,18 +119,115 @@ function merge(defaults, remote) {
 
 // ---------- rendering ----------
 
+const icon = (name) => `<svg viewBox="0 0 24 24">${ICONS[name] || ICONS.star}</svg>`;
+
 const LIST_RENDERERS = {
   strip: (it) => `<div><b>${safe(pick(it.title))}</b><span>${safe(pick(it.text))}</span></div>`,
   bad: (it) => `<li>${safe(pick(it.title))}</li>`,
-  good: (it) => `<li>${safe(pick(it.title))}</li>`,
+  good: (it) => `<li>${CHECK}<span>${safe(pick(it.title))}</span></li>`,
   features: (it) => `<article class="feature">
-      <div class="feature__icon"><svg viewBox="0 0 24 24">${ICONS[it.icon] || ICONS.star}</svg></div>
+      <div class="feature__icon">${icon(it.icon)}</div>
       <h3>${safe(pick(it.title))}</h3><p>${safe(pick(it.text))}</p></article>`,
   steps: (it, i) => `<li><span class="steps__n">${i + 1}</span><h3>${safe(pick(it.title))}</h3><p>${safe(pick(it.text))}</p></li>`,
   why: (it) => `<li><b>${safe(pick(it.title))}</b><span>${safe(pick(it.text))}</span></li>`,
   who: (it) => `<span>${safe(pick(it.title))}</span>`,
-  faq: (it) => `<details><summary>${safe(pick(it.title))}</summary><p>${safe(pick(it.text))}</p></details>`
+  faq: (it) => `<details><summary>${safe(pick(it.title))}<i aria-hidden="true"></i></summary><p>${safe(pick(it.text))}</p></details>`
 };
+
+// ---------- modules (tabs) ----------
+// Each item: icon picks the mock-up, title is the tab, text = first line lead + one bullet per line.
+
+let activeModule = 0;
+
+const t = (key) => safe(tx(key));
+const MODULE_MOCKS = {
+  pos: () => `
+    <div class="mm-pos">
+      <div class="seg"><span class="is-on">${t('mod.retail')}</span><span>${t('mod.wholesale')}</span></div>
+      <div class="mm-pos__grid">
+        ${[['Sement M400', '62 000', 'c1'], ['Kraska 10 L', '310 000', 'c2'], ['Profil CD 60', '18 500', 'c3'], ['Gips 25 kg', '48 000', 'c4'], ['Shurup (kg)', '41 000', 'c5'], ['Kafel 30×60', '96 000', 'c6']]
+          .map(([n, p, c], i) => `<div class="tile"><span class="tile__img ${c}"></span><span class="tile__n">${n}</span><b>${p}</b>${i === 0 ? '<em class="tile__q">4</em>' : ''}</div>`).join('')}
+      </div>
+      <div class="mm-pos__cart">
+        <span>${t('mod.cart')} · 3</span><b>1 300 000</b>
+        <span class="mm-btn">${t('mock.pay')}</span>
+      </div>
+    </div>`,
+  stock: () => `
+    <table class="mm-table">
+      <thead><tr><th>${t('mod.product')}</th><th>${t('mod.qty')}</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Sement M400, 50 kg</td><td>6</td><td><span class="badge badge--warn">${t('mod.low')}</span></td></tr>
+        <tr><td>Gipsokarton 12,5 mm</td><td>148</td><td><span class="badge badge--ok">${t('mod.ok')}</span></td></tr>
+        <tr><td>Germetik 280 ml</td><td>32</td><td><span class="badge badge--bad">${t('mod.expiring')}</span></td></tr>
+        <tr><td>Profil CD 60, 3 m</td><td>420</td><td><span class="badge badge--ok">${t('mod.ok')}</span></td></tr>
+        <tr><td>Kraska 10 L</td><td>3</td><td><span class="badge badge--warn">${t('mod.low')}</span></td></tr>
+      </tbody>
+    </table>`,
+  stats: () => {
+    const rows = [['mod.revenue', '48 600 000', 100, 'in'], ['mod.cost', '−34 900 000', 72, 'out'], ['mod.gross', '13 700 000', 28, 'mid'],
+      ['mod.expenses', '−5 200 000', 11, 'out'], ['mod.net', '8 500 000', 17, 'net']];
+    return `<div class="mm-pnl"><span class="mm-pnl__period">${t('mod.period')}</span>
+      ${rows.map(([k, v, w, tone]) => `<div class="pnl pnl--${tone}"><span>${t(k)}</span><i style="--w:${w}%"></i><b>${v}</b></div>`).join('')}
+    </div>`;
+  },
+  debt: () => {
+    const rows = [['Akmal Q.', '1 250 000', 60, false], ['Dilnoza R.', '840 000', 25, true], ['Usta Bahrom', '2 400 000', 80, false], ['Sardor M.', '310 000', 45, false]];
+    return `<div class="mm-debt"><div class="mm-debt__total"><span>${t('mod.debtTotal')}</span><b>4 800 000</b></div>
+      ${rows.map(([n, a, p, late]) => `<div class="debtor"><span class="avatar">${n[0]}</span>
+        <span class="debtor__n">${n}${late ? `<span class="badge badge--bad">${t('mod.overdue')}</span>` : ''}</span>
+        <b>${a}</b><span class="progress"><i style="--w:${p}%"></i></span><small>${p}% ${t('mod.paid')}</small></div>`).join('')}
+    </div>`;
+  }
+};
+
+function renderModules() {
+  const items = content.lists.modules || [];
+  const tabs = document.getElementById('moduleTabs');
+  const panel = document.getElementById('modulePanel');
+  if (!items.length) {
+    document.querySelectorAll('[data-section="modules"], [data-section-link="modules"]').forEach((el) => { el.hidden = true; });
+    return;
+  }
+  activeModule = Math.min(activeModule, items.length - 1);
+  tabs.innerHTML = items.map((it, i) => `<button type="button" role="tab" id="mtab-${i}" aria-controls="modulePanel"
+      aria-selected="${i === activeModule}" tabindex="${i === activeModule ? 0 : -1}" data-module="${i}">
+      ${icon(it.icon)}<span>${safe(pick(it.title))}</span></button>`).join('');
+  const it = items[activeModule];
+  const [lead, ...points] = String(pick(it.text) || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const mock = (MODULE_MOCKS[it.icon] || MODULE_MOCKS.stats)();
+  panel.setAttribute('aria-labelledby', `mtab-${activeModule}`);
+  panel.innerHTML = `
+    <div class="module__copy">
+      <span class="module__icon">${icon(it.icon)}</span>
+      <h3>${safe(pick(it.title))}</h3>
+      ${lead ? `<p>${safe(lead)}</p>` : ''}
+      <ul>${points.map((p) => `<li>${CHECK}<span>${safe(p)}</span></li>`).join('')}</ul>
+    </div>
+    <div class="win module__mock"><div class="win__bar"><i></i><i></i><i></i><span>${safe(pick(it.title))}</span></div>${mock}</div>`;
+  panel.classList.remove('is-swap');
+  void panel.offsetWidth; // restart the fade-in
+  panel.classList.add('is-swap');
+}
+
+function selectModule(i, focus) {
+  const count = (content?.lists.modules || []).length;
+  if (!count) return;
+  activeModule = (i + count) % count;
+  renderModules();
+  if (focus) document.getElementById(`mtab-${activeModule}`)?.focus();
+}
+
+document.getElementById('moduleTabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-module]');
+  if (b) selectModule(Number(b.dataset.module));
+});
+document.getElementById('moduleTabs').addEventListener('keydown', (e) => {
+  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  selectModule(activeModule + step, true);
+});
 
 function renderPricing() {
   const grid = document.getElementById('pricingGrid');
@@ -164,11 +267,12 @@ function render() {
     el.innerHTML = items.map((it, i) => LIST_RENDERERS[name](it, i)).join('');
   });
 
-  // Section visibility (pricing is handled with the plans).
+  // Section visibility (pricing is handled with the plans, modules hide when the list is empty).
   for (const [name, on] of Object.entries(content.sections)) {
     if (name === 'pricing') continue;
     document.querySelectorAll(`[data-section="${name}"], [data-section-link="${name}"]`).forEach((el) => { el.hidden = on === false; });
   }
+  if (content.sections.modules !== false) renderModules();
   renderPricing();
 
   document.title = tx('meta.title') || document.title;
@@ -337,7 +441,7 @@ const io = 'IntersectionObserver' in window
 
 function observeReveal() {
   if (!io) return;
-  document.querySelectorAll('.feature, .steps li, .why__list li, .compare__col, .faq details, .plan').forEach((el) => {
+  document.querySelectorAll('.feature, .steps li, .why__list li, .compare__col, .faq details, .plan, .modules, .section__head, .tags span').forEach((el) => {
     if (el.classList.contains('reveal')) return;
     el.classList.add('reveal');
     io.observe(el);

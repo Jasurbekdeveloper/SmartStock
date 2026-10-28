@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy": "ng build --configuration production && firebase deploy --only hosting",
-    "release": "ng test --watch=false && ng build --configuration production && git add -A && git commit -m \"POS: kassir menyusi (til, rejim, chiqish), sensorli ekran uchun hover va maydonlar\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push && firebase deploy --only hosting:app,firestore:rules,firestore:indexes"
+    "release": "ng test --watch=false && ng build --configuration production && git add -A && git commit -m \"Reklama sayti: yangi dizayn GitHubga qo'shildi (Firebase Hosting rollbackdan)\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push && firebase deploy --only hosting:app,firestore:rules,firestore:indexes"
   },
   "prettier": {
     "printWidth": 100,

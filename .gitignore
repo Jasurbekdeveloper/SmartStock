@@ -54,3 +54,6 @@ serviceAccount*.json
 
 # Local backups made while fixing dependencies
 *.bak-old
+
+# Temporary export of the marketing site (restored from Firebase Hosting)
+markethisob-site-*.json

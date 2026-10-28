@@ -6,6 +6,7 @@
   },
   "sections": {
     "features": true,
+    "modules": true,
     "how": true,
     "why": true,
     "who": true,
@@ -45,19 +46,19 @@
       "en": "Request a demo"
     },
     "hero.eyebrow": {
-      "uz": "Do'konlar uchun savdo va ombor tizimi",
-      "ru": "Система продаж и склада для магазинов",
-      "en": "Point of sale and inventory for retail stores"
+      "uz": "Do'konlar uchun savdo, ombor va moliya tizimi",
+      "ru": "Система продаж, склада и финансов для магазинов",
+      "en": "Sales, inventory and finance for shops"
     },
     "hero.title": {
-      "uz": "Savdo, ombor va qarzlar — <em>bitta</em> tizimda",
-      "ru": "Продажи, склад и долги — в <em>одной</em> системе",
-      "en": "Sales, stock and debts — in <em>one</em> system"
+      "uz": "Savdo, ombor va foyda — <em>bitta</em> ekranda",
+      "ru": "Продажи, склад и прибыль — на <em>одном</em> экране",
+      "en": "Sales, stock and profit — on <em>one</em> screen"
     },
     "hero.lead": {
-      "uz": "MarketHisob daftar va Excel o'rnini bosadi: kassada tez sotasiz, qoldiq o'zi kamayadi, kim qancha qarzdorligi va bugun qancha foyda qilganingiz doim ko'z oldingizda.",
-      "ru": "MarketHisob заменяет тетрадь и Excel: быстро продаёте на кассе, остаток списывается сам, а кто сколько должен и сколько вы заработали сегодня — всегда перед глазами.",
-      "en": "MarketHisob replaces the notebook and the spreadsheet: sell fast at the till, stock updates itself, and who owes you what and today’s profit are always in front of you."
+      "uz": "MarketHisob daftar va Excel o'rnini bosadi: kassada tez sotasiz, qoldiq o'zi kamayadi, qarzlar, xarajatlar va sof foydangiz har kuni ko'z oldingizda.",
+      "ru": "MarketHisob заменяет тетрадь и Excel: быстро продаёте на кассе, остатки списываются сами, а долги, расходы и чистая прибыль всегда перед глазами.",
+      "en": "MarketHisob replaces the notebook and Excel: sell fast at the till, stock updates itself, and your debts, expenses and net profit are always in view."
     },
     "hero.cta1": {
       "uz": "Bepul demo olish",
@@ -230,9 +231,9 @@
       "en": "Leave a request, call us or message on Telegram — we’ll walk you through the system in 15 minutes and answer your questions."
     },
     "footer.tag": {
-      "uz": "Do'kon uchun savdo, ombor va qarz hisobi.",
-      "ru": "Учёт продаж, склада и долгов для магазина.",
-      "en": "Sales, inventory and debt tracking for stores."
+      "uz": "Do'kon uchun savdo, ombor, qarz va foyda hisobi.",
+      "ru": "Учёт продаж, склада, долгов и прибыли для магазина.",
+      "en": "Sales, inventory, debt and profit tracking for shops."
     },
     "meta.title": {
       "uz": "MarketHisob — do'kon uchun savdo va ombor tizimi",
@@ -240,9 +241,9 @@
       "en": "MarketHisob — point of sale and inventory for stores"
     },
     "meta.desc": {
-      "uz": "MarketHisob — do'konlar uchun kassa, ombor, qarz daftari va statistika bitta tizimda. Offline ishlaydi, bulutda saqlanadi, o'zbek, rus va ingliz tillarida.",
-      "ru": "MarketHisob — касса, склад, книга долгов и статистика в одной системе. Работает офлайн, хранит данные в облаке.",
-      "en": "MarketHisob — checkout, inventory, debt book and analytics in one system. Works offline, backed up in the cloud."
+      "uz": "MarketHisob — do'konlar uchun kassa, ombor, qarz daftari, xarajatlar va foyda-zarar hisoboti bitta tizimda. Offline ishlaydi, bulutda saqlanadi, o'zbek, rus va ingliz tillarida.",
+      "ru": "MarketHisob — касса, склад, долговая тетрадь, расходы и отчёт о прибылях для магазинов в одной системе. Работает офлайн, данные в облаке, на узбекском, русском и английском.",
+      "en": "MarketHisob — till, inventory, debt book, expenses and profit & loss for shops in one system. Works offline, stored in the cloud, in Uzbek, Russian and English."
     },
     "nav.pricing": {
       "uz": "Narxlar",
@@ -403,6 +404,146 @@
       "uz": "Yopish",
       "ru": "Закрыть",
       "en": "Close"
+    },
+    "nav.modules": {
+      "uz": "Modullar",
+      "ru": "Модули",
+      "en": "Modules"
+    },
+    "hero.note": {
+      "uz": "15 daqiqalik bepul ko'rsatuv · hech qanday majburiyat yo'q",
+      "ru": "Бесплатный показ за 15 минут · без обязательств",
+      "en": "Free 15-minute walkthrough · no commitment"
+    },
+    "mock.dash": {
+      "uz": "Bosh sahifa · Bugun",
+      "ru": "Главная · Сегодня",
+      "en": "Dashboard · Today"
+    },
+    "mock.revenue": {
+      "uz": "Tushum",
+      "ru": "Выручка",
+      "en": "Revenue"
+    },
+    "mock.profit": {
+      "uz": "Sof foyda",
+      "ru": "Чистая прибыль",
+      "en": "Net profit"
+    },
+    "mock.debts": {
+      "uz": "Qarzlar",
+      "ru": "Долги",
+      "en": "Debts"
+    },
+    "mock.week": {
+      "uz": "Haftalik savdo",
+      "ru": "Продажи за неделю",
+      "en": "Sales this week"
+    },
+    "mock.low": {
+      "uz": "Kam qoldi",
+      "ru": "Заканчивается",
+      "en": "Low stock"
+    },
+    "mod.eyebrow": {
+      "uz": "Modullar",
+      "ru": "Модули",
+      "en": "Modules"
+    },
+    "mod.title": {
+      "uz": "Barcha bo'limlar bir-biri bilan bog'langan",
+      "ru": "Все разделы связаны между собой",
+      "en": "Every module works together"
+    },
+    "mod.lead": {
+      "uz": "Kassada sotilgan tovar omborda kamayadi, qarzga yoziladi va foyda-zarar hisobotiga tushadi — hech narsani ikki marta kiritmaysiz.",
+      "ru": "Проданный на кассе товар списывается со склада, записывается в долг и попадает в отчёт о прибылях — ничего не нужно вводить дважды.",
+      "en": "A sale at the till reduces stock, records the debt and lands in the P&L — you never enter anything twice."
+    },
+    "mod.retail": {
+      "uz": "Chakana",
+      "ru": "Розница",
+      "en": "Retail"
+    },
+    "mod.wholesale": {
+      "uz": "Ulgurji",
+      "ru": "Опт",
+      "en": "Wholesale"
+    },
+    "mod.cart": {
+      "uz": "Savat",
+      "ru": "Корзина",
+      "en": "Cart"
+    },
+    "mod.product": {
+      "uz": "Tovar",
+      "ru": "Товар",
+      "en": "Product"
+    },
+    "mod.qty": {
+      "uz": "Qoldiq",
+      "ru": "Остаток",
+      "en": "In stock"
+    },
+    "mod.low": {
+      "uz": "Kam qoldi",
+      "ru": "Мало",
+      "en": "Low"
+    },
+    "mod.expiring": {
+      "uz": "Muddati yaqin",
+      "ru": "Срок истекает",
+      "en": "Expiring"
+    },
+    "mod.ok": {
+      "uz": "Yetarli",
+      "ru": "В наличии",
+      "en": "In stock"
+    },
+    "mod.period": {
+      "uz": "Shu oy",
+      "ru": "Этот месяц",
+      "en": "This month"
+    },
+    "mod.revenue": {
+      "uz": "Tushum",
+      "ru": "Выручка",
+      "en": "Revenue"
+    },
+    "mod.cost": {
+      "uz": "Tannarx",
+      "ru": "Себестоимость",
+      "en": "Cost of goods"
+    },
+    "mod.gross": {
+      "uz": "Yalpi foyda",
+      "ru": "Валовая прибыль",
+      "en": "Gross profit"
+    },
+    "mod.expenses": {
+      "uz": "Xarajatlar",
+      "ru": "Расходы",
+      "en": "Expenses"
+    },
+    "mod.net": {
+      "uz": "Sof foyda",
+      "ru": "Чистая прибыль",
+      "en": "Net profit"
+    },
+    "mod.debtTotal": {
+      "uz": "Jami qarz",
+      "ru": "Всего долгов",
+      "en": "Total owed"
+    },
+    "mod.overdue": {
+      "uz": "Muddati o'tgan",
+      "ru": "Просрочен",
+      "en": "Overdue"
+    },
+    "mod.paid": {
+      "uz": "to'langan",
+      "ru": "оплачено",
+      "en": "paid"
     }
   },
   "lists": {
@@ -544,6 +685,32 @@
         }
       },
       {
+        "icon": "stats",
+        "title": {
+          "uz": "Foyda-zarar hisoboti",
+          "ru": "Отчёт о прибылях и убытках",
+          "en": "Profit & loss report"
+        },
+        "text": {
+          "uz": "Tushum, tannarx, yalpi foyda, xarajatlar va sof foyda — kun, hafta, oy kesimida, grafik va Excel eksport bilan.",
+          "ru": "Выручка, себестоимость, валовая прибыль, расходы и чистая прибыль — за день, неделю или месяц, с графиком и экспортом в Excel.",
+          "en": "Revenue, cost of goods, gross profit, expenses and net profit — by day, week or month, with charts and Excel export."
+        }
+      },
+      {
+        "icon": "wallet",
+        "title": {
+          "uz": "Xarajatlar va kassa daftari",
+          "ru": "Расходы и кассовая книга",
+          "en": "Expenses and cashbook"
+        },
+        "text": {
+          "uz": "Ijara, ish haqi, kommunal va boshqa xarajatlar toifalar bo'yicha. Kassadagi kirim-chiqim — har bir so'm hisobda.",
+          "ru": "Аренда, зарплата, коммунальные и прочие расходы по категориям. Внесения и изъятия из кассы — каждый сум на учёте.",
+          "en": "Rent, salaries, utilities and other expenses by category. Cash in and out of the till — every som accounted for."
+        }
+      },
+      {
         "icon": "debt",
         "title": {
           "uz": "Qarz daftari",
@@ -557,16 +724,29 @@
         }
       },
       {
-        "icon": "stats",
+        "icon": "tag",
         "title": {
-          "uz": "Statistika va foyda",
-          "ru": "Статистика и прибыль",
-          "en": "Analytics and profit"
+          "uz": "Chakana va ulgurji narx",
+          "ru": "Розничные и оптовые цены",
+          "en": "Retail and wholesale prices"
         },
         "text": {
-          "uz": "Tushum, sof foyda, eng ko'p sotilgan tovarlar va kam qolgan qoldiqlar — kun, hafta, oy kesimida. Excel'ga eksport.",
-          "ru": "Выручка, чистая прибыль, топ товаров и заканчивающиеся остатки — по дням, неделям, месяцам. Экспорт в Excel.",
-          "en": "Revenue, net profit, top products and low-stock alerts by day, week and month. Export to Excel."
+          "uz": "Har bir tovarga ulgurji narx va minimal miqdor. Miqdor yetganda kassa ulgurji narxni o'zi qo'yadi (F7 — almashtirish).",
+          "ru": "Оптовая цена и минимальное количество для каждого товара. Когда количество набрано, касса сама ставит оптовую цену (F7 — переключение).",
+          "en": "A wholesale price and minimum quantity per product. Once the quantity is reached, the till applies it by itself (F7 to switch)."
+        }
+      },
+      {
+        "icon": "calendar",
+        "title": {
+          "uz": "Yaroqlilik muddati",
+          "ru": "Сроки годности",
+          "en": "Expiry dates"
+        },
+        "text": {
+          "uz": "Partiya va muddatni kiriting — muddati yaqin va o'tgan tovarlar alohida ro'yxatda, kassada esa ogohlantirish chiqadi.",
+          "ru": "Укажите партию и срок — товары с истекающим и истёкшим сроком в отдельном списке, а на кассе появляется предупреждение.",
+          "en": "Record the batch and expiry date — expiring and expired items get their own list, and the till shows a warning."
         }
       },
       {
@@ -583,16 +763,16 @@
         }
       },
       {
-        "icon": "ret",
+        "icon": "scan",
         "title": {
-          "uz": "Qaytarishlar",
-          "ru": "Возвраты",
-          "en": "Returns"
+          "uz": "Skaner bilan tez kiritish",
+          "ru": "Быстрый ввод сканером",
+          "en": "Fast entry with a scanner"
         },
         "text": {
-          "uz": "Tovar qaytarilganda pul qaytariladi, qoldiq tiklanadi va hisobotlar avtomatik to'g'rilanadi.",
-          "ru": "При возврате товара деньги возвращаются, остаток восстанавливается, а отчёты корректируются автоматически.",
-          "en": "On a return the money is refunded, stock is restored and reports adjust automatically."
+          "uz": "Tovarni skanerlang: bor bo'lsa — kirim qilinadi, yo'q bo'lsa — darhol yangi kartochka ochiladi. Rasmni sudrab tashlab qo'shasiz.",
+          "ru": "Отсканируйте товар: если он есть — оформляется приход, если нет — сразу открывается новая карточка. Фото добавляется перетаскиванием.",
+          "en": "Scan a product: if it exists it's received into stock, if not a new card opens right away. Add a photo by dragging it in."
         }
       },
       {
@@ -892,6 +1072,18 @@
       },
       {
         "title": {
+          "uz": "Xarajatlar va sof foydani ko'rsa bo'ladimi?",
+          "ru": "Можно ли видеть расходы и чистую прибыль?",
+          "en": "Can I see expenses and net profit?"
+        },
+        "text": {
+          "uz": "Ha. Moliya bo'limida ijara, ish haqi va boshqa xarajatlarni kiritasiz, foyda-zarar hisoboti esa tushum, tannarx va xarajatlardan sof foydani o'zi hisoblaydi.",
+          "ru": "Да. В разделе «Финансы» вы вносите аренду, зарплату и другие расходы, а отчёт о прибылях и убытках сам считает чистую прибыль из выручки, себестоимости и расходов.",
+          "en": "Yes. In Finance you record rent, salaries and other expenses, and the P&L report works out net profit from revenue, cost of goods and expenses."
+        }
+      },
+      {
+        "title": {
           "uz": "Narxi qancha?",
           "ru": "Сколько это стоит?",
           "en": "How much does it cost?"
@@ -900,6 +1092,60 @@
           "uz": "Narx do'kon hajmi va kassalar soniga bog'liq. Bog'laning — bepul demo ko'rsatamiz va mos tarifni taklif qilamiz.",
           "ru": "Цена зависит от размера магазина и количества касс. Свяжитесь с нами — покажем бесплатное демо и предложим подходящий тариф.",
           "en": "Pricing depends on store size and number of tills. Get in touch — we’ll give you a free demo and suggest the right plan."
+        }
+      }
+    ],
+    "modules": [
+      {
+        "icon": "pos",
+        "title": {
+          "uz": "Kassa",
+          "ru": "Касса",
+          "en": "Checkout"
+        },
+        "text": {
+          "uz": "Bir necha soniyada sotuv: skaner, tezkor tugmalar va har qanday to'lov turi.\nChakana va ulgurji narx — miqdorga qarab avtomatik\nNaqd, online, aralash va qarzga to'lov\nChek chop etish va smena Z-hisoboti",
+          "ru": "Продажа за секунды: сканер, горячие клавиши и любой способ оплаты.\nРозничная и оптовая цена — автоматически по количеству\nНаличные, онлайн, смешанная оплата и в долг\nПечать чека и Z-отчёт смены",
+          "en": "A sale in seconds: scanner, hotkeys and any payment method.\nRetail or wholesale price, picked automatically by quantity\nCash, online, split payment and on credit\nReceipt printing and shift Z-report"
+        }
+      },
+      {
+        "icon": "stock",
+        "title": {
+          "uz": "Ombor",
+          "ru": "Склад",
+          "en": "Inventory"
+        },
+        "text": {
+          "uz": "Nima va qancha qolgani — real vaqtda.\nKirim, chiqim, inventarizatsiya va harakatlar tarixi\nYaroqlilik muddati va partiya nazorati\nKam qolgan tovarlar haqida ogohlantirish",
+          "ru": "Что и сколько осталось — в реальном времени.\nПриход, расход, инвентаризация и история движений\nКонтроль сроков годности и партий\nПредупреждения о заканчивающихся товарах",
+          "en": "What you have and how much — in real time.\nStock in, stock out, counts and movement history\nExpiry date and batch tracking\nLow-stock alerts"
+        }
+      },
+      {
+        "icon": "stats",
+        "title": {
+          "uz": "Moliya",
+          "ru": "Финансы",
+          "en": "Finance"
+        },
+        "text": {
+          "uz": "Bugun qancha ishlab topganingizni taxmin qilmaysiz — aniq bilasiz.\nFoyda-zarar: tushum − tannarx − xarajatlar = sof foyda\nIjara, ish haqi, kommunal — xarajatlar toifalar bo'yicha\nKassa daftari: har bir kirim va chiqim, Excel'ga eksport",
+          "ru": "Вы не гадаете, сколько заработали сегодня, — вы знаете точно.\nПрибыли и убытки: выручка − себестоимость − расходы = чистая прибыль\nАренда, зарплата, коммунальные — расходы по категориям\nКассовая книга: каждый приход и расход, экспорт в Excel",
+          "en": "Don't guess what you earned today — know it.\nP&L: revenue − cost of goods − expenses = net profit\nRent, salaries, utilities — expenses by category\nCashbook: every cash in and out, export to Excel"
+        }
+      },
+      {
+        "icon": "debt",
+        "title": {
+          "uz": "Qarzlar",
+          "ru": "Долги",
+          "en": "Debts"
+        },
+        "text": {
+          "uz": "Nasiya savdo endi chalkash daftar emas.\nHar bir mijoz bo'yicha qarz, to'lovlar tarixi va qoldiq\nQisman to'lovlar va muddati o'tgan qarzlar ro'yxati\nYetkazib beruvchilar oldidagi qarzlar ham shu yerda",
+          "ru": "Продажа в долг — больше не запутанная тетрадь.\nДолг, история платежей и остаток по каждому клиенту\nЧастичные оплаты и список просроченных долгов\nДолги перед поставщиками — там же",
+          "en": "Selling on credit is no longer a messy notebook.\nDebt, payment history and balance for every customer\nPartial payments and an overdue list\nWhat you owe suppliers — in the same place"
         }
       }
     ]

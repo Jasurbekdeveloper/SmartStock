@@ -43,6 +43,34 @@
         <mat-icon>lock_clock</mat-icon><span class="hidden lg:inline">{{ 'shifts.closeShift' | translate }}</span>
       </a>
       }
+      <button type="button" class="pos-top-btn pos-user" [matMenuTriggerFor]="userMenu" [attr.aria-label]="'pos.cashierMenu' | translate">
+        <span class="pos-user__avatar">{{ userInitials() }}</span>
+        <span class="hidden xl:inline max-w-[9rem] truncate">{{ currentUser()?.displayName }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu" xPosition="before" class="pos-menu">
+        <div class="px-4 pt-2 pb-1 text-xs font-semibold text-muted uppercase tracking-wide">{{ 'pos.language' | translate }}</div>
+        @for (lang of languages; track lang.code) {
+        <button mat-menu-item (click)="setLanguage(lang.code)">
+          <mat-icon>{{ currentLanguage() === lang.code ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>{{ lang.name }}
+        </button>
+        }
+        <div class="pos-menu__sep"></div>
+        <button mat-menu-item (click)="toggleTheme()">
+          <mat-icon>{{ themeService.getTheme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+          {{ (themeService.getTheme() === 'light' ? 'pos.darkMode' : 'pos.lightMode') | translate }}
+        </button>
+        <button mat-menu-item (click)="toggleOsk()">
+          <mat-icon>keyboard</mat-icon>{{ 'pos.screenKeyboard' | translate }}: {{ (oskEnabled() ? 'common.on' : 'common.off') | translate }}
+        </button>
+        <button mat-menu-item (click)="toggleNumpad()">
+          <mat-icon>dialpad</mat-icon>{{ 'pos.keypad' | translate }}: {{ (showNumpad() ? 'common.on' : 'common.off') | translate }}
+        </button>
+        <div class="pos-menu__sep"></div>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon class="!text-[var(--danger)]">logout</mat-icon><span class="text-loss">{{ 'common.logout' | translate }}</span>
+        </button>
+      </mat-menu>
       <div class="seg !hidden md:!inline-flex" role="group" [attr.aria-label]="'pos.view' | translate">
         <button type="button" [class.seg--on]="viewMode() === 'grid'" (click)="setViewMode('grid')" [matTooltip]="'pos.viewGrid' | translate">
           <mat-icon class="!align-middle !text-[18px] !w-[18px] !h-[18px]">grid_view</mat-icon>

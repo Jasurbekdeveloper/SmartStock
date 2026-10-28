@@ -61,8 +61,10 @@
   transition: all 0.15s;
 }
 
-.pay__tender:hover {
-  border-color: var(--brand);
+@media (hover: hover) {
+  .pay__tender:hover {
+    border-color: var(--brand);
+  }
 }
 
 .pay__tender--on {
@@ -83,9 +85,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-.pay__quick:hover {
-  border-color: var(--brand);
-  color: var(--brand-strong);
+@media (hover: hover) {
+  .pay__quick:hover {
+    border-color: var(--brand);
+    color: var(--brand-strong);
+  }
 }
 
 .pay__note {

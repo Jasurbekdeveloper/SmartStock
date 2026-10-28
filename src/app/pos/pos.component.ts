@@ -45,6 +45,8 @@ import { OnscreenKeyboardComponent, applyTextKey } from '../shared/components/on
 import { DebtPaymentDialogComponent } from '../shared/components/debt-payment-dialog/debt-payment-dialog.component';
 import { SidebarStateService } from '../layout/sidebar/sidebar-state.service';
 import { TenantService } from '../core/services/tenant.service';
+import { ThemeService } from '../core/services/theme.service';
+import { Language } from '../core/services/translation.service';
 
 export type NumpadMode = 'qty' | 'price' | 'discount' | 'percent';
 const NUMPAD_STORAGE_KEY = 'smartstock_pos_numpad';
@@ -137,6 +139,48 @@ export class PosComponent implements OnInit {
   sidebarState = inject(SidebarStateService);
   private tenantService = inject(TenantService);
   storeName = computed(() => this.tenantService.tenant()?.name ?? '');
+  themeService = inject(ThemeService);
+
+  // ------------------------------------------------------------ cashier menu (full-screen till)
+  readonly languages: { code: Language; name: string }[] = [
+    { code: 'uz', name: "O'zbekcha" },
+    { code: 'uz-cyrillic', name: 'Ўзбекча' },
+    { code: 'ru', name: 'Русский' },
+    { code: 'en', name: 'English' }
+  ];
+  userInitials = computed(() => {
+    const name = this.currentUser()?.displayName || this.currentUser()?.email || '?';
+    return name.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
+  });
+  currentLanguage(): string {
+    return this.translation.getLanguage();
+  }
+  setLanguage(lang: Language) {
+    this.translation.setLanguage(lang);
+  }
+  toggleTheme() {
+    this.themeService.toggleTheme();
+  }
+  /** Sign out from the till; an unfinished cart is kept as a held cart first. */
+  logout() {
+    const doLogout = () => {
+      if (this.cart().length > 0) this.holdCart();
+      this.authService.logout();
+      this.router.navigate(['/auth/login']);
+    };
+    if (this.cart().length === 0) {
+      doLogout();
+      return;
+    }
+    this.dialogOpen.set(true);
+    this.dialog
+      .open(ConfirmDialogComponent, { data: { titleKey: 'common.logout', messageKey: 'pos.logoutHoldsCart' } })
+      .afterClosed()
+      .subscribe((ok) => {
+        this.dialogOpen.set(false);
+        if (ok) doLogout();
+      });
+  }
 
   // ------------------------------------------------------------ touch: numpad & keyboard
   /** On-screen keypad under the ticket (quantity / price / discount of the selected line). */

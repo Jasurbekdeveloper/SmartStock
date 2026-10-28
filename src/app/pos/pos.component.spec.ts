@@ -73,7 +73,7 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: DebtService, useValue: { getCustomers: () => of([]), getCustomerDebts: () => of([]) } },
         { provide: AuthService, useValue: { currentUser$: of(cashier), getCurrentUser: () => cashier, can: () => true } },
         { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }), getShiftSales: () => of([]) } },
-        { provide: TranslationService, useValue: { translate: (k: string) => k } },
+        { provide: TranslationService, useValue: { translate: (k: string) => k, getLanguage: () => 'uz', setLanguage: () => undefined } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
         { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm") } }
       ]

@@ -18,7 +18,9 @@
     "updateNow": "Yangilash",
     "new": "Yangi",
     "actions": "Amallar",
-    "menu": "Menyu"
+    "menu": "Menyu",
+    "on": "yoqilgan",
+    "off": "o'chirilgan"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",
@@ -309,7 +311,12 @@
     "keypadTarget": "Klaviatura yozadi",
     "pay": "To'lash",
     "screenKeyboard": "Ekran klaviaturasi",
-    "space": "bo'sh joy"
+    "space": "bo'sh joy",
+    "language": "Til",
+    "darkMode": "Tungi rejim",
+    "lightMode": "Kunduzgi rejim",
+    "cashierMenu": "Kassir menyusi",
+    "logoutHoldsCart": "Savatdagi tovarlar kechiktirilgan cheklarga saqlanadi va tizimdan chiqiladi."
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",

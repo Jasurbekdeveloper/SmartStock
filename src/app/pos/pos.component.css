@@ -118,7 +118,9 @@
   color: var(--text-faint);
 }
 
-.pos-search__clear:hover { background: var(--surface-3); color: var(--text); }
+@media (hover: hover) {
+  .pos-search__clear:hover { background: var(--surface-3); color: var(--text); }
+}
 
 .pos-search__scan {
   display: grid;
@@ -131,7 +133,9 @@
   transition: filter 0.15s;
 }
 
-.pos-search__scan:hover { filter: brightness(1.2); }
+@media (hover: hover) {
+  .pos-search__scan:hover { filter: brightness(1.2); }
+}
 
 /* ---------- chips ---------- */
 .pos-chips {
@@ -172,9 +176,11 @@
   transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
 }
 
-.pos-tile:hover {
-  border-color: var(--brand);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) {
+  .pos-tile:hover {
+    border-color: var(--brand);
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .pos-tile:active { transform: scale(0.97); }
@@ -315,7 +321,9 @@
 }
 
 .pos-row:last-child { border-bottom: 0; }
-.pos-row:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .pos-row:hover { background: var(--surface-2); }
+}
 .pos-row--in { background: var(--brand-soft); }
 
 .pos-row__avatar {
@@ -398,8 +406,10 @@
   font-weight: 600;
 }
 
-.pos-line__price:not(:disabled):hover,
-.pos-line__price:not(:disabled):active { background: var(--surface-3); }
+@media (hover: hover) {
+  .pos-line__price:not(:disabled):hover,
+  .pos-line__price:not(:disabled):active { background: var(--surface-3); }
+}
 
 .pos-unit {
   border: 0;
@@ -410,7 +420,9 @@
 }
 
 .pos-line + .pos-line { margin-top: 0.25rem; }
-.pos-line:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .pos-line:hover { background: var(--surface-2); }
+}
 
 .pos-line--selected {
   background: var(--brand-soft) !important;
@@ -467,9 +479,11 @@
   color: var(--text-faint);
 }
 
-.pos-line__remove:hover {
-  background: var(--danger-soft);
-  color: var(--danger);
+@media (hover: hover) {
+  .pos-line__remove:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
 }
 
 .pos-line__remove mat-icon { font-size: 18px; width: 18px; height: 18px; }
@@ -492,7 +506,9 @@
   cursor: pointer;
 }
 
-.pos-stepper button:hover { background: var(--surface-3); }
+@media (hover: hover) {
+  .pos-stepper button:hover { background: var(--surface-3); }
+}
 .pos-stepper mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
 .pos-stepper input {
@@ -571,7 +587,9 @@
   transition: transform 0.1s, filter 0.15s;
 }
 
-.pos-pay:hover:not(:disabled) { filter: brightness(1.06); }
+@media (hover: hover) {
+  .pos-pay:hover:not(:disabled) { filter: brightness(1.06); }
+}
 .pos-pay:active:not(:disabled) { transform: translateY(1px); }
 
 .pos-pay:disabled {
@@ -727,4 +745,24 @@
   .pos-pay { margin-top: 0.5rem; padding: 0.7rem 1rem; }
   .pos-pay__total { font-size: 1.35rem; }
   .pos-hints { display: none !important; }
+}
+
+/* Touch feedback (hover styles above only apply to a real mouse). */
+.pos-line__price:not(:disabled):active,
+.pos-row:active,
+.pos-line:active { background: var(--surface-3); }
+.pos-tile:active { border-color: var(--brand); }
+
+/* Cashier menu button */
+.pos-user { gap: 0.5rem; padding-left: 0.35rem; }
+.pos-user__avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-size: 0.8rem;
+  font-weight: 800;
 }

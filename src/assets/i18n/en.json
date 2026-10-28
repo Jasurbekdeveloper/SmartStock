@@ -18,7 +18,9 @@
     "updateNow": "Update",
     "new": "New",
     "actions": "Actions",
-    "menu": "Menu"
+    "menu": "Menu",
+    "on": "on",
+    "off": "off"
   },
   "tenant": {
     "backToHome": "Back to home",
@@ -309,7 +311,12 @@
     "keypadTarget": "Keypad types into",
     "pay": "Pay",
     "screenKeyboard": "On-screen keyboard",
-    "space": "space"
+    "space": "space",
+    "language": "Language",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "cashierMenu": "Cashier menu",
+    "logoutHoldsCart": "The cart is kept as a held cart, then you are signed out."
   },
   "stock": {
     "title": "Stock Management",

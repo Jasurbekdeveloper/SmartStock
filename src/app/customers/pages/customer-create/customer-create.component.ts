@@ -8,11 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Customer, CustomerService } from '../../../core/services/customer.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-customer-create',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,

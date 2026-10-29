@@ -240,7 +240,7 @@
 
         </div>
         <div class="mt-4">
-          <app-product-extras section="stock" [draft]="extras" [unitLabel]="unitLabel(product.unit)" />
+          <app-product-extras section="stock" [draft]="extras" [unitLabel]="unitLabel(product.unit)" [batchQuantity]="totalQuantity()" (trackExpiryChange)="trackExpiryTouched = true" />
         </div>
       </section>
 

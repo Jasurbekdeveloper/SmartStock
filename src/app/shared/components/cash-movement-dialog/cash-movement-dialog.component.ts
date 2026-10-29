@@ -11,6 +11,7 @@ import {
   CashMovementInput,
   CashReason
 } from '../../../core/services/cash-movement.service';
+import { NumericInputDirective } from '../../directives/numeric-input.directive';
 
 export interface CashMovementDialogData {
   /** Pre-selected direction. */
@@ -23,7 +24,7 @@ export interface CashMovementDialogData {
 @Component({
   selector: 'app-cash-movement-dialog',
   standalone: true,
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, CurrencyDisplayPipe],
+  imports: [NumericInputDirective, FormsModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, CurrencyDisplayPipe],
   template: `
     <div class="cm">
       <div class="cm__head">
@@ -121,7 +122,11 @@ export class CashMovementDialogComponent {
   reason = signal<CashReason>(this.data.type === 'in' ? 'float' : 'collection');
   note = signal('');
 
-  reasons = computed<readonly CashReason[]>(() => (this.type() === 'in' ? CASH_IN_REASONS : CASH_OUT_REASONS));
+  /** Debt and supplier payments have their own flows (they also move the customer's /
+   *  supplier's balance), so they are not offered as a bare drawer movement. */
+  reasons = computed<readonly CashReason[]>(() =>
+    (this.type() === 'in' ? CASH_IN_REASONS : CASH_OUT_REASONS).filter((r) => r !== 'debtPayment' && r !== 'supplierPayment')
+  );
 
   overDrawer = computed(
     () => this.type() === 'out' && this.data.expectedCash !== undefined && this.amount() > this.data.expectedCash

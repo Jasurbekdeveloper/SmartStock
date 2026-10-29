@@ -17,7 +17,10 @@
     "updateAvailable": "Ilovaning yangi versiyasi tayyor.",
     "updateNow": "Yangilash",
     "new": "Yangi",
-    "actions": "Amallar"
+    "actions": "Amallar",
+    "menu": "Menyu",
+    "on": "yoqilgan",
+    "off": "o'chirilgan"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",
@@ -116,7 +119,8 @@
       "createdCount": "Yaratildi",
       "updatedCount": "Yangilandi",
       "failedCount": "Xato",
-      "failedRows": "Xato qatorlar"
+      "failedRows": "Xato qatorlar",
+      "expiryColumns": "Yaroqlilik muddati ustunlari (ixtiyoriy)"
     },
     "costPrice": "Tannarx (qanchadan tushgan)",
     "sellingPrice": "Sotish narxi",
@@ -189,7 +193,19 @@
     "stockAtCost": "Ombor (tannarxda)",
     "stockAtRetail": "Ombor (sotish narxida)",
     "searchPlaceholder": "Nomi, shtrix-kod, SKU yoki kalit so'z…",
-    "clearFilters": "Tozalash"
+    "clearFilters": "Tozalash",
+    "shelfLifeDays": "Saqlash muddati (kun)",
+    "shelfLifeHint": "Kiritilsa, yaroqlilik sanasi ishlab chiqarilgan sanadan avtomatik hisoblanadi",
+    "batchForStock": "Hozirgi qoldiq uchun sanalar",
+    "batchForNew": "Birinchi partiya sanalari",
+    "manufactureDate": "Ishlab chiqarilgan sana",
+    "expiryAuto": "avtomatik hisoblandi",
+    "batchesViaStockIn": "Yangi kelgan tovar sanalari Kirim sahifasida har bir partiya uchun kiritiladi",
+    "invalidShelfLife": "Saqlash muddati musbat son bo'lishi kerak",
+    "expiryRequired": "Bu mahsulot uchun yaroqlilik muddatini kiriting",
+    "expiryBeforeManufacture": "Yaroqlilik muddati ishlab chiqarilgan sanadan oldin bo'lishi mumkin emas",
+    "editCorrection": "Mahsulot kartasida tuzatildi",
+    "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi"
   },
   "units": {
     "dona": "dona",
@@ -213,7 +229,9 @@
     "noCategoriesFound": "Kategoriyalar topilmadi",
     "confirmDelete": "Ushbu kategoriyani o'chirishga ishonchingiz komilmi?",
     "variantAttributes": "Variant xususiyatlari",
-    "variantAttributesHint": "Yangi mahsulotda avtomatik taklif qilinadi, masalan: Hajm, Quvvat"
+    "variantAttributesHint": "Yangi mahsulotda avtomatik taklif qilinadi, masalan: Hajm, Quvvat",
+    "trackExpiry": "Yaroqlilik muddatini kuzatish",
+    "trackExpiryShort": "Muddat"
   },
   "pos": {
     "title": "POS Tizimi",
@@ -284,7 +302,21 @@
     "wholesale": "Ulgurji narx",
     "wholesaleShort": "Ulgurji",
     "manualPrice": "Qo'lda",
-    "emptyCart": "Chek bo'sh"
+    "emptyCart": "Chek bo'sh",
+    "expiredBlocked": "faqat muddati o'tgan qoldiq bor — sotib bo'lmaydi",
+    "sellExpiredTitle": "Muddati o'tgan tovar",
+    "sellExpiredConfirm": "Bu mahsulotning faqat muddati o'tgan qoldig'i bor. Baribir sotilsinmi?",
+    "addFirst": "Birinchisini qo'shish",
+    "keypad": "Raqam klaviaturasi",
+    "keypadTarget": "Klaviatura yozadi",
+    "pay": "To'lash",
+    "screenKeyboard": "Ekran klaviaturasi",
+    "space": "bo'sh joy",
+    "language": "Til",
+    "darkMode": "Tungi rejim",
+    "lightMode": "Kunduzgi rejim",
+    "cashierMenu": "Kassir menyusi",
+    "logoutHoldsCart": "Savatdagi tovarlar kechiktirilgan cheklarga saqlanadi va tizimdan chiqiladi."
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -322,7 +354,37 @@
     "selectProductAndQuantity": "Mahsulot va miqdorni to'g'ri kiriting",
     "insufficientQuantity": "Qoldiqda yetarli miqdor yo'q",
     "selectSupplier": "Ta'minotchi",
-    "supplierOther": "Boshqa (qo'lda kiritish)"
+    "supplierOther": "Boshqa (qo'lda kiritish)",
+    "batchDates": "Partiya sanalari",
+    "reasonExpired": "Muddati o'tgan",
+    "addLinePlaceholder": "Mahsulot nomi yoki shtrix-kod — skaner ham ishlaydi",
+    "addLines": "Hujjatga mahsulot qo'shing",
+    "addLinesHint": "Nakladnoydagi har bir tovarni qidiring yoki skanerlang: miqdor, kirim narxi va sotish narxini kiriting",
+    "creditNeedsSupplier": "Nasiyaga olish uchun ta'minotchini ro'yxatdan tanlang",
+    "drawerNeedsShift": "Kassadan to'lash uchun smena ochiq bo'lishi kerak",
+    "dueDate": "To'lov muddati",
+    "invoiceNo": "Nakladnoy raqami",
+    "lineTotal": "Summa",
+    "lines": "pozitsiya",
+    "paidNow": "Hozir to'landi",
+    "payCredit": "Nasiyaga",
+    "payFull": "To'liq to'landi",
+    "payPartial": "Qisman",
+    "payment": "To'lov",
+    "receiptSaved": "Kirim saqlandi",
+    "receiptSubtitle": "Ta'minotchidan kelgan tovar: bir nakladnoyda ko'p mahsulot, nasiya yoki to'lov bilan",
+    "receiptTitle": "Kirim (nakladnoy)",
+    "receiptTotal": "Jami summa",
+    "saveReceipt": "Kirimni saqlash",
+    "toSupplierDebt": "Ta'minotchiga qarz",
+    "tooManyLines": "Bitta hujjatda 150 tadan ko'p pozitsiya bo'lmaydi — ikkiga bo'ling",
+    "method": {
+      "bank": "Bank o'tkazma",
+      "card": "Karta",
+      "cash": "Naqd (seyf/egasi)",
+      "drawer": "Kassadan naqd"
+    },
+    "reasonAdjustment": "Tuzatish"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -406,7 +468,18 @@
     "totalOwed": "Jami qarzi",
     "lastDebt": "Oxirgi olgan qarzi",
     "debtHistory": "Qarzlar tarixi",
-    "itemsPurchased": "Olingan mahsulotlar"
+    "itemsPurchased": "Olingan mahsulotlar",
+    "accept": "Qabul qilish",
+    "cashToDrawer": "Naqd pul shu smena kassasiga qo'shiladi",
+    "collectShort": "Qarz to'lovi",
+    "collectTitle": "Qarz to'lovini qabul qilish",
+    "findCustomer": "Mijoz ismi yoki telefoni",
+    "noDebtors": "Qarzdor mijozlar yo'q",
+    "noShiftCash": "Smena ochiq emas — naqd pul kassa hisobiga kirmaydi",
+    "openDebts": "ta qarz",
+    "otherCustomer": "Boshqa mijoz",
+    "overpayCapped": "Qarzdan ko'p kiritildi — faqat qarz miqdori qabul qilinadi",
+    "payAll": "Hammasini"
   },
   "customers": {
     "title": "Mijozlar",
@@ -436,7 +509,21 @@
     "noPurchases": "Hali xaridlar yo'q",
     "totalPurchased": "Jami xarid",
     "deleteConfirm": "Ushbu ta'minotchini o'chirishga ishonchingiz komilmi?",
-    "noSuppliersFound": "Ta'minotchilar topilmadi"
+    "noSuppliersFound": "Ta'minotchilar topilmadi",
+    "account": "Hisob-kitob",
+    "balance": "Qarzimiz",
+    "balanceChange": "Qarzga ta'siri",
+    "currentDebt": "Hozirgi qarzimiz",
+    "delivery": "Tovar keldi",
+    "operation": "Amal",
+    "overdue": "Muddati o'tgan to'lov bor",
+    "owe": "qarz",
+    "pay": "To'lov qilish",
+    "payHint": "Ta'minotchiga to'langan pulni yozing. Kassadan naqd to'lansa, u smena kassasidan chiqim bo'ladi.",
+    "payment": "To'lov",
+    "paymentSaved": "To'lov saqlandi",
+    "totalPaid": "Jami to'langan",
+    "totalPayable": "Ta'minotchilarga jami qarz"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -646,7 +733,9 @@
     "entityType": {
       "product": "Mahsulot",
       "user": "Foydalanuvchi"
-    }
+    },
+    "actionStockWriteOff": "Tovar hisobdan chiqarildi",
+    "actionBatchExpiryChanged": "Yaroqlilik muddati o'zgartirildi"
   },
   "messages": {
     "noSalesYet": "Sotuvlar yo'q",
@@ -1102,12 +1191,14 @@
       "repair": "Ta'mirlash",
       "supplies": "Xo'jalik mollari",
       "purchase": "Boshqa xarid",
-      "other": "Boshqa"
+      "other": "Boshqa",
+      "writeOff": "Hisobdan chiqarilgan tovar"
     },
     "methods": {
       "cash": "Naqd",
       "card": "Karta",
-      "bank": "Bank o'tkazma"
+      "bank": "Bank o'tkazma",
+      "none": "To'lovsiz"
     },
     "newExpense": "Xarajat qo'shish",
     "editExpense": "Xarajatni tahrirlash",
@@ -1174,7 +1265,15 @@
     "needsAttention": "E'tibor talab",
     "valueAtCost": "Tannarx qiymati",
     "allGood": "Hammasi joyida",
-    "howTo": "Mahsulot formasida «Yaroqlilik muddatini kuzatish»ni yoqib, sanani kiriting."
+    "howTo": "Mahsulot formasida «Yaroqlilik muddatini kuzatish»ni yoqib, sanani kiriting.",
+    "writeOff": "Hisobdan chiqarish",
+    "writeOffConfirm": "Bu partiya ombordan chiqariladi va tannarxi bo'yicha zarar sifatida xarajatlarga yoziladi.",
+    "writtenOff": "hisobdan chiqarildi",
+    "changeDate": "Muddatni o'zgartirish",
+    "currentDate": "Hozirgi muddat",
+    "newDate": "Yangi muddat",
+    "dateChanged": "muddat o'zgartirildi",
+    "batches": "Partiyalar (yaroqlilik muddati bo'yicha)"
   },
   "period": {
     "today": "Bugun",

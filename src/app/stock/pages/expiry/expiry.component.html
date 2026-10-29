@@ -32,7 +32,7 @@
       <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
           <p class="stat__label">{{ 'expiry.tracked' | translate }}</p>
-          <p class="stat__value">{{ trackedCount() }}</p>
+          <p class="stat__value">{{ trackedProducts() }}</p>
         </div>
         <span class="stat__icon tone-brand"><mat-icon>event_available</mat-icon></span>
       </div>
@@ -40,6 +40,10 @@
   </div>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
+    <label class="search-box flex-1 min-w-[200px] max-w-sm">
+      <mat-icon>search</mat-icon>
+      <input type="search" [value]="search()" (input)="search.set($any($event.target).value)" [placeholder]="'common.search' | translate" />
+    </label>
     <div class="seg">
       <button type="button" [class.seg--on]="filter() === 'soon'" (click)="filter.set('soon')">{{ 'expiry.needsAttention' | translate }}</button>
       <button type="button" [class.seg--on]="filter() === 'expired'" (click)="filter.set('expired')">{{ 'expiry.expired' | translate }}</button>
@@ -73,24 +77,43 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of rows(); track row.product.id) {
-          <tr>
+          @for (row of rows(); track row.batch.id) {
+          <tr [class.row-expired]="row.state === 'expired'">
             <td>
               <p class="font-medium">{{ row.product.name }}</p>
               <p class="text-xs text-muted money">{{ row.product.barcode }}</p>
             </td>
-            <td class="text-muted">{{ row.product.batchNo || '—' }}</td>
+            <td class="text-muted">
+              {{ row.batch.batchNo || '—' }}
+              @if (row.batch.manufactureDate) {
+              <p class="text-xs">{{ 'products.manufactureDate' | translate }}: {{ row.batch.manufactureDate | date: 'dd.MM.yyyy' }}</p>
+              }
+            </td>
             <td class="whitespace-nowrap">
-              {{ row.product.expiryDate | date: 'dd.MM.yyyy' }}
+              {{ row.batch.expiryDate | date: 'dd.MM.yyyy' }}
               @switch (row.state) {
               @case ('expired') { <span class="badge badge--red ml-1">{{ -row.days }} {{ 'expiry.daysAgo' | translate }}</span> }
               @case ('soon') { <span class="badge badge--amber ml-1">{{ row.days === 0 ? ('expiry.today' | translate) : row.days + ' ' + ('expiry.daysLeft' | translate) }}</span> }
               @default { <span class="badge badge--green ml-1">{{ row.days }} {{ 'expiry.daysLeft' | translate }}</span> }
               }
             </td>
-            <td class="text-right money">{{ row.product.quantity | sum:2 }} {{ unitLabel(row.product.unit) }}</td>
-            @if (canSeeCost()) { <td class="text-right money">{{ row.product.quantity * (row.product.cost || 0) | currencyDisplay:0 }}</td> }
-            <td>
+            <td class="text-right money">{{ row.batch.quantity | sum:2 }} {{ unitLabel(row.product.unit) }}</td>
+            @if (canSeeCost()) { <td class="text-right money">{{ row.value | currencyDisplay:0 }}</td> }
+            <td class="whitespace-nowrap text-right">
+              @if (canWriteOff()) {
+              <button mat-icon-button type="button" [disabled]="busy().has(row.batch.id)" (click)="changeDate(row)" [matTooltip]="'expiry.changeDate' | translate">
+                <mat-icon>edit_calendar</mat-icon>
+              </button>
+              }
+              @if (canWriteOff() && row.state === 'expired') {
+              <button mat-stroked-button color="warn" type="button" class="!h-9" [disabled]="busy().has(row.batch.id)" (click)="writeOff(row)">
+                <mat-icon>delete_sweep</mat-icon>{{ 'expiry.writeOff' | translate }}
+              </button>
+              } @else if (canWriteOff()) {
+              <button mat-icon-button type="button" [disabled]="busy().has(row.batch.id)" (click)="writeOff(row)" [matTooltip]="'expiry.writeOff' | translate">
+                <mat-icon>delete_sweep</mat-icon>
+              </button>
+              }
               <a mat-icon-button [routerLink]="['/products/edit', row.product.id]" [attr.aria-label]="'common.edit' | translate"><mat-icon>edit</mat-icon></a>
             </td>
           </tr>

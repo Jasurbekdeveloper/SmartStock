@@ -17,7 +17,10 @@
     "updateAvailable": "A new version of the app is ready.",
     "updateNow": "Update",
     "new": "New",
-    "actions": "Actions"
+    "actions": "Actions",
+    "menu": "Menu",
+    "on": "on",
+    "off": "off"
   },
   "tenant": {
     "backToHome": "Back to home",
@@ -116,7 +119,8 @@
       "createdCount": "Created",
       "updatedCount": "Updated",
       "failedCount": "Failed",
-      "failedRows": "Failed rows"
+      "failedRows": "Failed rows",
+      "expiryColumns": "Expiry columns (optional)"
     },
     "costPrice": "Cost price (what you paid)",
     "sellingPrice": "Selling price",
@@ -189,7 +193,19 @@
     "stockAtCost": "Stock at cost",
     "stockAtRetail": "Stock at retail",
     "searchPlaceholder": "Name, barcode, SKU or keyword…",
-    "clearFilters": "Clear"
+    "clearFilters": "Clear",
+    "shelfLifeDays": "Shelf life (days)",
+    "shelfLifeHint": "If set, the expiry date is calculated from the manufacture date",
+    "batchForStock": "Dates for the stock on hand",
+    "batchForNew": "First batch dates",
+    "manufactureDate": "Manufacture date",
+    "expiryAuto": "calculated automatically",
+    "batchesViaStockIn": "Dates of new deliveries are entered per batch on the Stock in page",
+    "invalidShelfLife": "Shelf life must be a positive number",
+    "expiryRequired": "Enter the expiry date for this product",
+    "expiryBeforeManufacture": "The expiry date cannot be before the manufacture date",
+    "editCorrection": "Corrected in the product form",
+    "quantityEditHint": "A change is booked in stock history as a correction"
   },
   "units": {
     "dona": "pcs",
@@ -213,7 +229,9 @@
     "noCategoriesFound": "No categories found",
     "confirmDelete": "Are you sure you want to delete this category?",
     "variantAttributes": "Variant characteristics",
-    "variantAttributesHint": "Suggested for new products, e.g. Volume, Power"
+    "variantAttributesHint": "Suggested for new products, e.g. Volume, Power",
+    "trackExpiry": "Track expiry dates",
+    "trackExpiryShort": "Expiry"
   },
   "pos": {
     "title": "POS System",
@@ -284,7 +302,21 @@
     "wholesale": "Wholesale",
     "wholesaleShort": "Wholesale",
     "manualPrice": "Manual",
-    "emptyCart": "Ticket is empty"
+    "emptyCart": "Ticket is empty",
+    "expiredBlocked": "only expired stock is left — it cannot be sold",
+    "sellExpiredTitle": "Expired goods",
+    "sellExpiredConfirm": "Only expired stock of this product is left. Sell it anyway?",
+    "addFirst": "Add first",
+    "keypad": "Keypad",
+    "keypadTarget": "Keypad types into",
+    "pay": "Pay",
+    "screenKeyboard": "On-screen keyboard",
+    "space": "space",
+    "language": "Language",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "cashierMenu": "Cashier menu",
+    "logoutHoldsCart": "The cart is kept as a held cart, then you are signed out."
   },
   "stock": {
     "title": "Stock Management",
@@ -322,7 +354,37 @@
     "selectProductAndQuantity": "Select a product and enter a valid quantity",
     "insufficientQuantity": "Not enough stock available",
     "selectSupplier": "Supplier",
-    "supplierOther": "Other (enter manually)"
+    "supplierOther": "Other (enter manually)",
+    "batchDates": "Batch dates",
+    "reasonExpired": "Expired",
+    "addLinePlaceholder": "Product name or barcode — a scanner works too",
+    "addLines": "Add products to the receipt",
+    "addLinesHint": "Find or scan each item of the delivery note: quantity, cost and selling price",
+    "creditNeedsSupplier": "To buy on credit, pick the supplier from the list",
+    "drawerNeedsShift": "Paying from the till needs an open shift",
+    "dueDate": "Payment due",
+    "invoiceNo": "Invoice no.",
+    "lineTotal": "Amount",
+    "lines": "lines",
+    "paidNow": "Paid now",
+    "payCredit": "On credit",
+    "payFull": "Paid in full",
+    "payPartial": "Partly",
+    "payment": "Payment",
+    "receiptSaved": "Receipt saved",
+    "receiptSubtitle": "A supplier delivery: many products on one note, on credit or paid",
+    "receiptTitle": "Goods receipt",
+    "receiptTotal": "Total",
+    "saveReceipt": "Save receipt",
+    "toSupplierDebt": "Owed to supplier",
+    "tooManyLines": "At most 150 lines per receipt — split it",
+    "method": {
+      "bank": "Bank transfer",
+      "card": "Card",
+      "cash": "Cash (safe/owner)",
+      "drawer": "Cash from the till"
+    },
+    "reasonAdjustment": "Correction"
   },
   "sales": {
     "title": "Sales",
@@ -406,7 +468,18 @@
     "totalOwed": "Total Owed",
     "lastDebt": "Last Debt",
     "debtHistory": "Debt History",
-    "itemsPurchased": "Items purchased"
+    "itemsPurchased": "Items purchased",
+    "accept": "Accept",
+    "cashToDrawer": "Cash goes into this shift's drawer",
+    "collectShort": "Debt payment",
+    "collectTitle": "Take a debt payment",
+    "findCustomer": "Customer name or phone",
+    "noDebtors": "No customers owe money",
+    "noShiftCash": "No open shift — the cash is not added to a drawer",
+    "openDebts": "open debts",
+    "otherCustomer": "Other customer",
+    "overpayCapped": "More than owed — only the debt is taken",
+    "payAll": "All of it"
   },
   "customers": {
     "title": "Customers",
@@ -436,7 +509,21 @@
     "noPurchases": "No purchases yet",
     "totalPurchased": "Total Purchased",
     "deleteConfirm": "Are you sure you want to delete this supplier?",
-    "noSuppliersFound": "No suppliers found"
+    "noSuppliersFound": "No suppliers found",
+    "account": "Account",
+    "balance": "We owe",
+    "balanceChange": "Balance change",
+    "currentDebt": "Current debt",
+    "delivery": "Delivery",
+    "operation": "Operation",
+    "overdue": "Payment overdue",
+    "owe": "owe",
+    "pay": "Pay",
+    "payHint": "Record a payment to the supplier. Cash from the till leaves the shift's drawer.",
+    "payment": "Payment",
+    "paymentSaved": "Payment saved",
+    "totalPaid": "Total paid",
+    "totalPayable": "Total owed to suppliers"
   },
   "settings": {
     "title": "Settings",
@@ -646,7 +733,9 @@
     "entityType": {
       "product": "Product",
       "user": "User"
-    }
+    },
+    "actionStockWriteOff": "Stock written off",
+    "actionBatchExpiryChanged": "Expiry date changed"
   },
   "messages": {
     "noSalesYet": "No sales yet",
@@ -1102,12 +1191,14 @@
       "repair": "Repairs",
       "supplies": "Supplies",
       "purchase": "Other purchases",
-      "other": "Other"
+      "other": "Other",
+      "writeOff": "Written-off goods"
     },
     "methods": {
       "cash": "Cash",
       "card": "Card",
-      "bank": "Bank transfer"
+      "bank": "Bank transfer",
+      "none": "No payment"
     },
     "newExpense": "Add expense",
     "editExpense": "Edit expense",
@@ -1174,7 +1265,15 @@
     "needsAttention": "Needs attention",
     "valueAtCost": "Value at cost",
     "allGood": "All good",
-    "howTo": "Turn on “Track expiry” in the product form and enter a date."
+    "howTo": "Turn on “Track expiry” in the product form and enter a date.",
+    "writeOff": "Write off",
+    "writeOffConfirm": "This batch leaves the stock and its cost is recorded as a loss in expenses.",
+    "writtenOff": "written off",
+    "changeDate": "Change date",
+    "currentDate": "Current date",
+    "newDate": "New date",
+    "dateChanged": "date changed",
+    "batches": "Batches (by expiry date)"
   },
   "period": {
     "today": "Today",

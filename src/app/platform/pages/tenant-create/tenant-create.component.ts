@@ -16,6 +16,7 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { DEFAULT_TRIAL_DAYS } from '../../../core/models/saas';
 import { authCreateErrorKey } from '../../../core/firebase/create-auth-account';
 import { generatePassword, money } from '../../platform-ui';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 interface CreatedStore {
   tenantId: string;
@@ -27,7 +28,7 @@ interface CreatedStore {
 @Component({
   selector: 'app-tenant-create',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     ReactiveFormsModule,
     RouterModule,
     MatCardModule,

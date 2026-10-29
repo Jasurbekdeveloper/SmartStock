@@ -51,9 +51,9 @@
             @if (entry.type === 'in') {
               {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice | currencyDisplay }}) }
             } @else if (reasonLabelKey(entry.reason); as key) {
-              {{ key | translate }}@if (entry.notes) { — {{ entry.notes }} }
+              {{ key | translate }}@if (entry.notes) { — {{ entry.notes | translate }} }
             } @else if (entry.notes) {
-              {{ entry.notes }}
+              {{ entry.notes | translate }}
             }
           </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>

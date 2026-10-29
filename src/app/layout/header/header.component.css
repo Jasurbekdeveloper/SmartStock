@@ -35,8 +35,10 @@
   cursor: pointer;
 }
 
-.topbar__user:hover {
-  background: var(--surface-2);
+@media (hover: hover) {
+  .topbar__user:hover {
+    background: var(--surface-2);
+  }
 }
 
 .topbar__avatar {
@@ -70,8 +72,10 @@
   transition: filter 0.15s;
 }
 
-.topbar__quick:hover {
-  filter: brightness(1.07);
+@media (hover: hover) {
+  .topbar__quick:hover {
+    filter: brightness(1.07);
+  }
 }
 
 .topbar__quick mat-icon {

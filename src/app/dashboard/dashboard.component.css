@@ -38,7 +38,9 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.db-attn:hover { border-color: var(--brand); background: var(--surface-2); }
+@media (hover: hover) {
+  .db-attn:hover { border-color: var(--brand); background: var(--surface-2); }
+}
 .db-attn--zero { opacity: 0.7; }
 
 .db-short {
@@ -69,5 +71,7 @@
   text-align: center;
 }
 
-.db-short:hover { border-color: var(--brand); }
+@media (hover: hover) {
+  .db-short:hover { border-color: var(--brand); }
+}
 .db-short:active { transform: scale(0.98); }

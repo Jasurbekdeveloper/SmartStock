@@ -27,6 +27,8 @@
           <mat-hint>{{ 'categories.variantAttributesHint' | translate }}</mat-hint>
         </mat-form-field>
 
+        <mat-slide-toggle formControlName="trackExpiry" class="pt-4">{{ 'categories.trackExpiry' | translate }}</mat-slide-toggle>
+
         <div class="flex items-center gap-3">
           @if (createImagePreviewUrl()) {
           <img [src]="createImagePreviewUrl()" alt="" class="w-12 h-12 rounded object-cover" />
@@ -63,6 +65,7 @@
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.imageUrl' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.name' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.variantAttributes' | translate }}</th>
+          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.trackExpiryShort' | translate }}</th>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.action' | translate }}</th>
         </tr>
       </thead>
@@ -95,6 +98,7 @@
               <input matInput [ngModel]="editAttributes()" (ngModelChange)="editAttributes.set($event)" placeholder="Hajm, Quvvat" />
             </mat-form-field>
           </td>
+          <td class="px-4 py-3"></td>
           <td class="px-4 py-3 whitespace-nowrap">
             <button mat-icon-button color="primary" [matTooltip]="'common.save' | translate" (click)="saveEdit(category.id)" [disabled]="savingEdit()">
               <mat-icon>check</mat-icon>
@@ -113,6 +117,13 @@
           </td>
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ category.name }}</td>
           <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{{ category.variantAttributes?.join(', ') || '—' }}</td>
+          <td class="px-4 py-3">
+            <mat-slide-toggle
+              [checked]="!!category.trackExpiry"
+              (change)="toggleTrackExpiry(category, $event.checked)"
+              [attr.aria-label]="'categories.trackExpiry' | translate"
+            ></mat-slide-toggle>
+          </td>
           <td class="px-4 py-3 whitespace-nowrap">
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="startEdit(category)">
               <mat-icon>edit</mat-icon>

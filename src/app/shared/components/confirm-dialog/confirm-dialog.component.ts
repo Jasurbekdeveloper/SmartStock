@@ -6,6 +6,8 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 export interface ConfirmDialogData {
   titleKey: string;
   messageKey: string;
+  /** Optional plain-text line under the message (e.g. what exactly is affected). */
+  detail?: string;
 }
 
 @Component({
@@ -14,7 +16,12 @@ export interface ConfirmDialogData {
   imports: [MatDialogModule, MatButtonModule, TranslatePipe],
   template: `
     <h2 mat-dialog-title>{{ data.titleKey | translate }}</h2>
-    <mat-dialog-content>{{ data.messageKey | translate }}</mat-dialog-content>
+    <mat-dialog-content>
+      {{ data.messageKey | translate }}
+      @if (data.detail) {
+      <p class="mt-2 font-semibold">{{ data.detail }}</p>
+      }
+    </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button (click)="dialogRef.close(false)">{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button color="warn" (click)="dialogRef.close(true)">{{ 'common.submit' | translate }}</button>

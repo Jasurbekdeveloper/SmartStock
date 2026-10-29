@@ -24,7 +24,9 @@ const KNOWN_ACTIONS = [
   'product_delete',
   'product_bulk_import',
   'role_change',
-  'active_toggle'
+  'active_toggle',
+  'stock_write_off',
+  'batch_expiry_changed'
 ] as const;
 const KNOWN_ENTITY_TYPES = ['product', 'user'] as const;
 

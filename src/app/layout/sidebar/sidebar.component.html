@@ -7,9 +7,11 @@
         <span class="side__store-sub">MarketHisob</span>
       </span>
     </a>
-    <button (click)="sidebarState.closeMobile()" class="side__close lg:hidden" aria-label="Close menu">
+    @if (sidebarState.overlay()) {
+    <button (click)="sidebarState.closeMobile()" class="side__close" aria-label="Close menu">
       <mat-icon>close</mat-icon>
     </button>
+    }
   </div>
 
   <a routerLink="/pos" routerLinkActive="side__cta--active" (click)="onNavigate()" class="side__cta">

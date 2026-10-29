@@ -13,11 +13,12 @@ import { Product, ProductService } from '../../../core/services/product.service'
 import { StockService } from '../../../core/services/stock.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-stock-adjustment',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     TranslatePipe,

@@ -6,9 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_ICONS, ExpenseCategory } from '../../core/utils/finance';
+import { EXPENSE_CATEGORY_ICONS, ExpenseCategory, MANUAL_EXPENSE_CATEGORIES } from '../../core/utils/finance';
 import { Expense, ExpenseInput, ExpenseMethod } from '../../core/services/expense.service';
 import { fromDateInput } from '../../core/utils/product-extras';
+import { NumericInputDirective } from '../../shared/directives/numeric-input.directive';
 
 export interface ExpenseDialogData {
   /** Editing an existing expense; omitted for a new one. */
@@ -36,7 +37,7 @@ function toInput(d: Date): string {
 @Component({
   selector: 'app-expense-dialog',
   standalone: true,
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatIconModule, MatSlideToggleModule, TranslatePipe, CurrencyDisplayPipe],
+  imports: [NumericInputDirective, FormsModule, MatDialogModule, MatButtonModule, MatIconModule, MatSlideToggleModule, TranslatePipe, CurrencyDisplayPipe],
   template: `
     <div class="xd">
       <div class="px-6 pt-5 pb-3">
@@ -132,7 +133,7 @@ export class ExpenseDialogComponent {
   data = inject<ExpenseDialogData>(MAT_DIALOG_DATA, { optional: true }) ?? {};
   private ref = inject(MatDialogRef<ExpenseDialogComponent, ExpenseDialogResult>);
 
-  readonly categories = EXPENSE_CATEGORIES;
+  readonly categories = MANUAL_EXPENSE_CATEGORIES;
   readonly icons = EXPENSE_CATEGORY_ICONS;
   readonly methods: ExpenseMethod[] = ['cash', 'card', 'bank'];
   readonly editing = !!this.data.expense;

@@ -14,11 +14,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DebtService } from '../../../core/services/debt.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-debt-create',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,

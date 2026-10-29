@@ -22,6 +22,7 @@ import {
 import { TenantService } from '../../../core/services/tenant.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 /** Local editable model for the General tab. `vatRatePercent` is what the admin types
  *  (e.g. 12) — it's converted to/from the stored fraction (0.12) on load/save so the
@@ -49,7 +50,7 @@ interface IntegrationFormModel {
 @Component({
   selector: 'app-settings-page',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     TranslateModule,

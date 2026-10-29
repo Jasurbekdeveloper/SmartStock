@@ -14,11 +14,12 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { Plan } from '../../../core/models/saas';
 import { SITE_LANGS } from '../../../core/models/site-content';
 import { money } from '../../platform-ui';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
   selector: 'app-plans',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,

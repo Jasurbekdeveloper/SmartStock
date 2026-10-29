@@ -13,8 +13,11 @@ import { Product, ProductService } from '../../../core/services/product.service'
 import { CategoryService } from '../../../core/services/category.service';
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
+import { expiryFromShelfLife } from '../../../core/utils/batches';
+import { BatchService, NewBatchInput } from '../../../core/services/batch.service';
 import {
   ParsedProductRow,
   PRODUCT_IMPORT_HEADERS,
@@ -31,6 +34,8 @@ interface PreviewRow {
   parsed: ParsedProductRow;
   action: ImportAction;
   existingId?: string;
+  /** The existing product already has expiry tracking (its stock is dated by batches). */
+  existingTracked?: boolean;
   categoryId?: string;
   categoryWarning: boolean;
 }
@@ -45,7 +50,7 @@ interface ImportResult {
 @Component({
   selector: 'app-product-import',
   standalone: true,
-  imports: [
+  imports: [SumPipe, 
     CommonModule,
     RouterModule,
     TranslatePipe,
@@ -61,6 +66,7 @@ interface ImportResult {
 })
 export class ProductImportComponent {
   private productService = inject(ProductService);
+  private batchService = inject(BatchService);
   private categoryService = inject(CategoryService);
   private auditLogService = inject(AuditLogService);
   private toastService = inject(ToastService);
@@ -139,6 +145,7 @@ export class ProductImportComponent {
           parsed,
           action: existing ? 'update' : 'create',
           existingId: existing?.id,
+          existingTracked: !!existing?.trackExpiry,
           categoryId,
           categoryWarning
         };
@@ -166,10 +173,9 @@ export class ProductImportComponent {
     let failed = 0;
     const failures: string[] = [];
 
-    // Sequential (not a Firestore writeBatch) — realistically a few hundred rows
-    // at most for initial store setup, and this reuses ProductService's existing
-    // addProduct/updateProduct methods (undefined-stripping, deleteField, etc.)
-    // instead of duplicating their write logic.
+    const creates: { row: PreviewRow; data: Omit<Product, 'id'>; batch?: NewBatchInput }[] = [];
+    const trackedCategories = new Set(this.categories().filter((c) => c.trackExpiry).map((c) => c.id));
+
     for (const row of rows) {
       const parsed = row.parsed;
       const altUnits = parsed.altUnitsRaw ? parseAltUnitsInput(parsed.altUnitsRaw) : [];
@@ -180,13 +186,10 @@ export class ProductImportComponent {
             .filter((k) => k.length > 0)
         : [];
 
-      // Required columns (always present for a row to have passed parsing) are
-      // always written. Optional fields are only included when the row actually
-      // supplies a value — on an UPDATE, `updateProduct()` turns an explicit
-      // `undefined` into Firestore's deleteField(), so blindly including e.g.
-      // `minQuantity: undefined` for a row that just left that column blank
-      // would silently wipe out the existing product's value. Omitting the key
-      // entirely instead leaves it untouched.
+      // Required columns are always written. Optional fields are only included when
+      // the row supplies a value — on an UPDATE, `updateProduct()` turns an explicit
+      // `undefined` into deleteField(), so a blank optional column must be omitted
+      // rather than wipe the existing value.
       const requiredFields = {
         name: parsed.name,
         sku: parsed.sku ?? parsed.barcode,
@@ -207,28 +210,73 @@ export class ProductImportComponent {
       if (searchKeywords.length > 0) optionalFields.searchKeywords = searchKeywords;
       if (row.categoryId !== undefined) optionalFields.categoryId = row.categoryId;
 
-      try {
-        if (row.action === 'update' && row.existingId) {
-          await firstValueFrom(
-            this.productService.updateProduct(row.existingId, { ...requiredFields, ...optionalFields })
-          );
+      // Expiry columns: any date or a shelf life switches tracking on. The stock in
+      // the row becomes the product's first dated batch.
+      const expiry = parsed.expiryDate ?? expiryFromShelfLife(parsed.manufactureDate, parsed.shelfLifeDays) ?? undefined;
+      const dated = !!expiry || parsed.shelfLifeDays !== undefined;
+      if (dated) optionalFields.trackExpiry = true;
+      if (parsed.shelfLifeDays !== undefined) optionalFields.shelfLifeDays = parsed.shelfLifeDays;
+      const batch: NewBatchInput | undefined =
+        expiry && parsed.quantity > 0
+          ? {
+              quantity: parsed.quantity,
+              expiryDate: expiry,
+              manufactureDate: parsed.manufactureDate ?? null,
+              batchNo: parsed.batchNo ?? null,
+              costPrice: parsed.cost || undefined
+            }
+          : undefined;
+
+      if (row.action === 'update' && row.existingId) {
+        try {
+          await firstValueFrom(this.productService.updateProduct(row.existingId, { ...requiredFields, ...optionalFields }));
+          // Date the stock only when the product had no batches yet — otherwise the
+          // file's total would double-count stock already dated by earlier deliveries.
+          if (batch && !row.existingTracked) await firstValueFrom(this.batchService.create(row.existingId, batch));
           updated++;
-        } else {
-          // A brand-new product always needs a categoryId (even if empty) since
-          // it's a required field on `Product` — unlike the update path, there's
-          // no existing value to preserve by omission.
-          const createData: Omit<Product, 'id'> = {
+        } catch (err) {
+          console.error('Product import row failed:', parsed.rowNumber, err);
+          failed++;
+          failures.push(`${parsed.rowNumber}: ${parsed.name || parsed.barcode}`);
+        }
+      } else {
+        const categoryId = optionalFields.categoryId ?? '';
+        creates.push({
+          row,
+          batch,
+          data: {
             ...requiredFields,
             ...optionalFields,
-            categoryId: optionalFields.categoryId ?? ''
-          };
-          await firstValueFrom(this.productService.addProduct(createData));
-          created++;
+            trackExpiry: optionalFields.trackExpiry ?? trackedCategories.has(categoryId),
+            categoryId
+          }
+        });
+      }
+    }
+
+    // New products go in bulk (Firestore write batches of 200) — hundreds of rows
+    // import in seconds instead of one round-trip per row. If the bulk write is
+    // refused (e.g. the plan's product limit), fall back to row by row so the
+    // admin sees exactly which rows did not make it.
+    // Each chunk of 200 is one atomic commit, so a failed chunk wrote nothing and
+    // can safely be retried row by row.
+    for (let start = 0; start < creates.length; start += 200) {
+      const chunk = creates.slice(start, start + 200);
+      try {
+        await firstValueFrom(this.productService.addProducts(chunk.map((c) => c.data), chunk.map((c) => c.batch)));
+        created += chunk.length;
+      } catch (bulkErr) {
+        console.warn('Bulk product import failed, retrying row by row:', bulkErr);
+        for (const c of chunk) {
+          try {
+            await firstValueFrom(this.productService.addProduct(c.data, c.batch));
+            created++;
+          } catch (err) {
+            console.error('Product import row failed:', c.row.parsed.rowNumber, err);
+            failed++;
+            failures.push(`${c.row.parsed.rowNumber}: ${c.row.parsed.name || c.row.parsed.barcode}`);
+          }
         }
-      } catch (err) {
-        console.error('Product import row failed:', parsed.rowNumber, err);
-        failed++;
-        failures.push(`${parsed.rowNumber}: ${parsed.name || parsed.barcode}`);
       }
     }
 

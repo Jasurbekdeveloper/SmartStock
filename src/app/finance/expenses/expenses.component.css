@@ -10,7 +10,9 @@
   transition: background 0.12s;
 }
 
-.xc-row:hover { background: var(--surface-2); }
+@media (hover: hover) {
+  .xc-row:hover { background: var(--surface-2); }
+}
 .xc-row--on { background: var(--brand-soft); }
 
 .xc-bar {

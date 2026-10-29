@@ -1,7 +1,7 @@
 <mat-sidenav-container class="h-screen !bg-transparent" (backdropClick)="sidebarState.closeMobile()">
   <mat-sidenav
-    [mode]="isHandset() ? 'over' : 'side'"
-    [opened]="isHandset() ? sidebarState.mobileOpen() : true"
+    [mode]="overlayMenu() ? 'over' : 'side'"
+    [opened]="overlayMenu() ? sidebarState.mobileOpen() : true"
     (closedStart)="sidebarState.closeMobile()"
     class="!w-[264px] !border-0 !rounded-none !bg-transparent"
   >
@@ -9,9 +9,11 @@
   </mat-sidenav>
 
   <mat-sidenav-content class="!bg-transparent">
+    @if (!focusMode()) {
     <app-header></app-header>
     <app-subscription-banner></app-subscription-banner>
-    <main class="p-4 lg:p-6 min-h-[calc(100%-4rem)]">
+    }
+    <main [class]="focusMode() ? 'pos-main' : 'p-4 lg:p-6 min-h-[calc(100%-4rem)]'">
       <router-outlet></router-outlet>
     </main>
   </mat-sidenav-content>

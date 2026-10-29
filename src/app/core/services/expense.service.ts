@@ -9,7 +9,8 @@ import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { ExpenseCategory } from '../utils/finance';
 import { stripUndefined } from './sales.service';
 
-export type ExpenseMethod = 'cash' | 'card' | 'bank';
+/** 'none' — no money moved (stock written off). */
+export type ExpenseMethod = 'cash' | 'card' | 'bank' | 'none';
 
 export interface Expense {
   id: string;

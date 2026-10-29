@@ -13,13 +13,14 @@ import { Product, ProductService } from '../../../core/services/product.service'
 import { StockService } from '../../../core/services/stock.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 export type StockOutReason = 'damaged' | 'lost' | 'returned' | 'other';
 
 @Component({
   selector: 'app-stock-out',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     TranslatePipe,

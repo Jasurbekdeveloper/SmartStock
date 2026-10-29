@@ -10,6 +10,8 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { roundMoney } from '../../../core/utils/pos-math';
+import { BatchAllocation, restoreAllocation, subtractAllocations } from '../../../core/utils/batches';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 export interface ReturnDialogData {
   sale: Sale;
@@ -30,12 +32,14 @@ interface ReturnRow {
   returnable: number;
   /** What one unit actually cost the customer, after every discount and VAT. */
   unitRefund: number;
+  /** Batch slices still available to give back. */
+  batchesLeft: BatchAllocation[];
 }
 
 @Component({
   selector: 'app-return-dialog',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     FormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -127,8 +131,12 @@ export class ReturnDialogComponent {
   private buildRows(): ReturnRow[] {
     const { sale, previousReturns } = this.data;
     const returned = new Map<string, number>();
+    const givenBack = new Map<string, BatchAllocation[]>();
     for (const r of previousReturns) {
-      for (const item of r.items) returned.set(item.productId, (returned.get(item.productId) ?? 0) + item.quantity);
+      for (const item of r.items) {
+        returned.set(item.productId, (returned.get(item.productId) ?? 0) + item.quantity);
+        givenBack.set(item.productId, [...(givenBack.get(item.productId) ?? []), ...(item.batches ?? [])]);
+      }
     }
 
     // Sales made before `finalTotal` existed: spread the sale total over lines pro rata.
@@ -144,7 +152,9 @@ export class ReturnDialogComponent {
         productName: item.productName,
         sold: item.quantity,
         returnable: Math.max(0, item.quantity - alreadyReturned),
-        unitRefund: item.quantity > 0 ? paid / item.quantity : 0
+        unitRefund: item.quantity > 0 ? paid / item.quantity : 0,
+        // Batch slices of this line not yet given back by an earlier return.
+        batchesLeft: subtractAllocations(item.batches, givenBack.get(item.productId) ?? [])
       };
     });
   }
@@ -160,8 +170,10 @@ export class ReturnDialogComponent {
         productId: row.productId,
         productName: row.productName,
         quantity: this.qty()[i] || 0,
-        refund: roundMoney(row.unitRefund * (this.qty()[i] || 0))
+        refund: roundMoney(row.unitRefund * (this.qty()[i] || 0)),
+        batches: restoreAllocation(row.batchesLeft, this.qty()[i] || 0)
       }))
+      .map((item) => (item.batches.length ? item : { ...item, batches: undefined }))
       .filter((item) => item.quantity > 0);
     if (items.length === 0) return;
 

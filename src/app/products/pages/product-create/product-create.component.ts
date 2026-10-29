@@ -18,7 +18,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { roleCan } from '../../../core/auth/permissions';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PRODUCT_UNITS } from '../../../core/constants/units';
-import { emptyExtras, extrasToProductFields, validateExtras } from '../../../core/utils/product-extras';
+import { emptyExtras, extrasToProductFields, initialBatchFromExtras, validateExtras } from '../../../core/utils/product-extras';
 import { ProductExtrasComponent } from '../../components/product-extras/product-extras.component';
 import { ImageDropzoneComponent, isAcceptableImage } from '../../../shared/components/image-dropzone/image-dropzone.component';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
@@ -36,6 +36,7 @@ import {
   attributeCombinations, attributesKey, legacyColorSize, MAX_VARIANT_AXES, parseAxisValues, presetExamples,
   toAttributes, VARIANT_ATTRIBUTE_PRESETS, variantSkuSuffix
 } from '../../../core/utils/product-variants';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 interface ProductVariantDraft {
   sku: string;
@@ -52,7 +53,7 @@ interface ProductVariantDraft {
 @Component({
   selector: 'app-product-create',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
@@ -123,6 +124,14 @@ export class ProductCreateComponent implements OnDestroy {
   /** Markup % mapped onto a 0–100 bar (100% markup fills it). */
   marginBar(percent: number | null): number {
     return Math.max(4, Math.min(100, Math.abs(percent ?? 0)));
+  }
+
+  /** Set once the user flips "track expiry" by hand; the category default no longer applies. */
+  trackExpiryTouched = false;
+
+  /** Stock entered with the form (main product + variants) — needs batch dates when tracked. */
+  totalQuantity(): number {
+    return Number(this.product.quantity || 0) + this.variants.reduce((s, v) => s + Number(v.quantity || 0), 0);
   }
 
   imageFile: File | null = null;
@@ -196,6 +205,9 @@ export class ProductCreateComponent implements OnDestroy {
   /** A new category brings its default characteristics, unless some are already chosen. */
   onCategoryChange(categoryId: string): void {
     this.product.categoryId = categoryId;
+    // Dairy, meat, paint…: the category says whether stock is usually dated.
+    const category = this.categories().find((c) => c.id === categoryId);
+    if (category && !this.trackExpiryTouched) this.extras.trackExpiry = !!category.trackExpiry;
     if (this.axes.length > 0) return;
     const defaults = this.categories().find((c) => c.id === categoryId)?.variantAttributes ?? [];
     for (const name of defaults.slice(0, MAX_VARIANT_AXES)) this.addAxis(name);
@@ -366,7 +378,7 @@ export class ProductCreateComponent implements OnDestroy {
       this.errorKey.set('products.fixHighlighted');
       return;
     }
-    const extrasError = validateExtras(this.extras);
+    const extrasError = validateExtras(this.extras, { batchQuantity: this.totalQuantity() });
     if (extrasError) {
       this.errorKey.set(extrasError);
       return;
@@ -427,7 +439,9 @@ export class ProductCreateComponent implements OnDestroy {
         this.submitting.set(false);
         return;
       }
-      await firstValueFrom(this.productService.addProducts([shared, ...variants]));
+      // Every variant arrived with the same delivery, so they share its dates.
+      const firstBatches = [shared, ...variants].map((p) => initialBatchFromExtras(this.extras, Number(p.quantity), Number(p.cost) || undefined));
+      await firstValueFrom(this.productService.addProducts([shared, ...variants], firstBatches));
       if (again) {
         this.toast.success(`${shared.name}: ${this.translation.translate('products.saved')}`);
         this.resetForm();
@@ -448,7 +462,7 @@ export class ProductCreateComponent implements OnDestroy {
   private resetForm(): void {
     const { categoryId, unit } = this.product;
     this.product = { name: '', barcode: '', price: 0, cost: 0, quantity: 0, unit, minQuantity: 0, categoryId, sku: '' };
-    this.extras = emptyExtras();
+    this.extras = { ...emptyExtras(), trackExpiry: this.extras.trackExpiry, shelfLifeDays: this.extras.shelfLifeDays };
     this.clearImage();
     for (const variant of this.variants) {
       if (variant.imagePreview) URL.revokeObjectURL(variant.imagePreview);

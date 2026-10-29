@@ -1,10 +1,10 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { TenantService } from '../core/services/tenant.service';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { HeaderComponent } from './header/header.component';
@@ -54,4 +54,26 @@ export class LayoutComponent {
     this.breakpointObserver.observe(this.handsetQuery).pipe(map((r) => r.matches)),
     { initialValue: typeof matchMedia !== 'undefined' ? matchMedia(this.handsetQuery).matches : false }
   );
+
+  private url = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map((e) => e.urlAfterRedirects),
+      startWith(this.router.url)
+    ),
+    { initialValue: this.router.url }
+  );
+  /** The till runs full screen (touch tablets, POS terminals): no header, no docked
+   *  menu — the menu opens over it from the till's own ☰ button. */
+  focusMode = computed(() => /^\/pos(\/|\?|$)/.test(this.url() ?? ''));
+  overlayMenu = computed(() => this.isHandset() || this.focusMode());
+
+  private readonly syncOverlay = effect(() => {
+    this.sidebarState.overlay.set(this.overlayMenu());
+    if (!this.overlayMenu()) this.sidebarState.closeMobile();
+  });
+
+  private readonly closeOnNavigate = this.router.events
+    .pipe(filter((e) => e instanceof NavigationEnd))
+    .subscribe(() => this.sidebarState.closeMobile());
 }

@@ -14,6 +14,10 @@
       {{ headers.unit }}, {{ headers.minQuantity }}, {{ headers.category }}, {{ headers.altUnits }},
       {{ headers.searchKeywords }}, {{ headers.description }}
     </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <b>{{ 'products.import.expiryColumns' | translate }}:</b>
+      {{ headers.manufactureDate }}, {{ headers.expiryDate }}, {{ headers.batchNo }}, {{ headers.shelfLifeDays }}
+    </p>
 
     <div class="flex flex-wrap items-center gap-3">
       <button mat-stroked-button type="button" (click)="downloadTemplate()">
@@ -93,8 +97,8 @@
             </td>
             <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.name }}</td>
             <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.barcode }}</td>
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.price }}</td>
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.quantity }} {{ 'units.' + row.parsed.unit | translate }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.price | sum }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ row.parsed.quantity | sum:3 }} {{ 'units.' + row.parsed.unit | translate }}</td>
             <td class="px-4 py-3 text-gray-900 dark:text-white">
               @if (row.categoryId) {
                 {{ row.parsed.categoryName }}

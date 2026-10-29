@@ -23,6 +23,7 @@ import { suggestSearchKeywords } from '../../../core/utils/search-keywords';
 import { priceMargin } from '../../../core/utils/price-margin';
 import { fromDateInput } from '../../../core/utils/product-extras';
 import { roundMoney } from '../../../core/utils/pos-math';
+import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 interface LogRow {
   at: Date;
@@ -44,7 +45,7 @@ const STICKY_KEY = 'smartstock_quick_entry';
 @Component({
   selector: 'app-product-quick',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, CurrencyDisplayPipe, SumPipe],
+  imports: [NumericInputDirective, CommonModule, FormsModule, RouterModule, MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe, CurrencyDisplayPipe, SumPipe],
   templateUrl: './product-quick.component.html',
   styleUrl: './product-quick.component.css'
 })
@@ -77,6 +78,10 @@ export class ProductQuickComponent {
   wholesalePrice = signal<number | null>(null);
   quantity = signal<number | null>(null);
   expiryDate = signal('');
+  manufactureDate = signal('');
+
+  /** New product: dated when the category tracks expiry or a date was typed. */
+  newTracked = computed(() => !!this.categories().find((c) => c.id === this.categoryId())?.trackExpiry || !!this.expiryDate());
 
   saving = signal(false);
   log = signal<LogRow[]>([]);
@@ -118,6 +123,8 @@ export class ProductQuickComponent {
     if (found) {
       this.cost.set(found.cost || null);
       this.price.set(found.price || null);
+      this.expiryDate.set('');
+      this.manufactureDate.set('');
       setTimeout(() => this.qtyInput()?.nativeElement.focus());
     } else {
       this.name.set('');
@@ -125,6 +132,7 @@ export class ProductQuickComponent {
       this.price.set(null);
       this.wholesalePrice.set(null);
       this.expiryDate.set('');
+      this.manufactureDate.set('');
       setTimeout(() => this.nameInput()?.nativeElement.focus());
     }
   }
@@ -162,7 +170,8 @@ export class ProductQuickComponent {
     const qty = Number(this.quantity() ?? 0);
     const price = Number(this.price() ?? 0);
     if (m === undefined || this.saving()) return false;
-    if (m) return qty > 0;
+    if (m) return qty > 0 && (!m.trackExpiry || !!this.expiryDate());
+    if (this.newTracked() && qty > 0 && !this.expiryDate()) return false;
     return !!this.name().trim() && price > 0 && qty >= 0 && (!this.canSeeCost() || Number(this.cost() ?? 0) > 0);
   });
 
@@ -196,7 +205,10 @@ export class ProductQuickComponent {
         supplier: '',
         costPrice: cost,
         currentCost: p.cost,
-        sellingPrice: price
+        sellingPrice: price,
+        batch: p.trackExpiry
+          ? { expiryDate: fromDateInput(this.expiryDate())!, manufactureDate: fromDateInput(this.manufactureDate()) }
+          : undefined
       })
     );
     this.pushLog({ kind: 'restock', name: p.name, quantity, unit: p.unit, cost, price });
@@ -220,10 +232,16 @@ export class ProductQuickComponent {
       familyId: crypto.randomUUID(),
       searchKeywords: suggestSearchKeywords(name),
       wholesalePrice: wholesale > 0 ? wholesale : null,
-      expiryDate: fromDateInput(this.expiryDate()),
+      trackExpiry: this.newTracked(),
+      expiryDate: null,
       mxikCode: null
     };
-    await firstValueFrom(this.productService.addProducts([product]));
+    const expiry = fromDateInput(this.expiryDate());
+    const batch =
+      expiry && quantity > 0
+        ? { quantity, expiryDate: expiry, manufactureDate: fromDateInput(this.manufactureDate()), costPrice: product.cost || undefined }
+        : undefined;
+    await firstValueFrom(this.productService.addProducts([product], [batch]));
     try {
       localStorage.setItem(STICKY_KEY, JSON.stringify({ categoryId: this.categoryId(), unit: this.unit() }));
     } catch {

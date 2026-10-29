@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild, signal, inject, computed, effect } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild, signal, inject, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,7 +21,7 @@ import { roleCan } from '../core/auth/permissions';
 import { Shift, ShiftService, computeShiftTotals } from '../core/services/shift.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
 import { CashMovementDialogComponent, CashMovementDialogData } from '../shared/components/cash-movement-dialog/cash-movement-dialog.component';
-import { PriceTier, expiryState, hasWholesale, resolveTier, tierPrice } from '../core/utils/price-tier';
+import { PriceTier, daysUntilExpiry, expiryState, hasWholesale, resolveTier, tierPrice } from '../core/utils/price-tier';
 import { roundMoney } from '../core/utils/pos-math';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
@@ -33,10 +33,52 @@ import { DEFAULT_RANGE_DAYS, daysAgo } from '../core/utils/date-range';
 import { PosPaymentDialogComponent, PosPaymentDialogData, PosPaymentDialogResult } from './pos-payment-dialog/pos-payment-dialog.component';
 import { PosSuccessDialogComponent, PosSuccessDialogData } from './pos-success-dialog/pos-success-dialog.component';
 import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/confirm-dialog.component';
+import { BatchService } from '../core/services/batch.service';
+import { ProductBatchSummary, allocateFefo, batchesByProduct, isBlockedExpired, summarizeBatches } from '../core/utils/batches';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
+import { NumericInputDirective } from '../shared/directives/numeric-input.directive';
+import { NumpadComponent } from '../shared/components/numpad/numpad.component';
+import { OnscreenKeyboardComponent, applyTextKey } from '../shared/components/onscreen-keyboard/onscreen-keyboard.component';
+import { DebtPaymentDialogComponent } from '../shared/components/debt-payment-dialog/debt-payment-dialog.component';
+import { SidebarStateService } from '../layout/sidebar/sidebar-state.service';
+import { TenantService } from '../core/services/tenant.service';
+import { ThemeService } from '../core/services/theme.service';
+import { Language } from '../core/services/translation.service';
+
+export type NumpadMode = 'qty' | 'price' | 'discount' | 'percent';
+const NUMPAD_STORAGE_KEY = 'smartstock_pos_numpad';
+const OSK_STORAGE_KEY = 'smartstock_pos_osk';
+/** Category tile colours (background, text) — products without a photo get one. */
+const TILE_TONES: [string, string][] = [
+  ['var(--brand-soft)', 'var(--brand-strong)'],
+  ['var(--info-soft)', 'var(--info)'],
+  ['var(--warning-soft)', 'var(--warning)'],
+  ['color-mix(in srgb, #8b5cf6 14%, var(--surface))', '#7c3aed'],
+  ['color-mix(in srgb, #ec4899 13%, var(--surface))', '#db2777'],
+  ['var(--success-soft)', 'var(--success)']
+];
+
+function readFlag(key: string, fallback: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
+
+function writeFlag(key: string, value: boolean) {
+  try {
+    localStorage.setItem(key, value ? '1' : '0');
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+const isTouch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 
 /** Browsing without a search shows this many products at most, most-sold first. */
 const BROWSE_LIMIT = 60;
@@ -45,7 +87,7 @@ const VIEW_MODE_STORAGE_KEY = 'smartstock_pos_view';
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [
+  imports: [NumericInputDirective, NumpadComponent, OnscreenKeyboardComponent, 
     CommonModule,
     FormsModule,
     RouterModule,
@@ -93,6 +135,190 @@ export class PosComponent implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private cashMovements = inject(CashMovementService);
+  private batchService = inject(BatchService);
+  sidebarState = inject(SidebarStateService);
+  private tenantService = inject(TenantService);
+  storeName = computed(() => this.tenantService.tenant()?.name ?? '');
+  themeService = inject(ThemeService);
+
+  // ------------------------------------------------------------ cashier menu (full-screen till)
+  readonly languages: { code: Language; name: string }[] = [
+    { code: 'uz', name: "O'zbekcha" },
+    { code: 'uz-cyrillic', name: 'Ўзбекча' },
+    { code: 'ru', name: 'Русский' },
+    { code: 'en', name: 'English' }
+  ];
+  userInitials = computed(() => {
+    const name = this.currentUser()?.displayName || this.currentUser()?.email || '?';
+    return name.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
+  });
+  currentLanguage(): string {
+    return this.translation.getLanguage();
+  }
+  setLanguage(lang: Language) {
+    this.translation.setLanguage(lang);
+  }
+  toggleTheme() {
+    this.themeService.toggleTheme();
+  }
+  /** Sign out from the till; an unfinished cart is kept as a held cart first. */
+  logout() {
+    const doLogout = () => {
+      if (this.cart().length > 0) this.holdCart();
+      this.authService.logout();
+      this.router.navigate(['/auth/login']);
+    };
+    if (this.cart().length === 0) {
+      doLogout();
+      return;
+    }
+    this.dialogOpen.set(true);
+    this.dialog
+      .open(ConfirmDialogComponent, { data: { titleKey: 'common.logout', messageKey: 'pos.logoutHoldsCart' } })
+      .afterClosed()
+      .subscribe((ok) => {
+        this.dialogOpen.set(false);
+        if (ok) doLogout();
+      });
+  }
+
+  // ------------------------------------------------------------ touch: numpad & keyboard
+  /** On-screen keypad under the ticket (quantity / price / discount of the selected line). */
+  showNumpad = signal(readFlag(NUMPAD_STORAGE_KEY, true));
+  numpadMode = signal<NumpadMode>('qty');
+  /** Text typed on the keypad; while `numpadFresh`, the first key replaces the value. */
+  numpadText = signal('');
+  numpadFresh = signal(true);
+  /** On-screen letter keyboard for the search box (default on touch screens). */
+  oskEnabled = signal(readFlag(OSK_STORAGE_KEY, isTouch));
+  oskOpen = signal(false);
+
+  private readonly resetNumpad = effect(() => {
+    this.selectedLineId();
+    this.numpadMode();
+    untracked(() => {
+      this.numpadFresh.set(true);
+      this.numpadText.set('');
+    });
+  });
+
+  selectedLine = computed(() => this.cart().find((i) => i.productId === this.selectedLineId()));
+
+  /** The selected line's current value in the keypad's mode. */
+  numpadCurrent = computed(() => {
+    const item = this.selectedLine();
+    if (!item) return 0;
+    switch (this.numpadMode()) {
+      case 'qty':
+        return this.cartLineDisplayQty(item);
+      case 'price':
+        return item.price;
+      case 'discount':
+        return item.discount ?? 0;
+      case 'percent': {
+        const gross = item.quantity * item.price;
+        return gross > 0 ? Math.round(((item.discount ?? 0) / gross) * 1000) / 10 : 0;
+      }
+    }
+  });
+
+  numpadDisplay = computed(() => (this.numpadFresh() ? String(this.numpadCurrent()) : this.numpadText() || '0'));
+
+  toggleNumpad() {
+    this.showNumpad.update((v) => !v);
+    writeFlag(NUMPAD_STORAGE_KEY, this.showNumpad());
+  }
+
+  toggleOsk() {
+    this.oskEnabled.update((v) => !v);
+    writeFlag(OSK_STORAGE_KEY, this.oskEnabled());
+    this.oskOpen.set(this.oskEnabled());
+  }
+
+  selectLine(productId: string, mode: NumpadMode = 'qty') {
+    if (mode === 'price' && !this.canEditPrice()) mode = 'qty';
+    this.selectedLineId.set(productId);
+    this.numpadMode.set(mode);
+  }
+
+  setNumpadMode(mode: NumpadMode) {
+    if (mode === 'price' && !this.canEditPrice()) return;
+    this.numpadMode.set(mode);
+  }
+
+  onNumpadInput(value: string) {
+    this.numpadText.set(value);
+    this.numpadFresh.set(false);
+  }
+
+  /** OK on the keypad: applies the typed value to the selected line. */
+  commitNumpad() {
+    const item = this.selectedLine();
+    if (!item || this.numpadFresh()) return;
+    const value = Number(this.numpadText()) || 0;
+    switch (this.numpadMode()) {
+      case 'qty':
+        if (value > 0) this.updateQuantity(item.productId, value);
+        else this.removeFromCart(item.productId);
+        break;
+      case 'price':
+        if (value > 0) this.updatePrice(item.productId, value);
+        break;
+      case 'discount':
+        this.updateLineDiscount(item.productId, value);
+        break;
+      case 'percent':
+        this.updateLineDiscount(item.productId, roundMoney((item.quantity * item.price * Math.min(100, value)) / 100));
+        break;
+    }
+    this.numpadFresh.set(true);
+    this.numpadText.set('');
+  }
+
+  onSearchFocus() {
+    if (this.oskEnabled()) this.oskOpen.set(true);
+  }
+
+  onOskKey(key: string) {
+    this.searchQuery.set(applyTextKey(this.searchQuery(), key));
+  }
+
+  /** "Add the first result" on the on-screen keyboard. */
+  addFirstResult() {
+    const first = this.displayedProducts()[0];
+    if (!first) return;
+    this.addToCart(first);
+    this.searchQuery.set('');
+  }
+
+  openDebtPayment() {
+    this.dialogOpen.set(true);
+    this.dialog
+      .open(DebtPaymentDialogComponent, { width: '760px', maxWidth: '96vw', autoFocus: false, data: {} })
+      .afterClosed()
+      .subscribe(() => this.dialogOpen.set(false));
+  }
+
+  tileTone(product: Product): [string, string] {
+    let h = 0;
+    for (const ch of product.categoryId || product.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return TILE_TONES[h % TILE_TONES.length];
+  }
+
+  /** Days to the nearest best-before date of what is on the shelf (null: not dated). */
+  expiryDays(product: Product): number | null {
+    const nearest = this.batchSummaries().get(product.id)?.nearestExpiry ?? product.expiryDate ?? null;
+    return daysUntilExpiry(nearest);
+  }
+
+  /** Product name split around the searched text, so the match can be highlighted. */
+  nameParts(name: string): [string, string, string] {
+    const q = this.searchQuery().trim();
+    if (!q) return [name, '', ''];
+    const i = name.toLocaleLowerCase().indexOf(q.toLocaleLowerCase());
+    if (i < 0) return [name, '', ''];
+    return [name.slice(0, i), name.slice(i, i + q.length), name.slice(i + q.length)];
+  }
 
   private scannerGun = createScannerGunDetector();
   /** Suppresses the global scanner listener while a dialog is open. */
@@ -109,6 +335,15 @@ export class PosComponent implements OnInit {
   @ViewChild('searchInput') private searchInputRef?: ElementRef<HTMLInputElement>;
 
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
+  /** Dated batches of tracked products (FEFO). Like `sales`, a failed read must not
+   *  break the till — the sale then just goes through without batch allocation. */
+  private batches = toSignal(this.batchService.getActiveBatches().pipe(catchError(() => of([]))), { initialValue: [] });
+  private batchMap = computed(() => batchesByProduct(this.batches()));
+  private batchSummaries = computed(() => {
+    const out = new Map<string, ProductBatchSummary>();
+    for (const [productId, list] of this.batchMap()) out.set(productId, summarizeBatches(list));
+    return out;
+  });
   /** Recent sales only drive the "most sold first" ordering of categories/products.
    *  A failing read (offline, index still building) must never break the till —
    *  toSignal rethrows errors on read — so it falls back to no ordering. */
@@ -171,7 +406,12 @@ export class PosComponent implements OnInit {
   }
 
   expiryOf(product: Product) {
-    return expiryState(product.expiryDate);
+    return this.batchSummaries().get(product.id)?.state ?? expiryState(product.expiryDate);
+  }
+
+  /** Only expired stock is left — a cashier may not sell it. */
+  private blockedExpired(product: Product): boolean {
+    return isBlockedExpired(product.quantity, this.batchSummaries().get(product.id));
   }
 
   initials(name: string): string {
@@ -318,8 +558,21 @@ export class PosComponent implements OnInit {
 
   // ---------------------------------------------------------------- cart
 
-  addToCart(product: Product) {
+  addToCart(product: Product, allowExpired = false) {
     const existing = this.cart().find((item) => item.productId === product.id);
+    if (!existing && !allowExpired && this.blockedExpired(product)) {
+      if (!this.canEditPrice()) {
+        this.toast.error(`${product.name}: ${this.translation.translate('pos.expiredBlocked')}`);
+        return;
+      }
+      this.dialog
+        .open(ConfirmDialogComponent, { data: { titleKey: 'pos.sellExpiredTitle', messageKey: 'pos.sellExpiredConfirm' } })
+        .afterClosed()
+        .subscribe((ok) => {
+          if (ok) this.addToCart(product, true);
+        });
+      return;
+    }
     if (existing) {
       // Scans/repeat clicks always add 1 primary unit, whatever unit the line displays.
       this.setLineQuantity(product.id, existing.quantity + 1);
@@ -341,11 +594,12 @@ export class PosComponent implements OnInit {
           discount: 0,
           unit: product.unit,
           altUnits: product.altUnits,
-          selectedUnit: product.unit
+          selectedUnit: product.unit,
+          ...(allowExpired ? { allowExpired: true } : {})
         }
       ]);
-      const exp = expiryState(product.expiryDate);
-      if (exp === 'expired') {
+      const exp = this.expiryOf(product);
+      if (exp === 'expired' && !allowExpired) {
         this.toast.error(`${product.name}: ${this.translation.translate('expiry.expiredWarning')}`);
       }
     }
@@ -543,7 +797,12 @@ export class PosComponent implements OnInit {
 
     const items: SaleItem[] = cart.map((item, i) => {
       const line = checkout.lines[i];
+      // Tracked goods leave from the batch that expires first (FEFO); the slices
+      // are stored on the line so a return can put them back.
+      const batches = this.batchMap().get(item.productId);
+      const allocations = batches?.length ? allocateFefo(batches, item.quantity, { allowExpired: item.allowExpired }).allocations : [];
       return {
+        ...(allocations.length ? { batches: allocations } : {}),
         productId: item.productId,
         productName: item.productName,
         categoryId: item.categoryId,
@@ -859,6 +1118,8 @@ interface CartItem {
   altUnits?: { unit: string; factor: number }[];
   /** Display-only: which unit the quantity input currently shows. */
   selectedUnit?: string;
+  /** A manager confirmed selling expired stock on this line. */
+  allowExpired?: boolean;
 }
 
 interface HeldCart {

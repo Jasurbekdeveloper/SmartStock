@@ -2,8 +2,9 @@ import { Component, input, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
-/** Max upload size, same as storage.rules. */
-export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** Largest photo accepted for picking: it is shrunk to ~1024px before upload, so even
+ *  big phone photos fit the 5 MB limit in storage.rules. */
+export const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
 export function isAcceptableImage(file: File): boolean {
   return file.type.startsWith('image/') && file.size <= MAX_IMAGE_BYTES;
@@ -39,7 +40,7 @@ export function isAcceptableImage(file: File): boolean {
       } @else {
       <mat-icon class="!w-10 !h-10 !text-[40px] opacity-70">add_photo_alternate</mat-icon>
       <span class="font-semibold">{{ 'products.dropImage' | translate }}</span>
-      <span class="text-xs opacity-80">PNG, JPG, WebP · 5 MB</span>
+      <span class="text-xs opacity-80">PNG, JPG, WebP</span>
       }
       <input #input type="file" accept="image/*" class="hidden" [disabled]="disabled()" (change)="onPick($event)" />
     </div>

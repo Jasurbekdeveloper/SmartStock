@@ -37,6 +37,7 @@ import {
   toAttributes, VARIANT_ATTRIBUTE_PRESETS, variantSkuSuffix
 } from '../../../core/utils/product-variants';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
+import { imageUploadErrorKey } from '../../../core/utils/image-compress';
 
 interface ProductVariantDraft {
   sku: string;
@@ -277,7 +278,7 @@ export class ProductCreateComponent implements OnDestroy {
   selectVariantImage(index: number, event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+    if (!isAcceptableImage(file)) {
       this.errorKey.set('products.invalidImage');
       return;
     }
@@ -402,7 +403,7 @@ export class ProductCreateComponent implements OnDestroy {
         if (this.imageFile) imageUrl = await firstValueFrom(this.storageService.uploadProductImage(this.imageFile));
       } catch (err) {
         console.error('Upload product image error:', err);
-        this.errorKey.set('products.imageUploadFailed');
+        this.errorKey.set(imageUploadErrorKey(err));
         this.submitting.set(false);
         return;
       }
@@ -435,7 +436,7 @@ export class ProductCreateComponent implements OnDestroy {
         })));
       } catch (err) {
         console.error('Upload product variant image error:', err);
-        this.errorKey.set('products.imageUploadFailed');
+        this.errorKey.set(imageUploadErrorKey(err));
         this.submitting.set(false);
         return;
       }

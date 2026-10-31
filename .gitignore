@@ -57,3 +57,7 @@ serviceAccount*.json
 
 # Temporary export of the marketing site (restored from Firebase Hosting)
 markethisob-site-*.json
+
+.ss-src.tgz
+.claude/settings.local.json
+src/test-setup.ts.unused

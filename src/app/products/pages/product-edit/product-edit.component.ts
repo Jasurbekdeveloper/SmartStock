@@ -42,6 +42,7 @@ import { mergeKeywordsInput, parseKeywordsInput, suggestSearchKeywords } from '.
 import { priceMargin } from '../../../core/utils/price-margin';
 import { formatNumber } from '../../../core/utils/format-number';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
+import { imageUploadErrorKey } from '../../../core/utils/image-compress';
 
 @Component({
   selector: 'app-product-edit',
@@ -328,7 +329,7 @@ export class ProductEditComponent implements OnInit, OnDestroy {
           payload = { ...payload, imageUrl: await firstValueFrom(this.storageService.uploadProductImage(this.imageFile)) };
         } catch (err) {
           console.error('Upload product image error:', err);
-          this.errorKey.set('products.imageUploadFailed');
+          this.errorKey.set(imageUploadErrorKey(err));
           this.submitting.set(false);
           return;
         }

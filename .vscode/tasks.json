@@ -37,6 +37,13 @@
           }
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "release",
+      "label": "npm: release",
+      "detail": "Test, build, commit, push, Firebase deploy",
+      "problemMatcher": []
     }
   ]
 }

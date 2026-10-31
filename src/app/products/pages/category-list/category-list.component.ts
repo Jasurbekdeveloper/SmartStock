@@ -19,6 +19,7 @@ import { parseAxisValues } from '../../../core/utils/product-variants';
 import { StorageService } from '../../../core/services/storage.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
+import { imageUploadErrorKey } from '../../../core/utils/image-compress';
 
 @Component({
   selector: 'app-category-list',
@@ -99,7 +100,7 @@ export class CategoryListComponent {
       },
       error: (err) => {
         console.error('Category image upload error:', err);
-        this.errorKey.set('messages.error');
+        this.errorKey.set(imageUploadErrorKey(err));
         this.createImageUploading.set(false);
       }
     });
@@ -119,7 +120,7 @@ export class CategoryListComponent {
       },
       error: (err) => {
         console.error('Category image upload error:', err);
-        this.errorKey.set('messages.error');
+        this.errorKey.set(imageUploadErrorKey(err));
         this.editImageUploading.set(false);
       }
     });

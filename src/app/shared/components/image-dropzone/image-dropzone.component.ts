@@ -33,7 +33,7 @@ export function isAcceptableImage(file: File): boolean {
       (paste)="onPaste($event)"
     >
       @if (preview(); as src) {
-      <img [src]="src" alt="" class="absolute inset-0 h-full w-full object-cover" />
+      <img [src]="src" alt="" class="absolute inset-0 h-full w-full object-contain" />
       <span class="dz__change">
         <mat-icon>photo_camera</mat-icon>{{ 'products.changeImage' | translate }}
       </span>

@@ -14,6 +14,7 @@ import { roundMoney } from '../../../core/utils/pos-math';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { ToastService } from '../../../core/services/toast.service';
+import { FiscalService } from '../../../core/services/fiscal.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
@@ -40,6 +41,7 @@ export class ShiftCloseComponent {
   private shiftService = inject(ShiftService);
   private salesService = inject(SalesService);
   private toast = inject(ToastService);
+  private fiscal = inject(FiscalService);
   private translation = inject(TranslationService);
 
   private shiftId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -72,6 +74,10 @@ export class ShiftCloseComponent {
       next: () => {
         this.submitting.set(false);
         this.toast.success(this.translation.translate('shifts.shiftClosed'));
+        // Close the fiscal shift too (VCR prints the Z-report).
+        if (this.fiscal.enabled()) {
+          this.fiscal.closeShift().catch((err: Error) => this.toast.error(`${this.translation.translate('fiscal.shiftFailed')}: ${err.message}`));
+        }
         this.router.navigate(['/shifts/history']);
       },
       error: (err) => {

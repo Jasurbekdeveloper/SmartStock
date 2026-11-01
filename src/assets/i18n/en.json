@@ -20,7 +20,9 @@
     "actions": "Actions",
     "menu": "Menu",
     "on": "on",
-    "off": "off"
+    "off": "off",
+    "back": "Back",
+    "select": "Select"
   },
   "tenant": {
     "backToHome": "Back to home",
@@ -208,7 +210,9 @@
     "expiryRequired": "Enter the expiry date for this product",
     "expiryBeforeManufacture": "The expiry date cannot be before the manufacture date",
     "editCorrection": "Corrected in the product form",
-    "quantityEditHint": "A change is booked in stock history as a correction"
+    "quantityEditHint": "A change is booked in stock history as a correction",
+    "mxikPick": "Pick from the catalogue",
+    "mxikPackage": "Package"
   },
   "units": {
     "dona": "pcs",
@@ -780,7 +784,13 @@
     "notLinked": "This Telegram account is not connected to any employee. Log in with email and password first, then connect Telegram.",
     "taken": "This Telegram account is connected to another employee",
     "invalid": "Telegram data could not be verified. Please try again.",
-    "serviceUnavailable": "Telegram login is temporarily unavailable. Use email and password."
+    "serviceUnavailable": "Telegram login is temporarily unavailable. Use email and password.",
+    "linkViaBot": "Connect in the Telegram app",
+    "linkViaBotHint": "Telegram opens — press START in the account you want to connect. Any account works.",
+    "widgetHint": "This button connects the Telegram account last used in this browser.",
+    "switchAccount": "Switch to another Telegram account",
+    "waitingStart": "Open the bot in Telegram and press START. This window updates by itself once connected.",
+    "openBot": "Open the bot"
   },
   "subscription": {
     "title": "Subscription",
@@ -1304,5 +1314,70 @@
     "valueAtCost": "Value at cost",
     "session": "This session",
     "sessionEmpty": "Nothing entered yet"
+  },
+  "mxik": {
+    "title": "Choose the MXIK (IKPU) code",
+    "placeholder": "Product name: milk, cement, bread…",
+    "hint": "Searches the Tax Committee catalogue (tasnif.soliq.uz) by barcode and name, in Uzbek (Latin or Cyrillic) or Russian.",
+    "byBarcode": "By barcode",
+    "current": "Current",
+    "nothing": "Nothing found. Try a shorter, more general name (e.g. \"milk\").",
+    "package": "Unit / package",
+    "noPackages": "No packages listed for this code.",
+    "packageHint": "Each MXIK code has its own packages. The one matching the product unit was chosen for you — change it if needed."
+  },
+  "marking": {
+    "required": "Marked product (Asl belgisi)",
+    "requiredHint": "Water, drinks, beer, alcohol, tobacco. The till scans each unit's Data Matrix code onto the receipt. Turns on by itself the first time a code is scanned.",
+    "alreadyScanned": "This marking code was already scanned — scan another unit",
+    "productNotFound": "No product matches this marking code. Add the item's barcode to its product card",
+    "scanEachUnit": "marked product — scan the Data Matrix code of every unit. Missing",
+    "lineHint": "Marking codes scanned / units"
+  },
+  "labels": {
+    "title": "Barcode labels",
+    "showPrice": "Show price",
+    "showName": "Show name",
+    "showStore": "Store name",
+    "copies": "Copies",
+    "preview": "Preview",
+    "total": "Total labels",
+    "noBarcode": "No barcode — skipped",
+    "printMany": "Labels",
+    "forReceipt": "Print labels (one per unit)",
+    "settingsTitle": "Barcode label",
+    "settingsHint": "Label size and what is printed on it. You can also change it in the print window."
+  },
+  "fiscal": {
+    "tab": "Fiscal register",
+    "intro": "Each sale is sent to the Tax Committee as a fiscal receipt through the REGOS: VCR virtual cash register, which also takes Click, Payme and Uzum payments. These settings are stored on this computer only — set them on every till that runs VCR.",
+    "enable": "Fiscalise sales (send to the tax office)",
+    "url": "VCR address",
+    "urlHint": "API address and port from the VCR settings, or the MarketHisob bridge (http://127.0.0.1:18347).",
+    "login": "VCR cashier login",
+    "password": "VCR cashier password",
+    "test": "Test connection",
+    "connected": "Connected, fiscal module",
+    "receiptsLeft": "· receipts left this shift:",
+    "unreachable": "Can't reach the virtual cash register. Check VCR is running and the address is right (or start the bridge).",
+    "bridgeHint": "If the browser can't call VCR directly (CORS), run the MarketHisob bridge on the till computer: bridge/start-bridge.bat. It exposes VCR on 127.0.0.1:18347.",
+    "saleFailed": "No fiscal receipt, the sale was not saved",
+    "refundFailed": "No refund receipt, the return was not saved",
+    "shiftFailed": "Fiscal shift (Z-report) error",
+    "noMxik": "no MXIK code — pick it on the product card",
+    "noPackage": "no package code — pick the MXIK code from the catalogue again",
+    "terminal": "FM",
+    "receiptNo": "Fiscal receipt no.",
+    "sign": "Fiscal sign"
+  },
+  "payments": {
+    "viaSystem": "Through a payment system (full amount):",
+    "scanCustomerCode": "Scan the payment code (QR) on the customer's phone, or type it.",
+    "codePlaceholder": "Payment code",
+    "customerScansQr": "The customer scans this QR in their payment app.",
+    "waiting": "Waiting for the payment to be confirmed…",
+    "paid": "Paid",
+    "failed": "The payment failed. Try again or choose another method.",
+    "charge": "Charge"
   }
 }

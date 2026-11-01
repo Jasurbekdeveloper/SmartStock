@@ -76,6 +76,23 @@
             </mat-button-toggle-group>
           </div>
 
+          <div class="rounded-xl border p-4 space-y-3" style="border-color: var(--border)">
+            <div>
+              <p class="font-semibold">{{ 'labels.settingsTitle' | translate }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'labels.settingsHint' | translate }}</p>
+            </div>
+            <mat-button-toggle-group [value]="g.labels.size" (change)="setLabels({ size: $event.value })">
+              @for (s of labelSizes; track s) {
+              <mat-button-toggle [value]="s">{{ s === 'a4' ? 'A4' : s + ' mm' }}</mat-button-toggle>
+              }
+            </mat-button-toggle-group>
+            <div class="flex flex-wrap gap-x-6 gap-y-2">
+              <mat-slide-toggle [checked]="g.labels.showPrice" (change)="setLabels({ showPrice: $event.checked })">{{ 'labels.showPrice' | translate }}</mat-slide-toggle>
+              <mat-slide-toggle [checked]="g.labels.showName" (change)="setLabels({ showName: $event.checked })">{{ 'labels.showName' | translate }}</mat-slide-toggle>
+              <mat-slide-toggle [checked]="g.labels.showStore" (change)="setLabels({ showStore: $event.checked })">{{ 'labels.showStore' | translate }}</mat-slide-toggle>
+            </div>
+          </div>
+
           <div class="pt-2">
             <button mat-flat-button color="primary" type="submit" [disabled]="savingGeneral()">
               {{ 'common.save' | translate }}
@@ -113,6 +130,40 @@
           </div>
           }
         </form>
+      </mat-tab>
+
+      <!-- Fiscal cash register (REGOS: VCR) — stored on this device only -->
+      <mat-tab [label]="'fiscal.tab' | translate">
+        @let fc = fiscalForm();
+        <div class="p-6 space-y-4 max-w-2xl">
+          <p class="text-sm text-gray-600 dark:text-gray-300">{{ 'fiscal.intro' | translate }}</p>
+          <mat-slide-toggle [checked]="fc.enabled" (change)="patchFiscal({ enabled: $event.checked })">{{ 'fiscal.enable' | translate }}</mat-slide-toggle>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <mat-form-field appearance="outline" class="w-full md:col-span-2">
+              <mat-label>{{ 'fiscal.url' | translate }}</mat-label>
+              <input matInput [value]="fc.url" (input)="patchFiscal({ url: $any($event.target).value })" placeholder="http://127.0.0.1:18347" autocomplete="off" />
+              <mat-hint>{{ 'fiscal.urlHint' | translate }}</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'fiscal.login' | translate }}</mat-label>
+              <input matInput [value]="fc.login" (input)="patchFiscal({ login: $any($event.target).value })" autocomplete="off" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>{{ 'fiscal.password' | translate }}</mat-label>
+              <input matInput type="password" [value]="fc.password" (input)="patchFiscal({ password: $any($event.target).value })" autocomplete="new-password" />
+            </mat-form-field>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="saveFiscal()">{{ 'common.save' | translate }}</button>
+            <button mat-stroked-button type="button" [disabled]="fiscalTesting()" (click)="testFiscal()">
+              <mat-icon>lan</mat-icon>{{ 'fiscal.test' | translate }}
+            </button>
+          </div>
+          @if (fiscalStatus(); as st) {
+          <p class="badge !flex !rounded-lg !px-3 !py-2 w-full" [class.badge--green]="st.ok" [class.badge--red]="!st.ok">{{ st.text }}</p>
+          }
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'fiscal.bridgeHint' | translate }}</p>
+        </div>
       </mat-tab>
     </mat-tab-group>
   </mat-card>

@@ -9,7 +9,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import type { IScannerControls } from '@zxing/browser';
 
 /** Formats printed on retail goods, plus our own Code128 labels and QR. */
-const NATIVE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'qr_code'];
+const NATIVE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'qr_code', 'data_matrix'];
 
 /** Minimal typing for the Shape Detection API (Chrome on Android/macOS/ChromeOS). */
 interface NativeBarcodeDetector {
@@ -160,7 +160,8 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
           BarcodeFormat.CODE_128,
           BarcodeFormat.CODE_39,
           BarcodeFormat.ITF,
-          BarcodeFormat.QR_CODE
+          BarcodeFormat.QR_CODE,
+          BarcodeFormat.DATA_MATRIX
         ]
       ],
       [DecodeHintType.TRY_HARDER, true]

@@ -21,6 +21,11 @@
   .pc-aside {
     position: sticky;
     top: 5rem;
+    /* With a photo the card gets tall: keep the whole aside (info, price, save
+       buttons) reachable instead of letting it run off the bottom of the screen. */
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 

@@ -33,6 +33,8 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { StorageService } from '../../../core/services/storage.service';
 import { firstValueFrom, take } from 'rxjs';
 import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
+import { MxikPickerDialogComponent, MxikPickerData } from '../../../shared/components/mxik-picker-dialog/mxik-picker-dialog.component';
+import { MxikSelection } from '../../../core/services/mxik.service';
 import { validateAttributeRows, validateProductForm } from '../../../core/utils/product-form-validation';
 import {
   legacyColorSize, MAX_VARIANT_AXES, presetExamples, ProductAttribute, productAttributes, VARIANT_ATTRIBUTE_PRESETS
@@ -147,6 +149,22 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   keywordList = computed(() => parseKeywordsInput(this.searchKeywordsInput()));
 
   readonly mxikInvalid = (code: string) => !!code.trim() && !isValidMxikCode(code);
+
+  pickMxik(p: Product) {
+    this.dialog
+      .open<MxikPickerDialogComponent, MxikPickerData, MxikSelection>(MxikPickerDialogComponent, {
+        data: { name: p.name, barcode: p.barcode, currentCode: p.mxikCode, unit: p.unit },
+        maxWidth: '96vw'
+      })
+      .afterClosed()
+      .subscribe((sel) => {
+        if (!sel) return;
+        p.mxikCode = sel.mxikCode;
+        p.mxikName = sel.mxikName;
+        p.packageCode = sel.packageCode;
+        p.packageName = sel.packageName;
+      });
+  }
   generating = signal(false);
 
   /** Characteristics of this variant (Hajm = 80 L...), edited as name/value rows.

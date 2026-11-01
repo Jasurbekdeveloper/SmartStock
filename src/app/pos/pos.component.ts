@@ -36,6 +36,9 @@ import { ConfirmDialogComponent } from '../shared/components/confirm-dialog/conf
 import { BatchService } from '../core/services/batch.service';
 import { ProductBatchSummary, allocateFefo, batchesByProduct, isBlockedExpired, summarizeBatches } from '../core/utils/batches';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
+import { barcodeMatchesGtin, parseMarkingCode } from '../core/utils/marking';
+import { FiscalReceipt, FiscalService } from '../core/services/fiscal.service';
+import { FiscalLineInput, buildVcrPayments, buildVcrPositions, fiscalProblems } from '../core/utils/vcr-receipt';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
@@ -82,6 +85,7 @@ const isTouch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coars
 
 /** Browsing without a search shows this many products at most, most-sold first. */
 const BROWSE_LIMIT = 60;
+const SEARCH_LIMIT = 120;
 const VIEW_MODE_STORAGE_KEY = 'smartstock_pos_view';
 
 @Component({
@@ -124,6 +128,7 @@ export class PosComponent implements OnInit {
   viewMode = signal<'grid' | 'list'>(this.loadViewMode());
 
   private productService = inject(ProductService);
+  private fiscal = inject(FiscalService);
   private categoryService = inject(CategoryService);
   private salesService = inject(SalesService);
   private debtService = inject(DebtService);
@@ -528,19 +533,31 @@ export class PosComponent implements OnInit {
 
   private productById = computed(() => new Map(this.products().map((p) => [p.id, p])));
 
+  /** Normalised search text per product, built once per catalogue change instead of on
+   *  every keystroke (transliterating thousands of names per key made typing lag). */
+  private searchIndex = computed(() =>
+    this.products().map((p) => ({
+      product: p,
+      text: [p.name, variantLabel(p), p.sku ?? '', ...(p.searchKeywords ?? [])].map((t) => normalizeForSearch(t)).join('\u0000'),
+      barcode: (p.barcode ?? '').toLowerCase()
+    }))
+  );
+
   displayedProducts = computed(() => {
     const query = this.searchQuery().trim();
     if (query) {
       // Cross-script (Latin/Cyrillic) name match; barcode stays a plain substring match.
       const normalizedQuery = normalizeForSearch(query);
       const barcodeQuery = query.toLowerCase();
-      return this.products().filter(
-        (p) =>
-          normalizeForSearch(p.name).includes(normalizedQuery) ||
-          normalizeForSearch(`${variantLabel(p)} ${p.sku ?? ''}`).includes(normalizedQuery) ||
-          p.barcode.includes(barcodeQuery) ||
-          (p.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false)
-      );
+      const hits: Product[] = [];
+      for (const entry of this.searchIndex()) {
+        if (entry.text.includes(normalizedQuery) || entry.barcode.includes(barcodeQuery)) {
+          hits.push(entry.product);
+          // Enough to choose from; drawing hundreds of tiles slows a tablet down.
+          if (hits.length >= SEARCH_LIMIT) break;
+        }
+      }
+      return hits;
     }
     const categoryId = this.selectedCategoryId();
     const list = categoryId ? this.products().filter((p) => p.categoryId === categoryId) : this.products();
@@ -595,7 +612,8 @@ export class PosComponent implements OnInit {
           unit: product.unit,
           altUnits: product.altUnits,
           selectedUnit: product.unit,
-          ...(allowExpired ? { allowExpired: true } : {})
+          ...(allowExpired ? { allowExpired: true } : {}),
+          ...(product.markingRequired ? { markingRequired: true, markingCodes: [] } : {})
         }
       ]);
       const exp = this.expiryOf(product);
@@ -670,7 +688,12 @@ export class PosComponent implements OnInit {
   /** Quantity change in primary units; re-evaluates the wholesale threshold. */
   private setLineQuantity(productId: string, quantity: number) {
     this.cart.update((cart) =>
-      cart.map((item) => (item.productId === productId ? this.repriced({ ...item, quantity }) : item))
+      cart.map((item) => {
+        if (item.productId !== productId) return item;
+        // Fewer units than scanned codes: drop the last scanned ones.
+        const codes = item.markingCodes && item.markingCodes.length > quantity ? item.markingCodes.slice(0, Math.max(0, Math.floor(quantity))) : item.markingCodes;
+        return this.repriced({ ...item, quantity, ...(codes ? { markingCodes: codes } : {}) });
+      })
     );
   }
 
@@ -753,6 +776,15 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    const unmarked = this.cart().find((item) => this.missingMarkingCodes(item) > 0);
+    if (unmarked) {
+      this.selectedLineId.set(unmarked.productId);
+      this.toast.error(
+        `${unmarked.productName}: ${this.translation.translate('marking.scanEachUnit')} (${this.missingMarkingCodes(unmarked)})`
+      );
+      return;
+    }
+
     const data: PosPaymentDialogData = {
       lines: this.checkoutLines(),
       vat: { vatRate: this.vatRate(), pricesIncludeVat: this.pricesIncludeVat() },
@@ -814,7 +846,8 @@ export class PosComponent implements OnInit {
         ...(line.lineDiscount > 0 ? { discount: line.lineDiscount } : {}),
         finalTotal: line.total,
         itemCostPrice: item.costPrice ?? 0,
-        netProfit: line.profit
+        netProfit: line.profit,
+        ...(item.markingCodes?.length ? { markingCodes: item.markingCodes } : {})
       };
     });
 
@@ -848,14 +881,70 @@ export class PosComponent implements OnInit {
         : { amount: split.debt, customerId: payment.customerId };
     }
 
-    this.salesService.createSale(sale, debt).subscribe({
-      next: (saleId) => {
-        this.submitting.set(false);
-        this.clearCart();
-        this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt });
-      },
-      error: (err) => this.saleFailed(err)
+    const save = (fiscal?: FiscalReceipt, fiscalSkipped?: string) =>
+      this.salesService
+        .createSale({ ...sale, ...(fiscal ? { fiscal } : {}), ...(fiscalSkipped ? { fiscalSkipped } : {}) }, debt)
+        .subscribe({
+          next: (saleId) => {
+            this.submitting.set(false);
+            this.clearCart();
+            this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt });
+          },
+          error: (err) => this.saleFailed(err)
+        });
+
+    if (!this.fiscal.enabled()) {
+      save();
+      return;
+    }
+    // A nasiya (credit) sale isn't fiscalised now: the receipt is issued when it is paid.
+    if (split.debt > 0) {
+      save(undefined, 'credit');
+      return;
+    }
+    // The fiscal receipt comes first: if the tax side refuses, nothing is saved and the
+    // cart stays, so the cashier can fix it (or retry) without a sale "half done".
+    const vatFactor = this.pricesIncludeVat() ? 1 : 1 + this.vatRate();
+    const lines: FiscalLineInput[] = cart.map((item, i) => {
+      const line = checkout.lines[i];
+      const product = this.productById().get(item.productId);
+      return {
+        productId: item.productId,
+        name: item.productName,
+        barcode: product?.barcode,
+        mxikCode: product?.mxikCode,
+        packageCode: product?.packageCode,
+        unit: item.unit,
+        quantity: item.quantity,
+        paid: line.total,
+        discount: (line.lineDiscount + line.cartDiscountShare) * vatFactor,
+        markingCodes: item.markingCodes
+      };
     });
+    const problems = fiscalProblems(lines);
+    if (problems.length > 0) {
+      this.submitting.set(false);
+      this.toast.error(`${problems[0].name}: ${this.translation.translate(problems[0].key)}`);
+      return;
+    }
+    const positions = buildVcrPositions(lines, this.vatRate());
+    this.fiscal
+      .sale({
+        code: receiptNo,
+        positions,
+        payments: buildVcrPayments(positions, split.card, payment.vcrPaymentId),
+        cashierName: user?.displayName,
+        sessionCode: shift?.id
+      })
+      .then(
+        (receipt) => save(receipt),
+        (err: Error) => {
+          console.error('Fiscal receipt error:', err);
+          this.submitting.set(false);
+          const msg = err.message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : err.message;
+          this.toast.error(`${this.translation.translate('fiscal.saleFailed')}: ${msg}`);
+        }
+      );
   }
 
   private showSuccess(data: PosSuccessDialogData) {
@@ -1009,12 +1098,56 @@ export class PosComponent implements OnInit {
   }
 
   private addProductByBarcode(barcode: string) {
+    const marking = parseMarkingCode(barcode);
+    if (marking) {
+      this.addMarkedUnit(marking.gtin, marking.code);
+      return;
+    }
     const product = this.products().find((p) => p.barcode === barcode);
     if (product) {
       this.addToCart(product);
       this.searchQuery.set('');
     } else {
       this.toast.error(this.translation.translate('pos.scanNotFound'));
+    }
+  }
+
+  /** How many units of a marked line still need their code scanned. */
+  missingMarkingCodes(item: CartItem): number {
+    if (!item.markingRequired) return 0;
+    return Math.max(0, Math.ceil(item.quantity) - (item.markingCodes?.length ?? 0));
+  }
+
+  /**
+   * A Data Matrix (Asl belgisi) scan: finds the product by the code's GTIN, adds one unit
+   * and keeps the code on the line. The same pack can't be scanned twice. A product
+   * that wasn't flagged yet is flagged now, so it is never sold without a code again.
+   */
+  private addMarkedUnit(gtin: string, code: string) {
+    if (this.cart().some((i) => i.markingCodes?.includes(code))) {
+      this.toast.error(this.translation.translate('marking.alreadyScanned'));
+      return;
+    }
+    const product = this.products().find((p) => barcodeMatchesGtin(p.barcode, gtin));
+    if (!product) {
+      this.toast.error(`${this.translation.translate('marking.productNotFound')} (GTIN ${gtin})`);
+      return;
+    }
+    const line = this.cart().find((i) => i.productId === product.id);
+    // A line that already has units waiting for codes takes this code without growing.
+    if (line && this.missingMarkingCodes(line) > 0) {
+      this.cart.update((cart) => cart.map((i) => (i.productId === product.id ? { ...i, markingCodes: [...(i.markingCodes ?? []), code] } : i)));
+      this.selectedLineId.set(product.id);
+    } else {
+      this.addToCart(product);
+      this.cart.update((cart) =>
+        cart.map((i) => (i.productId === product.id ? { ...i, markingRequired: true, markingCodes: [...(i.markingCodes ?? []), code] } : i))
+      );
+    }
+    this.searchQuery.set('');
+    if (!product.markingRequired) {
+      // Best effort: cashiers may not edit products; the line is flagged either way.
+      this.productService.updateProduct(product.id, { markingRequired: true }).subscribe({ error: () => undefined });
     }
   }
 
@@ -1120,6 +1253,10 @@ interface CartItem {
   selectedUnit?: string;
   /** A manager confirmed selling expired stock on this line. */
   allowExpired?: boolean;
+  /** The product needs one scanned marking code per unit (Asl belgisi). */
+  markingRequired?: boolean;
+  /** Marking codes scanned for this line, one per unit. */
+  markingCodes?: string[];
 }
 
 interface HeldCart {

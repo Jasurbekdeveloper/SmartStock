@@ -75,6 +75,19 @@ import { NumericInputDirective } from '../../../shared/directives/numeric-input.
     <div class="mt-5 rounded-2xl p-4 xu-expiry">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-start gap-3">
+          <span class="stat__icon tone-blue !w-9 !h-9"><mat-icon class="!text-[20px] !w-5 !h-5">qr_code_2</mat-icon></span>
+          <div>
+            <p class="text-sm font-semibold">{{ 'marking.required' | translate }}</p>
+            <p class="text-xs text-muted">{{ 'marking.requiredHint' | translate }}</p>
+          </div>
+        </div>
+        <mat-slide-toggle [(ngModel)]="d.markingRequired" [ngModelOptions]="{ standalone: true }" [attr.aria-label]="'marking.required' | translate"></mat-slide-toggle>
+      </div>
+    </div>
+
+    <div class="mt-3 rounded-2xl p-4 xu-expiry">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-start gap-3">
           <span class="stat__icon tone-amber !w-9 !h-9"><mat-icon class="!text-[20px] !w-5 !h-5">event</mat-icon></span>
           <div>
             <p class="text-sm font-semibold">{{ 'products.trackExpiry' | translate }}</p>

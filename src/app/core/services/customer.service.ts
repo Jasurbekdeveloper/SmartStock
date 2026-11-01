@@ -13,7 +13,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { fromCollectionQuery, fromDocRef, sharedStream } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
@@ -38,8 +38,10 @@ export class CustomerService {
   private authService = inject(AuthService);
 
   getCustomers(): Observable<Customer[]> {
-    const customersQuery = tenantQuery(this.firestore, 'customers', requireTenantId(this.authService), orderBy('name'));
-    return fromCollectionQuery<Customer>(customersQuery);
+    const tenantId = requireTenantId(this.authService);
+    return sharedStream(`customers:${tenantId}`, () =>
+      fromCollectionQuery<Customer>(tenantQuery(this.firestore, 'customers', tenantId, orderBy('name')))
+    );
   }
 
   getCustomerById(id: string): Observable<Customer | undefined> {

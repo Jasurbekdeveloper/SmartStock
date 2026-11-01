@@ -308,6 +308,12 @@
             }
             @if (item.tier === 'wholesale') { <span class="badge badge--blue !py-0">{{ 'pos.wholesaleShort' | translate }}</span> }
             @if (item.priceOverridden) { <span class="badge badge--gray !py-0">{{ 'pos.manualPrice' | translate }}</span> }
+            @if (item.markingRequired) {
+            <span class="badge !py-0" [class.badge--amber]="missingMarkingCodes(item) > 0" [class.badge--green]="missingMarkingCodes(item) === 0"
+              [title]="'marking.lineHint' | translate">
+              DM {{ item.markingCodes?.length ?? 0 }}/{{ item.quantity | number:'1.0-0' }}
+            </span>
+            }
             @if (isOverStock(item)) {
             <span class="badge badge--red !py-0">{{ 'pos.inStock' | translate }}: {{ stockOf(item.productId) | sum:2 }}</span>
             }

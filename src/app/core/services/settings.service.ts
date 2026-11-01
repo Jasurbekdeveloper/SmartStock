@@ -8,6 +8,8 @@ import { AuthService } from './auth.service';
 import { requireTenantId } from './tenant-data';
 
 /** Supported thermal-printer roll widths, in millimeters. Mirrors receipt.component.ts. */
+import type { LabelSettings } from '../utils/labels';
+
 export type ReceiptPaperWidth = '58' | '80';
 
 /**
@@ -34,6 +36,8 @@ export interface GeneralSettings {
   receiptPaperWidth: ReceiptPaperWidth;
   /** Free-text thank-you line printed at the bottom of every receipt. */
   receiptFooter?: string;
+  /** Barcode label printing: size, and whether price / name / store name are printed. */
+  labelSettings?: Partial<LabelSettings>;
 }
 
 /** `settings/integrations` — read AND write restricted to admin only (Telegram bot

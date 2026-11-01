@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of, switchMap } from 'rxjs';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FiscalService, PaymentSystem } from '../../core/services/fiscal.service';
+import { VcrPaymentDialogComponent, VcrPaymentDialogData } from '../vcr-payment-dialog/vcr-payment-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -42,6 +44,8 @@ export interface PosPaymentDialogResult {
   customerId?: string;
   customerName?: string;
   customerPhone?: string;
+  /** Paid through the virtual cash register (Click / Payme / Uzum / terminal): its payment id. */
+  vcrPaymentId?: string;
 }
 
 type Tender = 'cash' | 'card' | 'mixed' | 'debt';
@@ -70,6 +74,34 @@ export class PosPaymentDialogComponent {
   data = inject<PosPaymentDialogData>(MAT_DIALOG_DATA);
   private debtService = inject(DebtService);
   private translateService = inject(TranslateService);
+  private fiscal = inject(FiscalService);
+  private dialog = inject(MatDialog);
+
+  /** Click Pass, Payme Go, Uzum… switched on in this till's virtual cash register. */
+  paymentSystems = signal<PaymentSystem[]>([]);
+
+
+  /** Charges the whole total through a payment system, then finishes the sale. */
+  payWith(system: PaymentSystem) {
+    if (!this.canSubmit() || this.total() <= 0) return;
+    this.dialog
+      .open<VcrPaymentDialogComponent, VcrPaymentDialogData, string>(VcrPaymentDialogComponent, {
+        data: { system, amount: this.total() },
+        disableClose: true,
+        maxWidth: '96vw'
+      })
+      .afterClosed()
+      .subscribe((paymentId) => {
+        if (!paymentId) return;
+        this.dialogRef.close({
+          discount: this.discount(),
+          cashTendered: 0,
+          cardAmount: this.total(),
+          isNewCustomer: false,
+          vcrPaymentId: paymentId
+        });
+      });
+  }
 
   tender = signal<Tender>('cash');
   discountMode = signal<DiscountMode>('amount');
@@ -152,6 +184,9 @@ export class PosPaymentDialogComponent {
 
   constructor() {
     this.cashInput.set(Math.ceil(this.total()));
+    if (this.fiscal.enabled()) {
+      this.fiscal.paymentSystems().then((s) => this.paymentSystems.set(s), () => this.paymentSystems.set([]));
+    }
   }
 
   // ---------------------------------------------------------------- touch keypad

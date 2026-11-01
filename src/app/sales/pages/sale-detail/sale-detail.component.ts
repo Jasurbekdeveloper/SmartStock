@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { SalesService, saleCardIn, saleCashIn } from '../../../core/services/sales.service';
+import { Sale, SalesService, saleCardIn, saleCashIn } from '../../../core/services/sales.service';
 import { DebtService } from '../../../core/services/debt.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ShiftService } from '../../../core/services/shift.service';
@@ -15,7 +15,11 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
-import { of, switchMap, take } from 'rxjs';
+import { firstValueFrom, of, switchMap, take } from 'rxjs';
+import { FiscalReceipt, FiscalService } from '../../../core/services/fiscal.service';
+import { ProductService } from '../../../core/services/product.service';
+import { FiscalLineInput, buildVcrPositions, fiscalProblems, toTiyin } from '../../../core/utils/vcr-receipt';
+import { SettingsService } from '../../../core/services/settings.service';
 import { ReturnDialogComponent, ReturnDialogData, ReturnDialogResult } from '../../components/return-dialog/return-dialog.component';
 
 @Component({
@@ -33,6 +37,9 @@ export class SaleDetailComponent {
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
   private dialog = inject(MatDialog);
+  private fiscal = inject(FiscalService);
+  private productService = inject(ProductService);
+  private settingsService = inject(SettingsService);
   private route = inject(ActivatedRoute);
 
   private saleId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -86,10 +93,60 @@ export class SaleDetailComponent {
       });
   }
 
-  private saveReturn(result: ReturnDialogResult) {
+  /**
+   * Fiscal refund receipt for a sale that had a fiscal receipt: same MXIK / package as
+   * the sale, the returned units' marking codes, and the money going back the way it is
+   * actually paid out (cash or card).
+   */
+  private async fiscalRefund(sale: Sale, result: ReturnDialogResult): Promise<FiscalReceipt | undefined> {
+    if (!this.fiscal.enabled() || !sale.fiscal?.qrCodeUrl) return undefined;
+    const products = new Map((await firstValueFrom(this.productService.getProducts())).map((p) => [p.id, p]));
+    const usedCodes = new Set(this.returns().flatMap((r) => r.items.flatMap((i) => i.markingCodes ?? [])));
+    const lines: FiscalLineInput[] = result.items.map((item) => {
+      const sold = sale.items.find((s) => s.productId === item.productId);
+      const product = products.get(item.productId);
+      const codes = (sold?.markingCodes ?? []).filter((c) => !usedCodes.has(c)).slice(0, Math.ceil(item.quantity));
+      item.markingCodes = codes.length ? codes : undefined;
+      return {
+        productId: item.productId,
+        name: item.productName,
+        barcode: product?.barcode,
+        mxikCode: product?.mxikCode,
+        packageCode: product?.packageCode,
+        unit: sold?.unit,
+        quantity: item.quantity,
+        paid: item.refund,
+        discount: 0,
+        markingCodes: codes.length ? codes : undefined
+      };
+    });
+    const problems = fiscalProblems(lines);
+    if (problems.length) throw new Error(`${problems[0].name}: ${this.translation.translate(problems[0].key)}`);
+    const vatRate = this.settingsService.vatRate();
+    const positions = buildVcrPositions(lines, vatRate);
+    const total = positions.reduce((s, p) => s + p.amount - p.discount, 0);
+    return this.fiscal.refund({
+      code: `${sale.receiptNo ?? sale.id}-R${this.returns().length + 1}`,
+      positions,
+      payments: [{ type: result.refundMethod === 'card' ? 2 : 1, value: Math.min(total, toTiyin(result.refundAmount)) }],
+      original: sale.fiscal,
+      cashierName: this.currentUser()?.displayName
+    });
+  }
+
+  private async saveReturn(result: ReturnDialogResult) {
     const sale = this.sale();
     const user = this.currentUser();
     if (!sale) return;
+
+    let fiscal: FiscalReceipt | undefined;
+    try {
+      fiscal = await this.fiscalRefund(sale, result);
+    } catch (err) {
+      const msg = (err as Error).message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : (err as Error).message;
+      this.toast.error(`${this.translation.translate('fiscal.refundFailed')}: ${msg}`);
+      return;
+    }
 
     // Refunds are booked on the shift of whoever gives the money back, so their
     // Z-report nets the cash out of the drawer.
@@ -106,7 +163,8 @@ export class SaleDetailComponent {
             refundMethod: result.refundMethod,
             ...(result.reason ? { reason: result.reason } : {}),
             ...(shift ? { shiftId: shift.id } : {}),
-            ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {})
+            ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {}),
+            ...(fiscal ? { fiscal } : {})
           })
         )
       )

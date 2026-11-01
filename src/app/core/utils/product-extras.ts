@@ -10,6 +10,8 @@ export interface ProductExtrasDraft {
   wholesaleMinQty: number | null;
   altUnits: { unit: string; factor: number | null }[];
   trackExpiry: boolean;
+  /** Sold only with a scanned Asl belgisi code per unit. */
+  markingRequired: boolean;
   /** Typical shelf life; with a manufacture date it fills the expiry date. */
   shelfLifeDays: number | null;
   /** Dates of the stock entered with the form (first batch). yyyy-mm-dd, '' when unset. */
@@ -24,6 +26,7 @@ export function emptyExtras(): ProductExtrasDraft {
     wholesaleMinQty: null,
     altUnits: [],
     trackExpiry: false,
+    markingRequired: false,
     shelfLifeDays: null,
     manufactureDate: '',
     expiryDate: '',
@@ -55,6 +58,7 @@ export function extrasFromProduct(p: Partial<Product>): ProductExtrasDraft {
     // A product dated the old way (one date on the product) counts as tracked; its
     // date is offered as the batch of the stock on hand (see initialBatchFromExtras).
     trackExpiry: !!p.trackExpiry || !!p.expiryDate,
+    markingRequired: !!p.markingRequired,
     shelfLifeDays: p.shelfLifeDays ?? null,
     manufactureDate: '',
     expiryDate: toDateInput(p.expiryDate ?? null),
@@ -86,6 +90,7 @@ export function extrasToProductFields(d: ProductExtrasDraft, primaryUnit?: strin
     wholesaleMinQty: hasWholesale && Number.isFinite(minQty) && minQty > 0 ? minQty : null,
     altUnits: altUnits.length > 0 ? altUnits : undefined,
     trackExpiry: d.trackExpiry,
+    markingRequired: d.markingRequired,
     shelfLifeDays: d.trackExpiry && Number(d.shelfLifeDays) > 0 ? Number(d.shelfLifeDays) : null,
     // Dates now live on batches; the old single date on the product is cleared.
     expiryDate: null,

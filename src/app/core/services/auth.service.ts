@@ -163,6 +163,12 @@ export class AuthService {
     return from(call(data)).pipe(map(() => undefined));
   }
 
+  /** One-time code for t.me/<bot>?start=<start>: links whichever Telegram account presses Start. */
+  createTelegramLinkCode(): Observable<{ code: string; start: string }> {
+    const call = httpsCallable<void, { code: string; start: string }>(this.functions, 'createTelegramLinkCode');
+    return from(call()).pipe(map((result) => result.data));
+  }
+
   unlinkTelegram(): Observable<void> {
     const call = httpsCallable<void, void>(this.functions, 'unlinkTelegram');
     return from(call()).pipe(map(() => undefined));

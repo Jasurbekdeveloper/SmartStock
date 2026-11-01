@@ -12,7 +12,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { fromCollectionQuery } from '../firebase/firestore.utils';
+import { fromCollectionQuery, sharedStream } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
@@ -43,8 +43,10 @@ export class CategoryService {
   private authService = inject(AuthService);
 
   getCategories(): Observable<Category[]> {
-    const categoriesQuery = tenantQuery(this.firestore, 'categories', requireTenantId(this.authService), orderBy('name'));
-    return fromCollectionQuery<Category>(categoriesQuery);
+    const tenantId = requireTenantId(this.authService);
+    return sharedStream(`categories:${tenantId}`, () =>
+      fromCollectionQuery<Category>(tenantQuery(this.firestore, 'categories', tenantId, orderBy('name')))
+    );
   }
 
   addCategory(input: CategoryInput): Observable<void> {

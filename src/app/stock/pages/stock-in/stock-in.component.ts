@@ -26,6 +26,8 @@ import { expiryFromShelfLife } from '../../../core/utils/batches';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 import { roundMoney } from '../../../core/utils/pos-math';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
+import { MatDialog } from '@angular/material/dialog';
+import { BarcodeLabelDialogComponent } from '../../../shared/components/barcode-label-dialog/barcode-label-dialog.component';
 
 /** Special mat-select value that reveals the free-text fallback input, for
  *  one-off suppliers that aren't worth adding to the catalog. */
@@ -80,6 +82,7 @@ export class StockInComponent {
   private translation = inject(TranslationService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private dialog = inject(MatDialog);
 
   readonly manualSupplierOption = MANUAL_SUPPLIER_OPTION;
   readonly maxLines = MAX_RECEIVE_LINES;
@@ -187,6 +190,18 @@ export class StockInComponent {
       if (exp) changes.expiryDate = toDateInput(exp);
     }
     this.patch(row.product.id, changes);
+  }
+
+  /** Price stickers for the delivery: one per received unit (whole units), new price if changed. */
+  printLabels() {
+    const items = this.rows().map((r) => ({
+      name: r.product.name,
+      barcode: r.product.barcode || r.product.sku || '',
+      price: Number(r.sellingPrice) || r.product.price,
+      unit: this.unitLabel(r.product.unit) || null,
+      copies: Math.max(1, Math.ceil(Number(r.quantity) || 1))
+    }));
+    this.dialog.open(BarcodeLabelDialogComponent, { data: { items }, maxWidth: '96vw' });
   }
 
   lineTotal(r: ReceiveRow): number {

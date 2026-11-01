@@ -44,6 +44,20 @@
       "label": "npm: release",
       "detail": "Test, build, commit, push, Firebase deploy",
       "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "firebase:login",
+      "label": "npm: firebase:login",
+      "detail": "Firebase hisobiga kirish (bir marta)",
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "deploy:firebase",
+      "label": "npm: deploy:firebase",
+      "detail": "Hosting, qoidalar, Storage va server funksiyalarini deploy qilish",
+      "problemMatcher": []
     }
   ]
 }

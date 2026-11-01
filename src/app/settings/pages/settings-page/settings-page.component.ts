@@ -22,6 +22,9 @@ import {
 import { TenantService } from '../../../core/services/tenant.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { FiscalConfig, FiscalService } from '../../../core/services/fiscal.service';
+import { LabelSettings, LabelSize, withLabelDefaults } from '../../../core/utils/labels';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 /** Local editable model for the General tab. `vatRatePercent` is what the admin types
@@ -40,6 +43,7 @@ interface GeneralFormModel {
   workingHours: string;
   receiptPaperWidth: ReceiptPaperWidth;
   receiptFooter: string;
+  labels: LabelSettings;
 }
 
 interface IntegrationFormModel {
@@ -60,7 +64,8 @@ interface IntegrationFormModel {
     MatInputModule,
     MatButtonModule,
     MatButtonToggleModule,
-    MatIconModule
+    MatIconModule,
+    MatSlideToggleModule
   ],
   templateUrl: './settings-page.component.html',
   styleUrl: './settings-page.component.css'
@@ -70,6 +75,39 @@ export class SettingsPageComponent implements OnInit {
   private tenantService = inject(TenantService);
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
+  private fiscal = inject(FiscalService);
+
+  // ---------------------------------------------------------------- fiscal register (this device)
+  fiscalForm = signal<FiscalConfig>({ ...this.fiscal.config() });
+  fiscalTesting = signal(false);
+  fiscalStatus = signal<{ ok: boolean; text: string } | null>(null);
+
+  patchFiscal(patch: Partial<FiscalConfig>) {
+    this.fiscalForm.update((f) => ({ ...f, ...patch }));
+  }
+
+  saveFiscal() {
+    this.fiscal.saveConfig(this.fiscalForm());
+    this.toast.success(this.translation.translate('messages.saved'));
+  }
+
+  /** Sys.Initialize with the values typed (before saving), so a wrong address shows at once. */
+  async testFiscal() {
+    this.fiscalTesting.set(true);
+    this.fiscalStatus.set(null);
+    try {
+      const info = await this.fiscal.initialize({ ...this.fiscalForm(), url: this.fiscalForm().url.trim().replace(/\/+$/, '') });
+      this.fiscalStatus.set({
+        ok: true,
+        text: `${this.translation.translate('fiscal.connected')}: ${info.TerminalID} · ${this.translation.translate('fiscal.receiptsLeft')} ${info.ReceiptMaxCount - info.ReceiptCount}`
+      });
+    } catch (err) {
+      const msg = (err as Error).message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : (err as Error).message;
+      this.fiscalStatus.set({ ok: false, text: msg });
+    } finally {
+      this.fiscalTesting.set(false);
+    }
+  }
 
   general = signal<GeneralFormModel>({
     vatRatePercent: DEFAULT_VAT_RATE * 100,
@@ -82,7 +120,8 @@ export class SettingsPageComponent implements OnInit {
     storeTelegram: '',
     workingHours: '',
     receiptPaperWidth: DEFAULT_RECEIPT_PAPER_WIDTH,
-    receiptFooter: ''
+    receiptFooter: '',
+    labels: withLabelDefaults(null)
   });
 
   integrations = signal<IntegrationFormModel>({
@@ -116,7 +155,8 @@ export class SettingsPageComponent implements OnInit {
               storeTelegram: doc.storeTelegram ?? '',
               workingHours: doc.workingHours ?? '',
               receiptPaperWidth: doc.receiptPaperWidth ?? DEFAULT_RECEIPT_PAPER_WIDTH,
-              receiptFooter: doc.receiptFooter ?? ''
+              receiptFooter: doc.receiptFooter ?? '',
+              labels: withLabelDefaults(doc.labelSettings)
             });
           }
           this.loadingGeneral.set(false);
@@ -151,6 +191,12 @@ export class SettingsPageComponent implements OnInit {
     this.general.update((g) => ({ ...g, pricesIncludeVat: value }));
   }
 
+  setLabels(patch: Partial<LabelSettings>) {
+    this.general.update((g) => ({ ...g, labels: { ...g.labels, ...patch } }));
+  }
+
+  readonly labelSizes: LabelSize[] = ['58x40', '40x30', '30x20', 'a4'];
+
   setPaperWidth(width: ReceiptPaperWidth) {
     this.general.update((g) => ({ ...g, receiptPaperWidth: width }));
   }
@@ -171,7 +217,8 @@ export class SettingsPageComponent implements OnInit {
         storeTelegram: f.storeTelegram.trim().replace(/^@/, '') || undefined,
         workingHours: f.workingHours.trim() || undefined,
         receiptPaperWidth: f.receiptPaperWidth,
-        receiptFooter: f.receiptFooter.trim() || undefined
+        receiptFooter: f.receiptFooter.trim() || undefined,
+        labelSettings: f.labels
       })
       .subscribe({
         next: () => {

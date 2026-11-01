@@ -11,7 +11,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { fromCollectionQuery } from '../firebase/firestore.utils';
+import { fromCollectionQuery, sharedStream } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { AuditLogService } from './audit-log.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
@@ -54,8 +54,9 @@ export class BatchService {
 
   /** Every batch with stock left — small even for a large store (only tracked goods). */
   getActiveBatches(): Observable<StockBatch[]> {
-    return fromCollectionQuery<StockBatch>(
-      tenantQuery(this.firestore, 'stockBatches', requireTenantId(this.authService), where('quantity', '>', 0))
+    const tenantId = requireTenantId(this.authService);
+    return sharedStream(`activeBatches:${tenantId}`, () =>
+      fromCollectionQuery<StockBatch>(tenantQuery(this.firestore, 'stockBatches', tenantId, where('quantity', '>', 0)))
     );
   }
 

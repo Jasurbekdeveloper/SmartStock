@@ -27,6 +27,8 @@ import { TranslationService } from '../../../core/services/translation.service';
 import { StorageService } from '../../../core/services/storage.service';
 import { firstValueFrom } from 'rxjs';
 import { generateStoreBarcode, isValidMxikCode } from '../../../core/utils/product-identifiers';
+import { MxikPickerDialogComponent, MxikPickerData } from '../../../shared/components/mxik-picker-dialog/mxik-picker-dialog.component';
+import { MxikSelection } from '../../../core/services/mxik.service';
 import { validateProductForm } from '../../../core/utils/product-form-validation';
 import { FieldErrorState } from '../../../shared/forms/field-error-state';
 import { mergeKeywordsInput, parseKeywordsInput, suggestSearchKeywords } from '../../../core/utils/search-keywords';
@@ -295,6 +297,26 @@ export class ProductCreateComponent implements OnDestroy {
 
   /** MXIK (IKPU) tax classifier code; optional, saved as null when empty. */
   mxikCode = '';
+  /** Catalogue name and package of the picked code (cleared when the code is typed by hand). */
+  mxikMeta: { mxikName: string | null; packageCode: string | null; packageName: string | null } = { mxikName: null, packageCode: null, packageName: null };
+
+  clearMxikMeta() {
+    this.mxikMeta = { mxikName: null, packageCode: null, packageName: null };
+  }
+
+  pickMxik() {
+    this.dialog
+      .open<MxikPickerDialogComponent, MxikPickerData, MxikSelection>(MxikPickerDialogComponent, {
+        data: { name: this.product.name, barcode: this.product.barcode, currentCode: this.mxikCode, unit: this.product.unit },
+        maxWidth: '96vw'
+      })
+      .afterClosed()
+      .subscribe((sel) => {
+        if (!sel) return;
+        this.mxikCode = sel.mxikCode;
+        this.mxikMeta = { mxikName: sel.mxikName, packageCode: sel.packageCode, packageName: sel.packageName };
+      });
+  }
   readonly mxikInvalid = (code: string) => !!code.trim() && !isValidMxikCode(code);
 
   generating = signal(false);
@@ -417,7 +439,8 @@ export class ProductCreateComponent implements OnDestroy {
         imageUrl,
         ...extrasToProductFields(this.extras, this.product.unit),
         searchKeywords: searchKeywords.length > 0 ? searchKeywords : undefined,
-        mxikCode: this.mxikCode.trim() || null
+        mxikCode: this.mxikCode.trim() || null,
+        ...(this.mxikCode.trim() ? this.mxikMeta : { mxikName: null, packageCode: null, packageName: null })
       };
       let variants: Omit<Product, 'id'>[];
       try {
@@ -463,7 +486,7 @@ export class ProductCreateComponent implements OnDestroy {
   private resetForm(): void {
     const { categoryId, unit } = this.product;
     this.product = { name: '', barcode: '', price: 0, cost: 0, quantity: 0, unit, minQuantity: 0, categoryId, sku: '' };
-    this.extras = { ...emptyExtras(), trackExpiry: this.extras.trackExpiry, shelfLifeDays: this.extras.shelfLifeDays };
+    this.extras = { ...emptyExtras(), trackExpiry: this.extras.trackExpiry, markingRequired: this.extras.markingRequired, shelfLifeDays: this.extras.shelfLifeDays };
     this.clearImage();
     for (const variant of this.variants) {
       if (variant.imagePreview) URL.revokeObjectURL(variant.imagePreview);
@@ -474,6 +497,7 @@ export class ProductCreateComponent implements OnDestroy {
     this.searchKeywordsInput = '';
     this.keywordsTouched = false;
     this.mxikCode = '';
+    this.clearMxikMeta();
     this.errorKey.set(null);
     this.fields.shown.set(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });

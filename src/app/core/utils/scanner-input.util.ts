@@ -1,10 +1,12 @@
 /**
  * Detects input from a USB/Bluetooth "barcode scanner gun", which behaves like
- * a keyboard that types digits far faster than a human (typically <20ms/char)
+ * a keyboard that types characters far faster than a human (typically <20ms/char)
  * and terminates the scan with an Enter keypress. Feed every keydown event on
  * a text input through `.handleKey()` — normal human typing is left untouched
  * (returns null), while a detected scan returns the buffered code.
  */
+const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'CapsLock']);
+
 export function createScannerGunDetector(maxIntervalMs = 50) {
   let buffer = '';
   let lastKeyTime = 0;
@@ -22,7 +24,15 @@ export function createScannerGunDetector(maxIntervalMs = 50) {
         return isFastBurst ? code : null;
       }
 
-      if (event.key.length !== 1 || !/[0-9]/.test(event.key)) {
+      // Scanners type capitals with Shift and some send the GS1 group separator as
+      // Ctrl+]; modifier presses alone must not break the burst.
+      if (MODIFIER_KEYS.has(event.key)) return null;
+      let ch = event.key;
+      if (event.ctrlKey && (event.key === ']' || event.code === 'BracketRight')) ch = '\u001d';
+      else if (event.ctrlKey || event.altKey || event.metaKey) ch = '';
+      // Plain EAN/UPC codes are digits; 2D marking codes (Data Matrix) also carry letters
+      // and symbols, so any printable character can be part of a scan.
+      if (ch.length !== 1) {
         buffer = '';
         lastKeyWasBurstContinuation = false;
         return null;
@@ -34,7 +44,7 @@ export function createScannerGunDetector(maxIntervalMs = 50) {
         buffer = '';
       }
 
-      buffer += event.key;
+      buffer += ch;
       lastKeyTime = now;
       lastKeyWasBurstContinuation = continuesBurst;
       return null;

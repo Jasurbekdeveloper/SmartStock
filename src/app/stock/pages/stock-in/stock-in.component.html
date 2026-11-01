@@ -177,6 +177,9 @@
       @if (errorKey(); as key) {
       <p class="badge badge--red !rounded-lg !py-2 !px-3 w-full">{{ key | translate }}</p>
       }
+      <button mat-stroked-button type="button" class="w-full !h-11" [disabled]="rows().length === 0" (click)="printLabels()">
+        <mat-icon>qr_code_2</mat-icon>{{ 'labels.forReceipt' | translate }}
+      </button>
       <button mat-flat-button color="primary" type="button" class="w-full !h-14 !text-base" [disabled]="submitting() || rows().length === 0" (click)="save()">
         <mat-icon>move_to_inbox</mat-icon>{{ 'stock.saveReceipt' | translate }}
       </button>

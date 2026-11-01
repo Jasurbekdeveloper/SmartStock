@@ -14,7 +14,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { fromCollectionQuery, fromDocRef, sharedStream } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { TenantService } from './tenant.service';
@@ -43,6 +43,14 @@ export interface Product {
   /** MXIK (IKPU) — 17-digit code from the tax committee classifier (tasnif.soliq.uz).
    *  null until the store fills it in; needed once fiscal/tax integration arrives. */
   mxikCode?: string | null;
+  /** Catalogue name of the MXIK code, shown under the field so the code is recognisable. */
+  mxikName?: string | null;
+  /** Sold only with a scanned Asl belgisi (Data Matrix) code per unit — water, drinks,
+   *  beer, alcohol, tobacco... Set by hand, or automatically on the first marking scan. */
+  markingRequired?: boolean;
+  /** Package / unit code (o'lchov birligi) of the MXIK code — goes on the fiscal receipt. */
+  packageCode?: string | null;
+  packageName?: string | null;
   /** What tells this variant apart from the others in its family, e.g. Hajm = 80 L.
    *  `color`/`size` below are kept in sync for "Rang"/"O'lcham" (older screens, Excel import). */
   attributes?: ProductAttribute[];
@@ -83,8 +91,10 @@ export class ProductService {
   private tenantService = inject(TenantService);
 
   getProducts(): Observable<Product[]> {
-    const productsQuery = tenantQuery(this.firestore, 'products', requireTenantId(this.authService), orderBy('name'));
-    return fromCollectionQuery<Product>(productsQuery);
+    const tenantId = requireTenantId(this.authService);
+    return sharedStream(`products:${tenantId}`, () =>
+      fromCollectionQuery<Product>(tenantQuery(this.firestore, 'products', tenantId, orderBy('name')))
+    );
   }
 
   getProductById(id: string): Observable<Product | undefined> {

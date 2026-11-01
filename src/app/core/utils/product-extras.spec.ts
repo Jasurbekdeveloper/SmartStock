@@ -24,6 +24,7 @@ describe('product extras', () => {
       wholesaleMinQty: null,
       altUnits: undefined,
       trackExpiry: false,
+      markingRequired: false,
       shelfLifeDays: null,
       expiryDate: null,
       batchNo: null

@@ -6,6 +6,7 @@ import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import { createHash } from 'node:crypto';
 import { verifyTelegramAuth } from './telegram-auth.js';
+import { LINK_CODE_TTL_MS, LINK_PREFIX, newLinkCode, parseLinkCode, webhookSecret } from './telegram-bot.js';
 import { formatLeadMessage, parseLead } from './lead.js';
 
 initializeApp();
@@ -52,16 +53,13 @@ export const telegramLogin = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (re
   return { token: await getAuth().createCustomToken(uid) };
 });
 
-/** Links the caller's account to their Telegram ID (one Telegram account per user). */
-export const linkTelegram = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'SIGN_IN_REQUIRED');
-  }
-  const payload = requireValidTelegram(request.data);
-  const uid = request.auth.uid;
-  const linkRef = db.doc(`telegramLinks/${payload.id}`);
+/**
+ * Points a Telegram account at a user, in one transaction: one Telegram account per
+ * user and one user per Telegram account. A previous Telegram of this user is released.
+ */
+async function linkTelegramToUser(uid, telegramId, telegramUsername) {
+  const linkRef = db.doc(`telegramLinks/${telegramId}`);
   const userRef = db.doc(`users/${uid}`);
-
   await db.runTransaction(async (tx) => {
     const [link, user] = await Promise.all([tx.get(linkRef), tx.get(userRef)]);
     if (!user.exists) {
@@ -71,16 +69,132 @@ export const linkTelegram = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (req
       throw new HttpsError('already-exists', 'TELEGRAM_TAKEN');
     }
     const previousId = user.get('telegramId');
-    if (previousId && String(previousId) !== String(payload.id)) {
-      tx.delete(db.doc(`telegramLinks/${previousId}`));
+    if (previousId && String(previousId) !== String(telegramId)) {
+      // Only release the old link if it really points at this user.
+      const previous = await tx.get(db.doc(`telegramLinks/${previousId}`));
+      if (previous.exists && previous.get('uid') === uid) tx.delete(previous.ref);
     }
     tx.set(linkRef, { uid, linkedAt: FieldValue.serverTimestamp() });
     tx.update(userRef, {
-      telegramId: payload.id,
-      telegramUsername: payload.username ?? FieldValue.delete()
+      telegramId,
+      telegramUsername: telegramUsername ?? FieldValue.delete()
     });
   });
+}
+
+/** Links the caller's account to the Telegram account the Login Widget returned. */
+export const linkTelegram = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'SIGN_IN_REQUIRED');
+  }
+  const payload = requireValidTelegram(request.data);
+  await linkTelegramToUser(request.auth.uid, payload.id, payload.username);
   return { ok: true };
+});
+
+// ---------- Linking through the bot (lets the user pick any Telegram account) ----------
+//
+// The Login Widget always answers with the Telegram account this browser last used,
+// so after "Unlink" it silently re-links the same account. Linking through the bot
+// instead: the app opens t.me/<bot>?start=link_<code>, the user presses Start in
+// whichever Telegram account they want, and the bot's webhook links that account.
+
+function webhookUrl() {
+  const project = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT;
+  return `https://europe-west1-${project}.cloudfunctions.net/telegramWebhook`;
+}
+
+async function telegramApi(method, body) {
+  const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN.value()}/${method}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.ok === false) {
+    console.warn(`Telegram ${method} failed`, res.status, json.description);
+  }
+  return json;
+}
+
+/** Registers the webhook once (and again if the URL ever changes). */
+async function ensureWebhook() {
+  const ref = db.doc('platformConfig/telegramWebhook');
+  const url = webhookUrl();
+  const snap = await ref.get();
+  if (snap.exists && snap.get('url') === url) return;
+  const result = await telegramApi('setWebhook', {
+    url,
+    secret_token: webhookSecret(TELEGRAM_BOT_TOKEN.value()),
+    allowed_updates: ['message'],
+    drop_pending_updates: true
+  });
+  if (result.ok) {
+    await ref.set({ url, setAt: FieldValue.serverTimestamp() });
+  }
+}
+
+/** Gives the signed-in user a one-time code for t.me/<bot>?start=link_<code>. */
+export const createTelegramLinkCode = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'SIGN_IN_REQUIRED');
+  }
+  await ensureWebhook();
+  const code = newLinkCode();
+  await db.doc(`telegramLinkCodes/${code}`).set({
+    uid: request.auth.uid,
+    expiresAt: Date.now() + LINK_CODE_TTL_MS
+  });
+  return { code, start: `${LINK_PREFIX}${code}` };
+});
+
+const BOT_TEXT = {
+  linked: '✅ Telegram MarketHisob hisobingizga ulandi. Endi kirish sahifasida Telegram tugmasi bilan kira olasiz.',
+  expired: '⌛ Havola eskirgan yoki ishlatilgan. MarketHisob\'da "Telegram\'ni ulash" oynasidan yangisini oling.',
+  taken: '⚠️ Bu Telegram akkaunt boshqa xodimga ulangan. Avval u yerdan uzing.',
+  hello: 'Salom! Bu MarketHisob\'ga kirish boti. Telegram\'ni ulash uchun dasturda profil menyusidan "Telegram\'ni ulash" ni bosing.'
+};
+
+/** Telegram → this endpoint. Only "/start link_<code>" does anything. */
+export const telegramWebhook = onRequest({ secrets: [TELEGRAM_BOT_TOKEN] }, async (req, res) => {
+  if (req.get('x-telegram-bot-api-secret-token') !== webhookSecret(TELEGRAM_BOT_TOKEN.value())) {
+    res.status(403).send('forbidden');
+    return;
+  }
+  // Always 200 quickly so Telegram doesn't retry; errors are only logged.
+  const message = req.body?.message;
+  const from = message?.from;
+  const chatId = message?.chat?.id;
+  try {
+    if (message?.chat?.type === 'private' && from && !from.is_bot && typeof message.text === 'string') {
+      const code = parseLinkCode(message.text);
+      if (!code) {
+        if (message.text.startsWith('/start')) await telegramApi('sendMessage', { chat_id: chatId, text: BOT_TEXT.hello });
+      } else {
+        const codeRef = db.doc(`telegramLinkCodes/${code}`);
+        // Claim the code first so it can't be used twice.
+        const uid = await db.runTransaction(async (tx) => {
+          const snap = await tx.get(codeRef);
+          if (!snap.exists || snap.get('expiresAt') < Date.now()) return null;
+          tx.delete(codeRef);
+          return snap.get('uid');
+        });
+        let text = BOT_TEXT.expired;
+        if (uid) {
+          try {
+            await linkTelegramToUser(uid, from.id, from.username);
+            text = BOT_TEXT.linked;
+          } catch (err) {
+            text = err?.message === 'TELEGRAM_TAKEN' ? BOT_TEXT.taken : BOT_TEXT.expired;
+          }
+        }
+        await telegramApi('sendMessage', { chat_id: chatId, text });
+      }
+    }
+  } catch (err) {
+    console.error('telegramWebhook failed', err);
+  }
+  res.json({ ok: true });
 });
 
 export const unlinkTelegram = onCall(async (request) => {
@@ -92,7 +206,8 @@ export const unlinkTelegram = onCall(async (request) => {
   const telegramId = user.get('telegramId');
   const batch = db.batch();
   if (telegramId) {
-    batch.delete(db.doc(`telegramLinks/${telegramId}`));
+    const link = await db.doc(`telegramLinks/${telegramId}`).get();
+    if (link.exists && link.get('uid') === request.auth.uid) batch.delete(link.ref);
   }
   batch.update(userRef, { telegramId: FieldValue.delete(), telegramUsername: FieldValue.delete() });
   await batch.commit();

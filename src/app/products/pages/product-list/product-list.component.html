@@ -7,6 +7,7 @@
     </div>
     @if (canManage()) {
     <div class="page-actions">
+      <button mat-stroked-button type="button" (click)="printLabels()" [disabled]="filteredProducts().length === 0"><mat-icon>qr_code_2</mat-icon>{{ 'labels.printMany' | translate }}</button>
       <a mat-stroked-button routerLink="/products/import"><mat-icon>upload_file</mat-icon>{{ 'buttons.import' | translate }}</a>
       <a mat-stroked-button routerLink="/products/quick"><mat-icon>bolt</mat-icon>{{ 'header.quickEntry' | translate }}</a>
       <a mat-flat-button color="primary" routerLink="/products/create"><mat-icon>add</mat-icon>{{ 'header.newProduct' | translate }}</a>

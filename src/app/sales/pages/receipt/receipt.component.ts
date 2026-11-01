@@ -1,4 +1,5 @@
 import { Component, DOCUMENT, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -45,6 +46,10 @@ export class ReceiptComponent implements OnInit {
 
   storeName = computed(() => this.settings()?.storeName || DEFAULT_STORE_NAME);
 
+  private sanitizer = inject(DomSanitizer);
+  /** QR of the tax receipt (ofd.soliq.uz link) — the buyer can check it with a phone. */
+  fiscalQr = signal<SafeHtml | null>(null);
+
   cash = saleCashIn;
   card = saleCardIn;
 
@@ -77,11 +82,19 @@ export class ReceiptComponent implements OnInit {
     });
   }
 
+  private async renderFiscalQr(url: string) {
+    const { BrowserQRCodeSvgWriter } = await import('@zxing/browser');
+    const svg = new BrowserQRCodeSvgWriter().write(url, 160, 160);
+    // Generated here from the tax receipt link; Angular would otherwise strip the SVG.
+    this.fiscalQr.set(this.sanitizer.bypassSecurityTrustHtml(svg.outerHTML));
+  }
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.salesService.getSaleById(id).subscribe(sale => {
         this.sale.set(sale ?? null);
+        if (sale?.fiscal?.qrCodeUrl) void this.renderFiscalQr(sale.fiscal.qrCodeUrl);
       });
     }
   }

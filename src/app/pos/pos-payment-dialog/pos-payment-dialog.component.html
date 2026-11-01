@@ -37,6 +37,19 @@
       </button>
     </div>
 
+    @if (tender() === 'card' && paymentSystems().length > 0) {
+    <div class="mt-3">
+      <p class="text-xs text-muted mb-2">{{ 'payments.viaSystem' | translate }}</p>
+      <div class="flex flex-wrap gap-2">
+        @for (s of paymentSystems(); track s.id) {
+        <button mat-stroked-button type="button" class="!h-12" [disabled]="!canSubmit() || total() <= 0" (click)="payWith(s)">
+          <mat-icon>{{ s.needsToken ? 'qr_code_scanner' : 'qr_code_2' }}</mat-icon>{{ s.name }}
+        </button>
+        }
+      </div>
+    </div>
+    }
+
     <!-- Discount -->
     <div class="flex items-start gap-2 mt-4">
       <mat-form-field appearance="outline" class="flex-1" subscriptSizing="dynamic">

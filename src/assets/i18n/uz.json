@@ -20,7 +20,9 @@
     "actions": "Amallar",
     "menu": "Menyu",
     "on": "yoqilgan",
-    "off": "o'chirilgan"
+    "off": "o'chirilgan",
+    "back": "Orqaga",
+    "select": "Tanlash"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",
@@ -208,7 +210,9 @@
     "expiryRequired": "Bu mahsulot uchun yaroqlilik muddatini kiriting",
     "expiryBeforeManufacture": "Yaroqlilik muddati ishlab chiqarilgan sanadan oldin bo'lishi mumkin emas",
     "editCorrection": "Mahsulot kartasida tuzatildi",
-    "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi"
+    "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi",
+    "mxikPick": "Katalogdan tanlash",
+    "mxikPackage": "Qadoq"
   },
   "units": {
     "dona": "dona",
@@ -780,7 +784,13 @@
     "notLinked": "Bu Telegram akkaunt hech qaysi xodimga ulanmagan. Avval login va parol bilan kirib, Telegram'ni ulang.",
     "taken": "Bu Telegram akkaunt boshqa xodimga ulangan",
     "invalid": "Telegram ma'lumotlari tasdiqlanmadi. Qaytadan urinib ko'ring.",
-    "serviceUnavailable": "Telegram orqali kirish vaqtincha ishlamayapti. Login va parol bilan kiring."
+    "serviceUnavailable": "Telegram orqali kirish vaqtincha ishlamayapti. Login va parol bilan kiring.",
+    "linkViaBot": "Telegram ilovasi orqali ulash",
+    "linkViaBotHint": "Telegram ochiladi — ulamoqchi bo'lgan akkauntda START tugmasini bosing. Istalgan akkauntni tanlash mumkin.",
+    "widgetHint": "Bu tugma shu brauzerda oxirgi kirilgan Telegram akkauntini ulaydi.",
+    "switchAccount": "Boshqa Telegram akkauntiga almashtirish",
+    "waitingStart": "Telegram'da botni oching va START tugmasini bosing. Ulangach bu oyna o'zi yangilanadi.",
+    "openBot": "Botni ochish"
   },
   "subscription": {
     "title": "Obuna",
@@ -1304,5 +1314,70 @@
     "valueAtCost": "Tannarx bo'yicha qiymat",
     "session": "Shu seans",
     "sessionEmpty": "Hali hech narsa kiritilmadi"
+  },
+  "mxik": {
+    "title": "MXIK kodini tanlash",
+    "placeholder": "Mahsulot nomi: sut, sement, non…",
+    "hint": "Soliq qo'mitasi katalogidan (tasnif.soliq.uz) shtrix-kod va nom bo'yicha qidiriladi. Lotin, kirill yoki rus tilida yozish mumkin.",
+    "byBarcode": "Shtrix-kod bo'yicha",
+    "current": "Hozirgi",
+    "nothing": "Hech narsa topilmadi. Qisqaroq yoki umumiyroq nom yozib ko'ring (masalan \"sut\").",
+    "package": "O'lchov / qadoq birligi",
+    "noPackages": "Bu kod uchun qadoq birligi berilmagan.",
+    "packageHint": "Har bir MXIK kodning o'z qadoq birliklari bor. Mahsulot birligiga mosi avtomatik tanlandi — kerak bo'lsa o'zgartiring."
+  },
+  "marking": {
+    "required": "Markirovkali tovar (Asl belgisi)",
+    "requiredHint": "Suv, ichimlik, pivo, alkogol, sigaret. Kassada har bir donaning Data Matrix kodi skanerlanadi va chekka yoziladi. Kod birinchi marta skanerlanganda o'zi yoqiladi.",
+    "alreadyScanned": "Bu markirovka kodi allaqachon skanerlangan — boshqa donani skanerlang",
+    "productNotFound": "Markirovka kodi bo'yicha tovar topilmadi. Tovarning shtrix-kodini mahsulot kartochkasiga kiriting",
+    "scanEachUnit": "markirovkali tovar — har bir donaning Data Matrix kodini skanerlang. Yetishmaydi",
+    "lineHint": "Skanerlangan markirovka kodlari / dona"
+  },
+  "labels": {
+    "title": "Shtrix-kod etiketkalari",
+    "showPrice": "Narxi bilan",
+    "showName": "Nomi bilan",
+    "showStore": "Do'kon nomi",
+    "copies": "Nechta",
+    "preview": "Ko'rinishi",
+    "total": "Jami etiketka",
+    "noBarcode": "Shtrix-kod yo'q — chop etilmaydi",
+    "printMany": "Etiketkalar",
+    "forReceipt": "Etiketka chop etish (har donaga)",
+    "settingsTitle": "Shtrix-kod etiketkasi",
+    "settingsHint": "Etiketka printeri o'lchami va etiketkada nima chiqishi. Chop etish oynasida har safar o'zgartirish ham mumkin."
+  },
+  "fiscal": {
+    "tab": "Fiskal kassa",
+    "intro": "REGOS: VCR virtual kassasi (soliq reyestrida) orqali har bir sotuv soliqqa fiskal chek bo'lib yuboriladi. Click, Payme va Uzum to'lovlari ham shu orqali. Bu sozlamalar faqat shu kompyuterda saqlanadi — VCR o'rnatilgan har bir kassada alohida kiriting.",
+    "enable": "Sotuvlarni fiskallashtirish (soliqqa yuborish)",
+    "url": "VCR manzili",
+    "urlHint": "VCR sozlamalaridagi API manzili va porti, yoki MarketHisob ko'prigi (http://127.0.0.1:18347).",
+    "login": "VCR kassir logini",
+    "password": "VCR kassir paroli",
+    "test": "Ulanishni tekshirish",
+    "connected": "Ulandi, fiskal modul",
+    "receiptsLeft": "· smenada yana cheklar:",
+    "unreachable": "Virtual kassaga ulanib bo'lmadi. VCR dasturi ochiqligini va manzilni tekshiring (yoki ko'prikni ishga tushiring).",
+    "bridgeHint": "Brauzer VCR'ga to'g'ridan-to'g'ri ulana olmasa (CORS), kassa kompyuterida MarketHisob ko'prigini ishga tushiring: loyihadagi bridge/start-bridge.bat. U 127.0.0.1:18347 da VCR'ga yo'l ochadi.",
+    "saleFailed": "Fiskal chek chiqmadi, sotuv saqlanmadi",
+    "refundFailed": "Qaytarish cheki chiqmadi, qaytarish saqlanmadi",
+    "shiftFailed": "Fiskal smena (Z-hisobot) xatosi",
+    "noMxik": "MXIK kodi kiritilmagan — mahsulot kartochkasida tanlang",
+    "noPackage": "qadoq (o'lchov) kodi tanlanmagan — MXIK'ni katalogdan qayta tanlang",
+    "terminal": "FM",
+    "receiptNo": "Fiskal chek №",
+    "sign": "Fiskal belgi"
+  },
+  "payments": {
+    "viaSystem": "To'lov tizimi orqali (to'liq summa):",
+    "scanCustomerCode": "Xaridor telefonidagi to'lov kodini (QR) skanerlang yoki kodni yozing.",
+    "codePlaceholder": "To'lov kodi",
+    "customerScansQr": "Xaridor bu QR kodni to'lov ilovasida skanerlasin.",
+    "waiting": "To'lov tasdiqlanishi kutilmoqda…",
+    "paid": "To'landi",
+    "failed": "To'lov o'tmadi. Qayta urinib ko'ring yoki boshqa usulni tanlang.",
+    "charge": "To'lovni o'tkazish"
   }
 }

@@ -19,7 +19,7 @@ import {
 import { commitOrQueue, stripUndefined } from './sales.service';
 import { roundMoney } from '../utils/pos-math';
 import { FIRESTORE } from '../firebase/firebase.providers';
-import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
+import { fromCollectionQuery, fromDocRef, sharedStream } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 
@@ -78,8 +78,10 @@ export class SupplierService {
   private authService = inject(AuthService);
 
   getSuppliers(): Observable<Supplier[]> {
-    const suppliersQuery = tenantQuery(this.firestore, 'suppliers', requireTenantId(this.authService), orderBy('name'));
-    return fromCollectionQuery<Supplier>(suppliersQuery);
+    const tenantId = requireTenantId(this.authService);
+    return sharedStream(`suppliers:${tenantId}`, () =>
+      fromCollectionQuery<Supplier>(tenantQuery(this.firestore, 'suppliers', tenantId, orderBy('name')))
+    );
   }
 
   getSupplierById(id: string): Observable<Supplier | undefined> {

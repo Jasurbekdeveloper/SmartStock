@@ -180,26 +180,27 @@
           <input
             matInput
             [ngModel]="p.mxikCode ?? ''"
-            (ngModelChange)="p.mxikCode = $event"
+            (ngModelChange)="p.mxikCode = $event; p.mxikName = null; p.packageCode = null; p.packageName = null"
             [errorStateMatcher]="fields.matcher('mxik')"
             name="mxikCode"
             inputmode="numeric"
             maxlength="17"
             placeholder="00000000000000000"
           />
-          <a
+          <button
             mat-icon-button
             matSuffix
-            href="https://tasnif.soliq.uz/"
-            target="_blank"
-            rel="noopener"
-            [attr.aria-label]="'products.mxikFind' | translate"
-            [matTooltip]="'products.mxikFind' | translate"
+            type="button"
+            (click)="pickMxik(p)"
+            [attr.aria-label]="'products.mxikPick' | translate"
+            [matTooltip]="'products.mxikPick' | translate"
           >
-            <mat-icon>open_in_new</mat-icon>
-          </a>
+            <mat-icon>manage_search</mat-icon>
+          </button>
           <mat-hint [class.text-red-600]="mxikInvalid(p.mxikCode ?? '')">
-            {{ (mxikInvalid(p.mxikCode ?? '') ? 'products.invalidMxik' : 'products.mxikHint') | translate }}
+            @if (mxikInvalid(p.mxikCode ?? '')) { {{ 'products.invalidMxik' | translate }} }
+            @else if (p.mxikName && p.mxikCode) { {{ p.mxikName }}@if (p.packageName) { · {{ 'products.mxikPackage' | translate }}: {{ p.packageName }} } }
+            @else { {{ 'products.mxikHint' | translate }} }
           </mat-hint>
           <mat-error>{{ fields.message('mxik') | translate }}</mat-error>
         </mat-form-field>
@@ -318,7 +319,7 @@
 
     <aside class="pc-aside">
       <div class="card p-4 space-y-3">
-        <app-image-dropzone [preview]="imagePreview() || p.imageUrl" [disabled]="submitting()" aspect="1 / 1" (selected)="selectImageFile($event)" />
+        <app-image-dropzone [preview]="imagePreview() || p.imageUrl" [disabled]="submitting()" aspect="4 / 3" (selected)="selectImageFile($event)" />
         <div class="flex items-end justify-between gap-2">
           <div class="min-w-0">
             <p class="font-bold leading-snug break-words">{{ p.name }}</p>

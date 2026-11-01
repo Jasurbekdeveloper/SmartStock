@@ -22,6 +22,8 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { BarcodeLabelDialogComponent } from '../../../shared/components/barcode-label-dialog/barcode-label-dialog.component';
+import { LabelItem } from '../../../core/utils/labels';
+import { TranslationService } from '../../../core/services/translation.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
@@ -61,6 +63,7 @@ export class ProductListComponent {
   private auditLogService = inject(AuditLogService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private translation = inject(TranslationService);
 
   products = toSignal(this.productService.getProducts(), { initialValue: [] });
   categories = toSignal(this.categoryService.getCategories(), { initialValue: [] });
@@ -122,6 +125,16 @@ export class ProductListComponent {
     return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
   }
 
+  private searchText = computed(
+    () =>
+      new Map(
+        this.products().map((p) => [
+          p.id,
+          [p.name, variantLabel(p), p.sku ?? '', ...(p.searchKeywords ?? [])].map((t) => normalizeForSearch(t)).join('\u0000')
+        ])
+      )
+  );
+
   filteredProducts = computed(() => {
     const rawQuery = this.searchQuery().trim();
     const query = rawQuery.toLowerCase();
@@ -133,20 +146,18 @@ export class ProductListComponent {
     const to = this.toDate();
     const category = this.categoryFilter();
     const stock = this.stockFilter();
+    const searchText = this.searchText();
 
     return this.products().filter((product) => {
       if (category && product.categoryId !== category) return false;
       if (stock === 'out' && product.quantity > 0) return false;
       if (stock === 'low' && !(product.quantity > 0 && this.isLowStock(product))) return false;
       if (query) {
-        const matchesName = normalizeForSearch(product.name).includes(normalizedQuery);
-        const matchesVariant = normalizeForSearch(`${variantLabel(product)} ${product.sku ?? ''}`).includes(normalizedQuery);
+        // Name, variant, SKU and synonyms (e.g. "truba" tagged on "quvur"), normalised
+        // once per catalogue change in searchText — not per product per keystroke.
+        const matchesText = (searchText.get(product.id) ?? '').includes(normalizedQuery);
         const matchesBarcode = product.barcode?.toLowerCase().includes(query);
-        // Optional per-product synonyms/loanwords (e.g. "truba" tagged on a product
-        // actually named "quvur") — same cross-script normalization as the name match.
-        const matchesKeyword =
-          product.searchKeywords?.some((keyword) => normalizeForSearch(keyword).includes(normalizedQuery)) ?? false;
-        if (!matchesName && !matchesVariant && !matchesBarcode && !matchesKeyword) return false;
+        if (!matchesText && !matchesBarcode) return false;
       }
 
       if (from || to) {
@@ -194,10 +205,25 @@ export class ProductListComponent {
     return this.categories().find((c) => c.id === categoryId)?.name ?? '';
   }
 
+  private labelItem(product: Product, copies = 1): LabelItem {
+    const variant = variantLabel(product);
+    return {
+      name: variant ? `${product.name} — ${variant}` : product.name,
+      barcode: product.barcode || product.sku || '',
+      price: product.price,
+      unit: product.unit ? this.translation.translate('units.' + product.unit) : null,
+      copies
+    };
+  }
+
   showBarcode(product: Product) {
-    this.dialog.open(BarcodeLabelDialogComponent, {
-      data: { title: product.name, subtitle: product.barcode, value: product.barcode || product.id }
-    });
+    this.dialog.open(BarcodeLabelDialogComponent, { data: { items: [this.labelItem(product)] }, maxWidth: '96vw' });
+  }
+
+  /** Labels for every product in the current filter (search, category…), one each to start. */
+  printLabels() {
+    const items = this.filteredProducts().slice(0, 300).map((p) => this.labelItem(p));
+    this.dialog.open(BarcodeLabelDialogComponent, { data: { items }, maxWidth: '96vw' });
   }
 
   isLowStock(product: Product): boolean {

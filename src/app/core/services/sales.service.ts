@@ -50,9 +50,13 @@ export interface SaleItem {
   /** Stock batches this line was taken from (products with expiry tracking), so
    *  a return can put the goods back into the same batches. */
   batches?: BatchAllocation[];
+  /** Asl belgisi (Data Matrix) codes of the units sold — one per unit, for the fiscal receipt. */
+  markingCodes?: string[];
 }
 
 export type PaymentMethod = 'cash' | 'card' | 'mixed';
+
+import type { FiscalReceipt } from './fiscal.service';
 
 export interface Sale {
   id: string;
@@ -86,6 +90,10 @@ export interface Sale {
   /** Links this sale to the cashier's open shift, if one was active at checkout. */
   shiftId?: string;
   totalNetProfit?: number;
+  /** Fiscal receipt from the virtual cash register (REGOS: VCR), when fiscalisation is on. */
+  fiscal?: FiscalReceipt;
+  /** Why a sale went without a fiscal receipt (e.g. 'credit' — a nasiya sale). */
+  fiscalSkipped?: string;
   /** Sum already refunded through returns (denormalized for lists). */
   refundedAmount?: number;
 }
@@ -105,6 +113,8 @@ export interface SaleReturnItem {
   refund: number;
   /** Batches the returned goods go back into (see restoreAllocation). */
   batches?: BatchAllocation[];
+  /** Marking codes of the units given back (they return to circulation). */
+  markingCodes?: string[];
 }
 
 export interface SaleReturn {
@@ -118,6 +128,8 @@ export interface SaleReturn {
   shiftId?: string;
   cashierId?: string;
   cashierName?: string;
+  /** Fiscal refund receipt from the virtual cash register. */
+  fiscal?: FiscalReceipt;
   createdAt: Date;
 }
 

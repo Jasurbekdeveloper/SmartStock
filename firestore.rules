@@ -103,7 +103,10 @@ service cloud.firestore {
       allow create: if storeRole(request.resource.data.role)
         && (isSuperAdmin() && existsAfter(/databases/$(database)/documents/tenants/$(request.resource.data.tenantId))
             || canAdminWrite(request.resource.data.tenantId));
-      allow update: if (isSuperAdmin()
+      // telegramId / telegramUsername mirror telegramLinks and are written only by the
+      // Telegram Cloud Functions; letting an admin edit them could unlink someone else.
+      allow update: if !request.resource.data.diff(resource.data).affectedKeys().hasAny(['telegramId', 'telegramUsername'])
+        && ((isSuperAdmin()
             && storeRole(request.resource.data.role)
             && request.resource.data.tenantId == resource.data.tenantId)
         || (canAdminWrite(resource.data.tenantId)
@@ -111,7 +114,7 @@ service cloud.firestore {
             && request.resource.data.tenantId == resource.data.tenantId
             && uid != tenantDoc(resource.data.tenantId).ownerId)
         || (isSignedIn() && request.auth.uid == uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']));
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName'])));
       allow delete: if false;
     }
 
@@ -203,6 +206,11 @@ service cloud.firestore {
     // telegramLinks/{telegramId}: Telegram account -> uid, maintained only by the
     // linkTelegram/unlinkTelegram Cloud Functions (Admin SDK).
     match /telegramLinks/{telegramId} {
+      allow read, write: if false;
+    }
+
+    // telegramLinkCodes/{code}: one-time "link via bot" codes (Admin SDK only).
+    match /telegramLinkCodes/{code} {
       allow read, write: if false;
     }
 

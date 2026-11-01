@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { FiscalService } from '../core/services/fiscal.service';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -36,6 +37,11 @@ const milk: Product = {
   id: 'p4', name: 'Sut 1L', barcode: '2000000000039', price: 12000, cost: 9000,
   quantity: 5, unit: 'dona', categoryId: 'c3', trackExpiry: true
 };
+const water: Product = {
+  id: 'p5', name: 'Suv Hydrolife 1.5L', barcode: '4780069000130', price: 5000, cost: 3500,
+  quantity: 50, unit: 'dona', categoryId: 'c3', markingRequired: true,
+  mxikCode: '00401001001000000', packageCode: '1500001'
+};
 const inDays = (n: number) => {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -55,6 +61,7 @@ const cashier = { uid: 'u1', email: 'k@x.uz', displayName: 'Kassir', role: 'cash
  *  add goods -> pay -> success dialog -> next sale starts clean. */
 describe('PosComponent checkout (cashier)', () => {
   let createSale: ReturnType<typeof vi.fn>;
+  const fiscal = { enabled: signal(false), sale: vi.fn(), paymentSystems: vi.fn(() => Promise.resolve([])) };
 
   beforeEach(async () => {
     createSale = vi.fn(() => of('sale-1'));
@@ -64,7 +71,7 @@ describe('PosComponent checkout (cashier)', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
-        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk]) } },
+        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk, water]), updateProduct: vi.fn(() => of(undefined)) } },
         { provide: BatchService, useValue: { getActiveBatches: () => of(activeBatches) } },
         { provide: TenantService, useValue: { tenant: signal({ name: 'Test' }) } },
         { provide: CategoryService, useValue: { getCategories: () => of([]) } },
@@ -75,6 +82,7 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }), getShiftSales: () => of([]) } },
         { provide: TranslationService, useValue: { translate: (k: string) => k, getLanguage: () => 'uz', setLanguage: () => undefined } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
+        { provide: FiscalService, useValue: fiscal },
         { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm") } }
       ]
     }).compileComponents();
@@ -172,6 +180,68 @@ describe('PosComponent checkout (cashier)', () => {
       { batchId: 'b-late', quantity: 1 }
     ]);
     expect(nailsLine.batches).toBeUndefined();
+  });
+
+  it('sells marked goods only with one scanned Data Matrix code per unit', async () => {
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+    const toast = TestBed.inject(ToastService) as unknown as { error: ReturnType<typeof vi.fn> };
+    const scan = (code: string) => (pos as unknown as { addProductByBarcode(c: string): void }).addProductByBarcode(code);
+    const code1 = '0104780069000130215AbCdEfGh1\u001d93abcd';
+    const code2 = '0104780069000130215ZyXwVuTs2\u001d93efgh';
+
+    // Tapping the tile adds a unit that still needs its code: payment is refused.
+    t.tile('Suv').click();
+    await t.settle();
+    expect(pos.missingMarkingCodes(pos.cart()[0])).toBe(1);
+    t.payButton().click();
+    await t.settle();
+    expect(t.dialogs()).toBe(0);
+    expect(toast.error).toHaveBeenCalled();
+
+    // The scan fills that unit, the same pack can't count twice, a new pack adds a unit.
+    scan(code1);
+    expect(pos.cart()[0]).toMatchObject({ quantity: 1, markingCodes: [code1] });
+    scan(code1);
+    expect(pos.cart()[0].quantity).toBe(1);
+    scan(code2);
+    expect(pos.cart()[0]).toMatchObject({ quantity: 2, markingCodes: [code1, code2] });
+    await t.settle();
+
+    await payAndFinish(t);
+    expect(createSale.mock.calls[0][0].items[0].markingCodes).toEqual([code1, code2]);
+  });
+
+  it('fiscalises the sale through the virtual cash register before saving it', async () => {
+    fiscal.enabled.set(true);
+    const receipt = { id: 'f1', amount: 0, qrCodeUrl: 'https://ofd.soliq.uz/check?t=VG1', terminalId: 'VG1', receiptNo: '7', fiscalSign: '123', dateTime: '' };
+    fiscal.sale.mockResolvedValueOnce(receipt);
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+    const toast = TestBed.inject(ToastService) as unknown as { error: ReturnType<typeof vi.fn> };
+
+    // Cement has no MXIK code: the till refuses before calling the register.
+    t.tile('Sement').click();
+    await t.settle();
+    t.payButton().click();
+    await t.settle();
+    const confirm = t.overlayButtons().filter((b) => b.classList.contains('mat-mdc-unelevated-button')).at(-1)!;
+    confirm.click();
+    await t.settle();
+    expect(fiscal.sale).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('fiscal.noMxik'));
+    expect(createSale).not.toHaveBeenCalled();
+    pos.clearCart();
+
+    // Water has MXIK + package: receipt first, then the sale is saved with it.
+    (pos as unknown as { addProductByBarcode(c: string): void }).addProductByBarcode('0104780069000130215AbCdEfGh1\u001d93abcd');
+    await t.settle();
+    await payAndFinish(t);
+    const payload = fiscal.sale.mock.calls[0][0];
+    expect(payload.positions[0]).toMatchObject({ icps: '00401001001000000', package_code: '1500001', quantity: 1000, label: '0104780069000130215AbCdEfGh1\u001d93abcd' });
+    expect(payload.payments).toEqual([{ type: 1, value: 500000 }]);
+    expect(createSale.mock.calls[0][0].fiscal).toEqual(receipt);
+    fiscal.enabled.set(false);
   });
 
   it('sets quantity and discount of the selected line from the on-screen keypad', async () => {

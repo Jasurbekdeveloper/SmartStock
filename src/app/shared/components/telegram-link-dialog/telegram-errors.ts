@@ -8,6 +8,8 @@ export function telegramErrorKey(err: unknown): string {
   if (message.includes('TELEGRAM_INVALID')) return 'telegram.invalid';
   if (message.includes('TENANT_SUSPENDED')) return 'auth.storeSuspended';
   if (message.includes('INACTIVE')) return 'auth.inactive';
+  if (message.includes('TOO_MANY_REQUESTS')) return 'auth.tooManyRequests';
+  if (message.includes('ADMIN_ONLY')) return 'auth.permissionDenied';
   if (code === 'functions/not-found' || code === 'functions/internal' || code === 'functions/unavailable') {
     return 'telegram.serviceUnavailable';
   }

@@ -16,9 +16,14 @@ import {
   DEFAULT_RECEIPT_PAPER_WIDTH,
   DEFAULT_STORE_NAME,
   DEFAULT_VAT_RATE,
+  FiscalPolicy,
   ReceiptPaperWidth,
-  SettingsService
+  SettingsService,
+  TelegramReportSettings
 } from '../../../core/services/settings.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
+import { telegramErrorKey } from '../../../shared/components/telegram-link-dialog/telegram-errors';
 import { TenantService } from '../../../core/services/tenant.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -76,6 +81,70 @@ export class SettingsPageComponent implements OnInit {
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
   private fiscal = inject(FiscalService);
+  private authService = inject(AuthService);
+
+  // ---------------------------------------------------------------- store-wide fiscal policy (admin)
+  fiscalPolicy = this.settingsService.fiscalPolicy;
+
+  setFiscalPolicy(patch: Partial<FiscalPolicy>) {
+    this.settingsService.updateGeneralSettings({ fiscalPolicy: { ...this.fiscalPolicy(), ...patch } }).subscribe({
+      next: () => this.toast.success(this.translation.translate('messages.saved')),
+      error: () => this.toast.error(this.translation.translate('messages.error'))
+    });
+  }
+
+  // ---------------------------------------------------------------- Telegram reports (MarketHisob bot)
+  reports = this.settingsService.telegramReports;
+  readonly reportBot = environment.telegramBotUsername;
+  reportKinds = ['daily', 'weekly', 'monthly', 'lowStock'] as const;
+  reportBusy = signal(false);
+
+  setReports(patch: Partial<TelegramReportSettings>) {
+    // Only the switches: the group is set by the bot itself (merge keeps it).
+    const { groupChatId: _g, groupTitle: _t, ...current } = this.reports();
+    this.settingsService.updateGeneralSettings({ telegramReports: { ...current, ...patch } }).subscribe({
+      next: () => this.toast.success(this.translation.translate('messages.saved')),
+      error: () => this.toast.error(this.translation.translate('messages.error'))
+    });
+  }
+
+  connectReportGroup() {
+    const tab = window.open('', '_blank');
+    this.reportBusy.set(true);
+    this.authService.createTelegramGroupCode().subscribe({
+      next: ({ start }) => {
+        this.reportBusy.set(false);
+        const url = `https://t.me/${this.reportBot}?startgroup=${encodeURIComponent(start)}`;
+        if (tab) tab.location.href = url;
+        else window.location.href = url;
+        this.toast.success(this.translation.translate('reports.groupPick'));
+      },
+      error: (err) => {
+        tab?.close();
+        this.reportBusy.set(false);
+        this.toast.error(this.translation.translate(telegramErrorKey(err)));
+      }
+    });
+  }
+
+  disconnectReportGroup() {
+    this.setReports({ groupChatId: null, groupTitle: null });
+  }
+
+  sendReportNow(kind: (typeof this.reportKinds)[number]) {
+    this.reportBusy.set(true);
+    this.authService.sendTelegramReportNow(kind).subscribe({
+      next: ({ sent, recipients }) => {
+        this.reportBusy.set(false);
+        if (recipients === 0) this.toast.error(this.translation.translate('reports.noRecipients'));
+        else this.toast.success(`${this.translation.translate('reports.sent')}: ${sent}/${recipients}`);
+      },
+      error: (err) => {
+        this.reportBusy.set(false);
+        this.toast.error(this.translation.translate(telegramErrorKey(err)));
+      }
+    });
+  }
 
   // ---------------------------------------------------------------- fiscal register (this device)
   fiscalForm = signal<FiscalConfig>({ ...this.fiscal.config() });

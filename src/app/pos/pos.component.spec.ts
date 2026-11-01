@@ -83,7 +83,7 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: TranslationService, useValue: { translate: (k: string) => k, getLanguage: () => 'uz', setLanguage: () => undefined } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
         { provide: FiscalService, useValue: fiscal },
-        { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm") } }
+        { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm"), fiscalPolicy: signal({ send: true, sendDebt: true }) } }
       ]
     }).compileComponents();
   });

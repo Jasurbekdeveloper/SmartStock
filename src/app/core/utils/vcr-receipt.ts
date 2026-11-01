@@ -123,6 +123,43 @@ export function buildVcrPayments(positions: VcrPosition[], card: number, integra
   return payments;
 }
 
+/**
+ * Payments of a sale made partly or fully on debt (qarz): only the money actually taken
+ * now — the rest is paid later and gets its own credit receipt. Cash and card amounts
+ * are in so'm.
+ */
+export function buildPartPayments(cash: number, card: number): VcrPayment[] {
+  const payments: VcrPayment[] = [];
+  const cashTiyin = Math.max(0, toTiyin(cash));
+  const cardTiyin = Math.max(0, toTiyin(card));
+  if (cashTiyin > 0) payments.push({ type: 1, value: cashTiyin });
+  if (cardTiyin > 0) payments.push({ type: 2, value: cardTiyin });
+  if (payments.length === 0) payments.push({ type: 1, value: 0 });
+  return payments;
+}
+
+/**
+ * Positions for a credit receipt (Receipt.Credit) when part of a debt is repaid: the
+ * goods of the original sale with their amounts scaled down so they add up exactly to
+ * `amountTiyin`. Marking codes are not repeated — they were closed by the sale receipt.
+ */
+export function scaleVcrPositions(positions: VcrPosition[], amountTiyin: number): VcrPosition[] {
+  const nets = positions.map((p) => Math.max(0, p.amount - p.discount));
+  const total = nets.reduce((s, n) => s + n, 0);
+  if (total <= 0 || amountTiyin <= 0) return [];
+  const target = Math.min(amountTiyin, total);
+  const scaled = nets.map((n) => Math.floor((n * target) / total));
+  // Rounding leftovers go to the biggest line so the sum is exact.
+  const biggest = nets.indexOf(Math.max(...nets));
+  scaled[biggest] += target - scaled.reduce((s, n) => s + n, 0);
+  return positions
+    .map((p, i) => {
+      const { label: _label, ...rest } = p;
+      return { ...rest, amount: scaled[i], discount: 0 };
+    })
+    .filter((p) => p.amount > 0);
+}
+
 /** Product unit → words the catalogue uses for the matching package. */
 const UNIT_WORDS: Record<string, RegExp> = {
   dona: /дона|шт|dona|штук/i,

@@ -57,6 +57,7 @@ export interface SaleItem {
 export type PaymentMethod = 'cash' | 'card' | 'mixed';
 
 import type { FiscalReceipt } from './fiscal.service';
+import type { VcrPosition } from '../utils/vcr-receipt';
 
 export interface Sale {
   id: string;
@@ -92,7 +93,7 @@ export interface Sale {
   totalNetProfit?: number;
   /** Fiscal receipt from the virtual cash register (REGOS: VCR), when fiscalisation is on. */
   fiscal?: FiscalReceipt;
-  /** Why a sale went without a fiscal receipt (e.g. 'credit' — a nasiya sale). */
+  /** Why a sale went without a fiscal receipt ('debt': the admin doesn't send debt sales). */
   fiscalSkipped?: string;
   /** Sum already refunded through returns (denormalized for lists). */
   refundedAmount?: number;
@@ -104,6 +105,8 @@ export interface SaleDebtInput {
   customerId?: string;
   /** ...create this new customer as part of the same atomic write. */
   newCustomer?: { name: string; phone: string };
+  /** Goods of a fiscalised debt sale, kept on the debt for the credit receipts of its repayments. */
+  fiscalPositions?: VcrPosition[];
 }
 
 export interface SaleReturnItem {
@@ -266,6 +269,9 @@ export class SalesService {
         totalAmount: debt.amount,
         paidAmount: 0,
         remainingAmount: debt.amount,
+        ...(sale.fiscal && debt.fiscalPositions?.length
+          ? { fiscalCredit: { saleReceiptId: sale.fiscal.id, positions: debt.fiscalPositions.map(({ label: _label, ...p }) => p) } }
+          : {}),
         createdAt: serverTimestamp()
       }));
     }

@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy": "ng build --configuration production && firebase deploy --only hosting",
-    "release": "ng test --watch=false && ng build --configuration production && npm --prefix functions ci && git add -A && git commit -m \"Fiskal kassa (REGOS VCR), Click/Payme/Uzum, markirovka, MXIK tanlash, etiketkalar, Telegram almashtirish, tezlik\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push",
+    "release": "ng test --watch=false && ng build --configuration production && npm --prefix functions ci && git add -A && git commit -m \"Soliqqa yuborish sozlamasi, qarz cheklari (Receipt.Credit), Telegram hisobotlar, bot orqali kirish\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push",
     "firebase:login": "npm install -g firebase-tools && firebase login",
     "deploy:firebase": "firebase deploy --only hosting:app,firestore:rules,firestore:indexes,storage,functions"
   },

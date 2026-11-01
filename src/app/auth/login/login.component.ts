@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -46,6 +46,10 @@ export class LoginComponent {
   loading = signal(false);
   showPassword = signal(false);
   readonly telegramBotName = environment.telegramBotUsername;
+  /** Sign-in through the bot: link to open, and what we're waiting for. */
+  botLogin = signal<{ url: string; state: 'waiting' | 'expired' | 'rejected' } | null>(null);
+  private botPoll: ReturnType<typeof setTimeout> | null = null;
+  private botCode: string | null = null;
 
   private translation = inject(TranslationService);
   themeService = inject(ThemeService);
@@ -70,6 +74,81 @@ export class LoginComponent {
   ) {
     if (this.route.snapshot.queryParamMap.get('reason') === 'suspended') {
       this.error.set('auth.storeSuspended');
+    }
+    inject(DestroyRef).onDestroy(() => this.stopBotLogin());
+  }
+
+  /**
+   * Sign in with any Telegram account: the Login Widget always shows the account this
+   * browser used last, the bot answers whichever account presses Start.
+   */
+  loginViaBot() {
+    // Open the tab inside the click so popup blockers allow it; the address follows.
+    const tab = window.open('', '_blank');
+    this.stopBotLogin();
+    this.showError(null, null, false);
+    this.loading.set(true);
+    this.authService.createTelegramLoginCode().subscribe({
+      next: ({ code, start }) => {
+        this.loading.set(false);
+        const url = `https://t.me/${this.telegramBotName}?start=${encodeURIComponent(start)}`;
+        if (tab) tab.location.href = url;
+        this.botCode = code;
+        this.botLogin.set({ url, state: 'waiting' });
+        this.scheduleBotCheck(Date.now() + 5 * 60 * 1000);
+      },
+      error: (err) => {
+        tab?.close();
+        this.loading.set(false);
+        this.showError(telegramErrorKey(err), (err as { code?: string })?.code || null, false);
+      }
+    });
+  }
+
+  cancelBotLogin() {
+    this.stopBotLogin();
+    this.botLogin.set(null);
+  }
+
+  private stopBotLogin() {
+    if (this.botPoll) clearTimeout(this.botPoll);
+    this.botPoll = null;
+    this.botCode = null;
+  }
+
+  private scheduleBotCheck(deadline: number) {
+    this.botPoll = setTimeout(() => this.checkBotLogin(deadline), 2500);
+  }
+
+  private async checkBotLogin(deadline: number) {
+    const code = this.botCode;
+    if (!code) return;
+    try {
+      const result = await this.authService.checkTelegramLogin(code);
+      if (code !== this.botCode) return;
+      if (result.status === 'confirmed') {
+        this.stopBotLogin();
+        this.botLogin.set(null);
+        this.redirectAfterLogin(result.user);
+        return;
+      }
+      if (result.status === 'pending' && Date.now() < deadline) {
+        this.scheduleBotCheck(deadline);
+        return;
+      }
+      this.stopBotLogin();
+      this.botLogin.update((b) => (b ? { ...b, state: result.status === 'rejected' ? 'rejected' : 'expired' } : b));
+    } catch (err) {
+      if (code !== this.botCode) return;
+      const message = (err as Error)?.message;
+      if (message === 'INACTIVE' || message === 'TENANT_SUSPENDED' || message === 'NO_PROFILE' || (err as { code?: string })?.code === 'functions/permission-denied') {
+        this.stopBotLogin();
+        this.botLogin.set(null);
+        this.showError(this.loginErrorKey(err), (err as { code?: string })?.code || message || null, true);
+        return;
+      }
+      // A network hiccup: keep waiting until the deadline.
+      if (Date.now() < deadline) this.scheduleBotCheck(deadline);
     }
   }
 

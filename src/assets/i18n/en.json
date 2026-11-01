@@ -790,7 +790,13 @@
     "widgetHint": "This button connects the Telegram account last used in this browser.",
     "switchAccount": "Switch to another Telegram account",
     "waitingStart": "Open the bot in Telegram and press START. This window updates by itself once connected.",
-    "openBot": "Open the bot"
+    "openBot": "Open the bot",
+    "botLogin": "Sign in via the Telegram bot",
+    "botLoginHint": "If a different Telegram account shows above, use this button and confirm from the account you want.",
+    "botLoginWaiting": "Open the bot in Telegram, press Start, then “Confirm sign-in”. This page signs in by itself.",
+    "botLoginRejected": "Sign-in was rejected in Telegram.",
+    "botLoginExpired": "The request expired. Please try again.",
+    "tryAgain": "Try again"
   },
   "subscription": {
     "title": "Subscription",
@@ -1368,7 +1374,14 @@
     "noPackage": "no package code — pick the MXIK code from the catalogue again",
     "terminal": "FM",
     "receiptNo": "Fiscal receipt no.",
-    "sign": "Fiscal sign"
+    "sign": "Fiscal sign",
+    "creditFailed": "Debt repayment receipt failed",
+    "storePolicy": "Store-wide (admin)",
+    "policySend": "Send receipts to the tax office",
+    "policySendHint": "When off, no till sends receipts (even with a virtual register set up).",
+    "policyDebt": "Also send sales on debt",
+    "policyDebtHint": "Goods sold on debt go on a receipt at the sale (marking codes are closed); each repayment gets a credit receipt.",
+    "deviceTitle": "Virtual register on this computer"
   },
   "payments": {
     "viaSystem": "Through a payment system (full amount):",
@@ -1379,5 +1392,26 @@
     "paid": "Paid",
     "failed": "The payment failed. Try again or choose another method.",
     "charge": "Charge"
+  },
+  "reports": {
+    "title": "Telegram reports",
+    "intro": "The {{bot}} bot sends sales statistics and low-stock items automatically.",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "lowStock": "Low stock",
+    "whereTitle": "Recipients",
+    "toAdmins": "Private message to admins",
+    "toAdminsHint": "Every admin who linked Telegram in the profile menu gets them. Only they see the numbers — recommended.",
+    "groupLink": "Connect a group",
+    "groupLinked": "Connected group",
+    "groupUnlink": "Disconnect group",
+    "groupHint": "To share with partners or managers. Press the button and pick a group in Telegram — the bot joins and connects. Everyone in the group sees the numbers.",
+    "groupPick": "Pick the group in Telegram",
+    "sendNow": "Send now",
+    "sent": "Sent",
+    "noRecipients": "No recipients: link Telegram or connect a group",
+    "schedule": "Schedule (Tashkent time): daily — 21:00; weekly — Monday 09:00; monthly — 1st at 09:00; low stock — daily 09:00 (if any).",
+    "ownBotTitle": "Your own bot (optional, legacy)"
   }
 }

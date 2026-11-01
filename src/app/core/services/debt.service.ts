@@ -20,6 +20,9 @@ import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { commitOrQueue, stripUndefined } from './sales.service';
 import { roundMoney } from '../utils/pos-math';
+import { VcrPosition, scaleVcrPositions, toTiyin } from '../utils/vcr-receipt';
+import { FiscalService } from './fiscal.service';
+import { SettingsService } from './settings.service';
 
 export type DebtPaymentMethod = 'cash' | 'card' | 'bank';
 
@@ -33,6 +36,8 @@ export interface DebtPayment {
   /** Shift the cash went into, when taken at a till. */
   shiftId?: string;
   cashMovementId?: string;
+  /** Credit receipt (Receipt.Credit) the virtual cash register issued for this repayment. */
+  fiscalCreditId?: string;
   cashierId: string;
   cashierName: string;
   note?: string;
@@ -108,6 +113,9 @@ export interface Debt {
   /** Optional "pay by" date, set at debt creation. Used by the 11-band low-stock/debt-due
    *  alert check (dashboard) to flag debts that are now overdue. */
   dueDate?: Date;
+  /** Set when the debt sale went to the tax office: its goods, for the credit receipt
+   *  of every repayment. */
+  fiscalCredit?: { saleReceiptId: string; positions: VcrPosition[] };
 }
 
 @Injectable({
@@ -116,6 +124,8 @@ export interface Debt {
 export class DebtService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private fiscal = inject(FiscalService);
+  private settings = inject(SettingsService);
 
   getDebts(): Observable<Debt[]> {
     const debtsQuery = tenantQuery(this.firestore, 'debts', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
@@ -200,9 +210,31 @@ export class DebtService {
     const wb = writeBatch(this.firestore);
     const cashIntoDrawer = input.method === 'cash' && !!input.shiftId;
     const movementRef = cashIntoDrawer ? doc(collection(this.firestore, 'cashMovements')) : null;
+    const paymentRefs = slices.map(() => doc(collection(this.firestore, 'debtPayments')));
 
-    for (const slice of slices) {
-      const paymentRef = doc(collection(this.firestore, 'debtPayments'));
+    // Credit receipts go first: if the cash register refuses, nothing is recorded and
+    // the cashier can retry. Bank transfers don't pass through the till.
+    const creditIds = new Map<string, string>();
+    const policy = this.settings.fiscalPolicy();
+    if (this.fiscal.enabled() && policy.send && policy.sendDebt && input.method !== 'bank') {
+      for (const [i, slice] of slices.entries()) {
+        const credit = debts.find((d) => d.id === slice.debtId)?.fiscalCredit;
+        if (!credit?.positions?.length) continue;
+        const positions = scaleVcrPositions(credit.positions, toTiyin(slice.amount));
+        if (positions.length === 0) continue;
+        const value = positions.reduce((s, p) => s + p.amount, 0);
+        const receipt = await this.fiscal.credit({
+          code: `Q-${paymentRefs[i].id}`,
+          positions,
+          payments: [{ type: input.method === 'card' ? 2 : 1, value }],
+          cashierName: user?.displayName
+        });
+        creditIds.set(slice.debtId, receipt.id);
+      }
+    }
+
+    for (const [i, slice] of slices.entries()) {
+      const paymentRef = paymentRefs[i];
       wb.set(
         paymentRef,
         withTenant(
@@ -213,6 +245,7 @@ export class DebtService {
             method: input.method,
             shiftId: input.shiftId,
             cashMovementId: movementRef?.id,
+            fiscalCreditId: creditIds.get(slice.debtId),
             cashierId: user?.uid ?? '',
             cashierName: user?.displayName ?? '',
             note: input.note?.trim() || undefined,

@@ -11,6 +11,7 @@ import { ShiftService } from '../../../core/services/shift.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ToastService } from '../../../core/services/toast.service';
 import { FiscalService } from '../../../core/services/fiscal.service';
+import { SettingsService } from '../../../core/services/settings.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
@@ -36,6 +37,7 @@ export class ShiftOpenComponent {
   private router = inject(Router);
   private toast = inject(ToastService);
   private fiscal = inject(FiscalService);
+  private settingsService = inject(SettingsService);
   private translation = inject(TranslationService);
 
   startingCash: number | null = null;
@@ -58,7 +60,7 @@ export class ShiftOpenComponent {
         this.submitting.set(false);
         this.toast.success(this.translation.translate('shifts.shiftOpened'));
         // The virtual cash register's fiscal shift (Z-report) opens with ours.
-        if (this.fiscal.enabled()) {
+        if (this.fiscal.enabled() && this.settingsService.fiscalPolicy().send) {
           this.fiscal.openShift().catch((err: Error) => this.toast.error(`${this.translation.translate('fiscal.shiftFailed')}: ${err.message}`));
         }
         this.router.navigate(['/pos']);

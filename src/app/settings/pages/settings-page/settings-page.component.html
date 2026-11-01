@@ -104,11 +104,51 @@
 
       <!-- Integrations (admin-only page, so no extra role gating needed here) -->
       <mat-tab [label]="'settings.integrations' | translate">
+        @let rp = reports();
+        <section class="p-6 space-y-4 border-b border-gray-200 dark:border-gray-800">
+          <div>
+            <h3 class="text-base font-semibold">{{ 'reports.title' | translate }}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{{ 'reports.intro' | translate: { bot: '@' + reportBot } }}</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <mat-slide-toggle [checked]="rp.daily" (change)="setReports({ daily: $event.checked })">{{ 'reports.daily' | translate }}</mat-slide-toggle>
+            <mat-slide-toggle [checked]="rp.weekly" (change)="setReports({ weekly: $event.checked })">{{ 'reports.weekly' | translate }}</mat-slide-toggle>
+            <mat-slide-toggle [checked]="rp.monthly" (change)="setReports({ monthly: $event.checked })">{{ 'reports.monthly' | translate }}</mat-slide-toggle>
+            <mat-slide-toggle [checked]="rp.lowStock" (change)="setReports({ lowStock: $event.checked })">{{ 'reports.lowStock' | translate }}</mat-slide-toggle>
+          </div>
+
+          <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+            <p class="text-sm font-medium">{{ 'reports.whereTitle' | translate }}</p>
+            <mat-slide-toggle [checked]="rp.toAdmins" (change)="setReports({ toAdmins: $event.checked })">{{ 'reports.toAdmins' | translate }}</mat-slide-toggle>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'reports.toAdminsHint' | translate }}</p>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              @if (rp.groupChatId) {
+              <span class="badge badge--green">{{ 'reports.groupLinked' | translate }}: {{ rp.groupTitle || rp.groupChatId }}</span>
+              <button mat-button type="button" (click)="disconnectReportGroup()">{{ 'reports.groupUnlink' | translate }}</button>
+              } @else {
+              <button mat-stroked-button type="button" [disabled]="reportBusy()" (click)="connectReportGroup()">
+                <mat-icon>groups</mat-icon>{{ 'reports.groupLink' | translate }}
+              </button>
+              }
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'reports.groupHint' | translate }}</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm text-gray-600 dark:text-gray-300">{{ 'reports.sendNow' | translate }}:</span>
+            @for (k of reportKinds; track k) {
+            <button mat-stroked-button type="button" [disabled]="reportBusy()" (click)="sendReportNow(k)">{{ 'reports.' + k | translate }}</button>
+            }
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'reports.schedule' | translate }}</p>
+        </section>
+
         @let it = integrations();
         <form (ngSubmit)="saveIntegrations()" class="p-6 space-y-2">
           @if (loadingIntegrations()) {
           <p class="text-gray-500 dark:text-gray-400 text-center py-4">{{ 'messages.loading' | translate }}</p>
           } @else {
+          <h3 class="text-base font-semibold">{{ 'reports.ownBotTitle' | translate }}</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ 'settings.telegramHint' | translate }}</p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
@@ -135,7 +175,16 @@
       <!-- Fiscal cash register (REGOS: VCR) — stored on this device only -->
       <mat-tab [label]="'fiscal.tab' | translate">
         @let fc = fiscalForm();
+        @let fp = fiscalPolicy();
+        <section class="p-6 space-y-3 border-b border-gray-200 dark:border-gray-800 max-w-2xl">
+          <h3 class="text-base font-semibold">{{ 'fiscal.storePolicy' | translate }}</h3>
+          <mat-slide-toggle [checked]="fp.send" (change)="setFiscalPolicy({ send: $event.checked })">{{ 'fiscal.policySend' | translate }}</mat-slide-toggle>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'fiscal.policySendHint' | translate }}</p>
+          <mat-slide-toggle [checked]="fp.sendDebt" [disabled]="!fp.send" (change)="setFiscalPolicy({ sendDebt: $event.checked })">{{ 'fiscal.policyDebt' | translate }}</mat-slide-toggle>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'fiscal.policyDebtHint' | translate }}</p>
+        </section>
         <div class="p-6 space-y-4 max-w-2xl">
+          <h3 class="text-base font-semibold">{{ 'fiscal.deviceTitle' | translate }}</h3>
           <p class="text-sm text-gray-600 dark:text-gray-300">{{ 'fiscal.intro' | translate }}</p>
           <mat-slide-toggle [checked]="fc.enabled" (change)="patchFiscal({ enabled: $event.checked })">{{ 'fiscal.enable' | translate }}</mat-slide-toggle>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">

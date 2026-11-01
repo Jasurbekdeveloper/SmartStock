@@ -38,7 +38,44 @@ export interface GeneralSettings {
   receiptFooter?: string;
   /** Barcode label printing: size, and whether price / name / store name are printed. */
   labelSettings?: Partial<LabelSettings>;
+  /** Whether sales go to the tax office through the fiscal cash register — the admin's
+   *  switch for the whole store (each till still needs its own VCR set up). */
+  fiscalPolicy?: Partial<FiscalPolicy>;
+  /** Statistics and low-stock reports sent by the MarketHisob bot. */
+  telegramReports?: Partial<TelegramReportSettings>;
 }
+
+export interface FiscalPolicy {
+  /** Send receipts to the tax office at all. */
+  send: boolean;
+  /** Also send sales made on debt (qarz): the goods go on a sale receipt at once, each
+   *  later repayment gets a credit receipt. */
+  sendDebt: boolean;
+}
+
+export const DEFAULT_FISCAL_POLICY: FiscalPolicy = { send: true, sendDebt: true };
+
+export interface TelegramReportSettings {
+  daily: boolean;
+  weekly: boolean;
+  monthly: boolean;
+  lowStock: boolean;
+  /** Private messages to the store's admins who linked Telegram. */
+  toAdmins: boolean;
+  /** Telegram group the bot was added to (set by the bot itself). */
+  groupChatId?: number | null;
+  groupTitle?: string | null;
+}
+
+export const DEFAULT_TELEGRAM_REPORTS: TelegramReportSettings = {
+  daily: true,
+  weekly: true,
+  monthly: true,
+  lowStock: true,
+  toAdmins: true,
+  groupChatId: null,
+  groupTitle: null
+};
 
 /** `settings/integrations` — read AND write restricted to admin only (Telegram bot
  *  credentials), separate doc from `settings/general` for that reason. */
@@ -114,4 +151,8 @@ export class SettingsService {
   pricesIncludeVat = computed(() => this.generalSettings()?.pricesIncludeVat ?? DEFAULT_PRICES_INCLUDE_VAT);
 
   storeName = computed(() => this.generalSettings()?.storeName || DEFAULT_STORE_NAME);
+
+  fiscalPolicy = computed<FiscalPolicy>(() => ({ ...DEFAULT_FISCAL_POLICY, ...(this.generalSettings()?.fiscalPolicy ?? {}) }));
+
+  telegramReports = computed<TelegramReportSettings>(() => ({ ...DEFAULT_TELEGRAM_REPORTS, ...(this.generalSettings()?.telegramReports ?? {}) }));
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildVcrPayments, buildVcrPositions, fiscalProblems, pickPackageForUnit, vcrBarcode, vcrQuantity, vcrVatValue } from './vcr-receipt';
+import { buildPartPayments, buildVcrPayments, buildVcrPositions, scaleVcrPositions, fiscalProblems, pickPackageForUnit, vcrBarcode, vcrQuantity, vcrVatValue } from './vcr-receipt';
 
 const sut = { productId: 'p1', name: 'Sut 1L', barcode: '4780069000130', mxikCode: '00401001001000000', packageCode: '1500001', unit: 'dona' };
 
@@ -27,6 +27,28 @@ describe('VCR receipt', () => {
     expect(buildVcrPayments(ps, 5000)).toEqual([{ type: 1, value: 734567 }, { type: 2, value: 500000 }]);
     expect(buildVcrPayments(ps, 0)).toEqual([{ type: 1, value: 1234567 }]);
     expect(buildVcrPayments(ps, 0, 'pay-1')).toEqual([{ type: 2, payment_id: 'pay-1' }]);
+  });
+
+  it('a debt sale only pays what was taken now', () => {
+    expect(buildPartPayments(30000, 0)).toEqual([{ type: 1, value: 3000000 }]);
+    expect(buildPartPayments(10000, 5000)).toEqual([{ type: 1, value: 1000000 }, { type: 2, value: 500000 }]);
+    expect(buildPartPayments(0, 0)).toEqual([{ type: 1, value: 0 }]);
+  });
+
+  it('scales the sale goods to a debt repayment exactly, without marking codes', () => {
+    const codes = ['0104780069000130215AAA\u001d93xx', '0104780069000130215BBB\u001d93yy'];
+    const sale = buildVcrPositions(
+      [
+        { ...sut, quantity: 2, paid: 20000, discount: 0, markingCodes: codes },
+        { ...sut, productId: 'p2', name: 'Non', quantity: 1, paid: 3333.33, discount: 500 }
+      ],
+      0.12
+    );
+    const credit = scaleVcrPositions(sale, 1000001);
+    expect(credit.reduce((s, p) => s + p.amount, 0)).toBe(1000001);
+    expect(credit.every((p) => p.discount === 0 && p.label === undefined)).toBe(true);
+    expect(scaleVcrPositions(sale, 999999999).reduce((s, p) => s + p.amount, 0)).toBe(2333333);
+    expect(scaleVcrPositions(sale, 0)).toEqual([]);
   });
 
   it('reports lines without MXIK or package', () => {

@@ -38,7 +38,7 @@ import { ProductBatchSummary, allocateFefo, batchesByProduct, isBlockedExpired, 
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { barcodeMatchesGtin, parseMarkingCode } from '../core/utils/marking';
 import { FiscalReceipt, FiscalService } from '../core/services/fiscal.service';
-import { FiscalLineInput, buildVcrPayments, buildVcrPositions, fiscalProblems } from '../core/utils/vcr-receipt';
+import { FiscalLineInput, VcrPosition, buildPartPayments, buildVcrPayments, buildVcrPositions, fiscalProblems } from '../core/utils/vcr-receipt';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
@@ -368,6 +368,8 @@ export class PosComponent implements OnInit {
 
   vatRate = this.settingsService.vatRate;
   pricesIncludeVat = this.settingsService.pricesIncludeVat;
+  /** This till has a VCR set up and the admin lets receipts go to the tax office. */
+  fiscalActive = computed(() => this.fiscal.enabled() && this.settingsService.fiscalPolicy().send);
 
   /** Cash the drawer should hold now: float + cash sales − cash refunds ± cash movements.
    *  Same formula as the Z-report (computeShiftTotals). */
@@ -788,7 +790,8 @@ export class PosComponent implements OnInit {
     const data: PosPaymentDialogData = {
       lines: this.checkoutLines(),
       vat: { vatRate: this.vatRate(), pricesIncludeVat: this.pricesIncludeVat() },
-      customers: this.customers()
+      customers: this.customers(),
+      fiscal: this.fiscalActive()
     };
 
     this.dialogOpen.set(true);
@@ -881,9 +884,12 @@ export class PosComponent implements OnInit {
         : { amount: split.debt, customerId: payment.customerId };
     }
 
-    const save = (fiscal?: FiscalReceipt, fiscalSkipped?: string) =>
+    const save = (fiscal?: FiscalReceipt, fiscalSkipped?: string, fiscalPositions?: VcrPosition[]) =>
       this.salesService
-        .createSale({ ...sale, ...(fiscal ? { fiscal } : {}), ...(fiscalSkipped ? { fiscalSkipped } : {}) }, debt)
+        .createSale(
+          { ...sale, ...(fiscal ? { fiscal } : {}), ...(fiscalSkipped ? { fiscalSkipped } : {}) },
+          debt && fiscalPositions ? { ...debt, fiscalPositions } : debt
+        )
         .subscribe({
           next: (saleId) => {
             this.submitting.set(false);
@@ -893,13 +899,15 @@ export class PosComponent implements OnInit {
           error: (err) => this.saleFailed(err)
         });
 
-    if (!this.fiscal.enabled()) {
+    if (!this.fiscalActive()) {
       save();
       return;
     }
-    // A nasiya (credit) sale isn't fiscalised now: the receipt is issued when it is paid.
-    if (split.debt > 0) {
-      save(undefined, 'credit');
+    // Debt (qarz) sale: the goods go on a sale receipt now with only the money taken now;
+    // every later repayment gets a credit receipt. The admin can switch this off.
+    const onDebt = split.debt > 0;
+    if (onDebt && !this.settingsService.fiscalPolicy().sendDebt) {
+      save(undefined, 'debt');
       return;
     }
     // The fiscal receipt comes first: if the tax side refuses, nothing is saved and the
@@ -932,12 +940,12 @@ export class PosComponent implements OnInit {
       .sale({
         code: receiptNo,
         positions,
-        payments: buildVcrPayments(positions, split.card, payment.vcrPaymentId),
+        payments: onDebt ? buildPartPayments(split.cash, split.card) : buildVcrPayments(positions, split.card, payment.vcrPaymentId),
         cashierName: user?.displayName,
         sessionCode: shift?.id
       })
       .then(
-        (receipt) => save(receipt),
+        (receipt) => save(receipt, undefined, onDebt ? positions : undefined),
         (err: Error) => {
           console.error('Fiscal receipt error:', err);
           this.submitting.set(false);

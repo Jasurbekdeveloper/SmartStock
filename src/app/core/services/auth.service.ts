@@ -163,6 +163,36 @@ export class AuthService {
     return from(call(data)).pipe(map(() => undefined));
   }
 
+  /** Sign-in through the bot: a one-time code for t.me/<bot>?start=<start>. */
+  createTelegramLoginCode(): Observable<{ code: string; start: string }> {
+    const call = httpsCallable<void, { code: string; start: string }>(this.functions, 'createTelegramLoginCode');
+    return from(call()).pipe(map((result) => result.data));
+  }
+
+  /** 'pending' until the user confirms in Telegram; then signs in with the one-time token. */
+  async checkTelegramLogin(code: string): Promise<{ status: 'pending' | 'expired' | 'rejected' } | { status: 'confirmed'; user: AppUser }> {
+    const call = httpsCallable<{ code: string }, { status: 'pending' | 'expired' | 'rejected' | 'confirmed'; token?: string }>(
+      this.functions,
+      'checkTelegramLogin'
+    );
+    const { data } = await call({ code });
+    if (data.status !== 'confirmed' || !data.token) return { status: data.status === 'confirmed' ? 'expired' : data.status };
+    const credential = await signInWithCustomToken(this.auth, data.token);
+    return { status: 'confirmed', user: await this.finishLogin(credential.user.uid) };
+  }
+
+  /** Admin: one-time code for t.me/<bot>?startgroup=<start> — that group gets the reports. */
+  createTelegramGroupCode(): Observable<{ code: string; start: string }> {
+    const call = httpsCallable<void, { code: string; start: string }>(this.functions, 'createTelegramGroupCode');
+    return from(call()).pipe(map((result) => result.data));
+  }
+
+  /** Admin: sends one report now to the store's Telegram recipients. */
+  sendTelegramReportNow(kind: 'daily' | 'weekly' | 'monthly' | 'lowStock'): Observable<{ sent: number; recipients: number }> {
+    const call = httpsCallable<{ kind: string }, { sent: number; recipients: number }>(this.functions, 'sendTelegramReportNow');
+    return from(call({ kind })).pipe(map((result) => result.data));
+  }
+
   /** One-time code for t.me/<bot>?start=<start>: links whichever Telegram account presses Start. */
   createTelegramLinkCode(): Observable<{ code: string; start: string }> {
     const call = httpsCallable<void, { code: string; start: string }>(this.functions, 'createTelegramLinkCode');

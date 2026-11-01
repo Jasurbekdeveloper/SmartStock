@@ -184,6 +184,22 @@ export class FiscalService {
     return FiscalService.toReceipt(result);
   }
 
+  /**
+   * Credit receipt (Receipt.Credit) for a repayment of goods sold on debt. The goods
+   * were already fiscalised by the sale receipt; this one is not registered in the
+   * fiscal module and can't use payment systems (cash or card only).
+   */
+  async credit(opts: { code: string; positions: VcrPosition[]; payments: VcrPayment[]; cashierName?: string; phone?: string }): Promise<{ id: string }> {
+    const result = await this.call<Record<string, unknown>>('Receipt.Credit', {
+      code: opts.code,
+      ...(opts.cashierName ? { cashier_name: opts.cashierName } : {}),
+      ...(opts.phone ? { phone: opts.phone } : {}),
+      positions: opts.positions,
+      payments: opts.payments
+    });
+    return { id: String(result?.['id'] ?? result?.['Id'] ?? '') };
+  }
+
   async refund(opts: { code: string; positions: VcrPosition[]; payments: VcrPayment[]; original: FiscalReceipt; cashierName?: string }): Promise<FiscalReceipt> {
     const result = await this.call<Record<string, unknown>>('Receipt.Refund', {
       code: opts.code,

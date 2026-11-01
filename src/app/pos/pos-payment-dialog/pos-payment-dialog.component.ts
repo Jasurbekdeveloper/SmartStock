@@ -33,6 +33,8 @@ export interface PosPaymentDialogData {
   lines: CheckoutLineInput[];
   vat: VatOptions;
   customers: Customer[];
+  /** Receipts go to the tax office from this till: offers Click / Payme / Uzum via VCR. */
+  fiscal?: boolean;
 }
 
 export interface PosPaymentDialogResult {
@@ -184,7 +186,7 @@ export class PosPaymentDialogComponent {
 
   constructor() {
     this.cashInput.set(Math.ceil(this.total()));
-    if (this.fiscal.enabled()) {
+    if (this.data.fiscal) {
       this.fiscal.paymentSystems().then((s) => this.paymentSystems.set(s), () => this.paymentSystems.set([]));
     }
   }

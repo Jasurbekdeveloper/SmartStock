@@ -18,7 +18,17 @@ import {
   parseStartPayload,
   webhookSecret
 } from './telegram-bot.js';
-import { REPORT_DEFAULTS, escapeHtml, formatLowStock, formatReport, lowStockItems, reportRange, summarize } from './reports.js';
+import {
+  REPORT_DEFAULTS,
+  escapeHtml,
+  formatLowStock,
+  formatOverdueDebts,
+  formatReport,
+  lowStockItems,
+  overdueDebts,
+  reportRange,
+  summarize
+} from './reports.js';
 import { formatLeadMessage, parseLead } from './lead.js';
 
 initializeApp();
@@ -475,6 +485,18 @@ async function buildReportText(tenantId, settings, kind, now) {
     const items = lowStockItems(products);
     return items.length ? formatLowStock({ storeName, items }) : null;
   }
+  if (kind === 'debtDue') {
+    const debts = overdueDebts(
+      docs(await db.collection('debts').where('tenantId', '==', tenantId).select('customerId', 'remainingAmount', 'dueDate').get()),
+      now
+    );
+    if (debts.length === 0) return null;
+    const ids = [...new Set(debts.map((d) => d.customerId).filter(Boolean))];
+    const customers = ids.length ? await db.getAll(...ids.map((id) => db.doc(`customers/${id}`))) : [];
+    const names = new Map(customers.map((c) => [c.id, c.exists ? c.get('name') : '']));
+    const items = debts.map((d) => ({ ...d, name: names.get(d.customerId) || '—' }));
+    return formatOverdueDebts({ storeName, items, currency: settings.currencySymbol || "so'm", now });
+  }
   const range = reportRange(kind, now);
   const [sales, returns, prevSales] = await Promise.all([
     periodDocs('sales', tenantId, range.from, range.to),
@@ -518,13 +540,13 @@ export const telegramReportsEvening = onSchedule(
   async () => runReports(['daily'])
 );
 
-/** Every morning: low stock; on Mondays last week; on the 1st last month. */
+/** Every morning: low stock and overdue debts; on Mondays last week; on the 1st last month. */
 export const telegramReportsMorning = onSchedule(
   { schedule: '0 9 * * *', timeZone: 'Asia/Tashkent', secrets: [TELEGRAM_BOT_TOKEN], timeoutSeconds: 540 },
   async () => {
     const now = new Date();
     const local = new Date(now.getTime() + 5 * 60 * 60 * 1000);
-    const kinds = ['lowStock'];
+    const kinds = ['lowStock', 'debtDue'];
     if (local.getUTCDay() === 1) kinds.push('weekly');
     if (local.getUTCDate() === 1) kinds.push('monthly');
     await runReports(kinds, now);
@@ -535,7 +557,7 @@ export const telegramReportsMorning = onSchedule(
 export const sendTelegramReportNow = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, async (request) => {
   const profile = await requireStoreAdmin(request);
   const kind = String(request.data?.kind ?? 'daily');
-  if (!['daily', 'weekly', 'monthly', 'lowStock'].includes(kind)) {
+  if (!['daily', 'weekly', 'monthly', 'lowStock', 'debtDue'].includes(kind)) {
     throw new HttpsError('invalid-argument', 'BAD_KIND');
   }
   const tenantId = profile.get('tenantId');
@@ -545,14 +567,15 @@ export const sendTelegramReportNow = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, a
   const settingsSnap = await db.doc(`settings/${tenantId}`).get();
   const settings = settingsSnap.exists ? settingsSnap.data() : {};
   const config = { ...REPORT_DEFAULTS, ...(settings.telegramReports ?? {}) };
-  const text = (await buildReportText(tenantId, settings, kind, new Date())) ?? '✅ Kam qolgan mahsulot yo‘q.';
+  const empty = kind === 'debtDue' ? '✅ Muddati o‘tgan qarz yo‘q.' : '✅ Kam qolgan mahsulot yo‘q.';
+  const text = (await buildReportText(tenantId, settings, kind, new Date())) ?? empty;
   return deliver(tenantId, config, text);
 });
 
 // ---------- Demo requests from the marketing site ----------
 
 // Where the super admin panel lives; used for the link in the Telegram message.
-const APP_URL = defineString('APP_URL', { default: 'https://smartstock-d737f.web.app' });
+const APP_URL = defineString('APP_URL', { default: 'https://app.markethisob.uz' });
 
 const LEAD_RATE_WINDOW_MS = 60 * 60 * 1000;
 const LEAD_RATE_MAX = 5;

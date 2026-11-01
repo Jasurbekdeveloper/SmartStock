@@ -13,10 +13,8 @@ import type { LabelSettings } from '../utils/labels';
 export type ReceiptPaperWidth = '58' | '80';
 
 /**
- * `settings/general` — publicly readable (landing page contact block; cashiers need VAT rate and
- * currency symbol at checkout in the POS), writable only by admin. Kept separate from
- * `settings/integrations` on purpose: bundling the Telegram bot token into a doc that
- * every cashier can read would leak it to non-admin roles.
+ * `settings/{tenantId}` — readable by the store's users (cashiers need VAT rate and
+ * currency symbol at checkout in the POS), writable only by admin. Holds no secrets.
  */
 export interface GeneralSettings {
   vatRate: number;
@@ -60,6 +58,8 @@ export interface TelegramReportSettings {
   weekly: boolean;
   monthly: boolean;
   lowStock: boolean;
+  /** Debts whose pay-by date has passed (every morning). */
+  debtDue: boolean;
   /** Private messages to the store's admins who linked Telegram. */
   toAdmins: boolean;
   /** Telegram group the bot was added to (set by the bot itself). */
@@ -72,17 +72,11 @@ export const DEFAULT_TELEGRAM_REPORTS: TelegramReportSettings = {
   weekly: true,
   monthly: true,
   lowStock: true,
+  debtDue: true,
   toAdmins: true,
   groupChatId: null,
   groupTitle: null
 };
-
-/** `settings/integrations` — read AND write restricted to admin only (Telegram bot
- *  credentials), separate doc from `settings/general` for that reason. */
-export interface IntegrationSettings {
-  telegramBotToken?: string;
-  telegramChatId?: string;
-}
 
 /** Fallbacks used everywhere until an admin has saved `settings/general` for the first
  *  time (a brand-new store's very first admin visit, before the doc exists at all). */
@@ -118,22 +112,10 @@ export class SettingsService {
     );
   }
 
-  getIntegrationSettings(): Observable<IntegrationSettings | undefined> {
-    return this.authService.currentUser$.pipe(
-      switchMap((user) => user?.tenantId
-        ? fromDocRef<IntegrationSettings>(doc(this.firestore, 'settingsIntegrations', user.tenantId))
-        : fromDocRef<IntegrationSettings>(doc(this.firestore, 'settings', 'integrations')))
-    );
-  }
-
   /** `setDoc(..., {merge: true})` rather than `updateDoc` — the doc may not exist yet
    *  (first-ever admin visit to the Settings page), and `updateDoc` would reject that. */
   updateGeneralSettings(data: Partial<GeneralSettings>): Observable<void> {
     return from(setDoc(doc(this.firestore, 'settings', requireTenantId(this.authService)), stripUndefined(data), { merge: true }));
-  }
-
-  updateIntegrationSettings(data: Partial<IntegrationSettings>): Observable<void> {
-    return from(setDoc(doc(this.firestore, 'settingsIntegrations', requireTenantId(this.authService)), stripUndefined(data), { merge: true }));
   }
 
   /** Live, app-wide read of `settings/general`, kept as a signal here (rather than only

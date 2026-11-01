@@ -12,6 +12,17 @@
   <meta name="description" content="MarketHisob — do'konlar uchun kassa, ombor, qarz daftari va hisobotlar.">
   <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
   <script>
+    // One address for the app: the Firebase default domains send people to the store's
+    // own domain (Telegram login, saved till settings and the service worker are all
+    // tied to a single domain). Preview channels (…--pr-1.web.app) are left alone.
+    (function () {
+      var host = location.hostname;
+      if (host === 'smartstock-d737f.web.app' || host === 'smartstock-d737f.firebaseapp.com') {
+        location.replace('https://app.markethisob.uz' + location.pathname + location.search + location.hash);
+      }
+    })();
+  </script>
+  <script>
     // Load dark mode preference before rendering
     const theme = localStorage.getItem('app_theme') || 'light';
     if (theme === 'dark') {

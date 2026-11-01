@@ -51,11 +51,6 @@ interface GeneralFormModel {
   labels: LabelSettings;
 }
 
-interface IntegrationFormModel {
-  telegramBotToken: string;
-  telegramChatId: string;
-}
-
 @Component({
   selector: 'app-settings-page',
   standalone: true,
@@ -96,7 +91,7 @@ export class SettingsPageComponent implements OnInit {
   // ---------------------------------------------------------------- Telegram reports (MarketHisob bot)
   reports = this.settingsService.telegramReports;
   readonly reportBot = environment.telegramBotUsername;
-  reportKinds = ['daily', 'weekly', 'monthly', 'lowStock'] as const;
+  reportKinds = ['daily', 'weekly', 'monthly', 'lowStock', 'debtDue'] as const;
   reportBusy = signal(false);
 
   setReports(patch: Partial<TelegramReportSettings>) {
@@ -193,15 +188,8 @@ export class SettingsPageComponent implements OnInit {
     labels: withLabelDefaults(null)
   });
 
-  integrations = signal<IntegrationFormModel>({
-    telegramBotToken: '',
-    telegramChatId: ''
-  });
-
   loadingGeneral = signal(true);
-  loadingIntegrations = signal(true);
   savingGeneral = signal(false);
-  savingIntegrations = signal(false);
 
   ngOnInit() {
     // `take(1)`: load the current value once to seed the form. Staying subscribed to
@@ -233,25 +221,6 @@ export class SettingsPageComponent implements OnInit {
         error: (err) => {
           console.error('Load general settings error:', err);
           this.loadingGeneral.set(false);
-        }
-      });
-
-    this.settingsService
-      .getIntegrationSettings()
-      .pipe(take(1))
-      .subscribe({
-        next: (doc) => {
-          if (doc) {
-            this.integrations.set({
-              telegramBotToken: doc.telegramBotToken ?? '',
-              telegramChatId: doc.telegramChatId ?? ''
-            });
-          }
-          this.loadingIntegrations.set(false);
-        },
-        error: (err) => {
-          console.error('Load integration settings error:', err);
-          this.loadingIntegrations.set(false);
         }
       });
   }
@@ -299,28 +268,6 @@ export class SettingsPageComponent implements OnInit {
         error: (err) => {
           console.error('Save general settings error:', err);
           this.savingGeneral.set(false);
-          this.toast.error(this.translation.translate('messages.error'));
-        }
-      });
-  }
-
-  saveIntegrations() {
-    const f = this.integrations();
-    this.savingIntegrations.set(true);
-
-    this.settingsService
-      .updateIntegrationSettings({
-        telegramBotToken: f.telegramBotToken.trim() || undefined,
-        telegramChatId: f.telegramChatId.trim() || undefined
-      })
-      .subscribe({
-        next: () => {
-          this.savingIntegrations.set(false);
-          this.toast.success(this.translation.translate('messages.saved'));
-        },
-        error: (err) => {
-          console.error('Save integration settings error:', err);
-          this.savingIntegrations.set(false);
           this.toast.error(this.translation.translate('messages.error'));
         }
       });

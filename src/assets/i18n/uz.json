@@ -1411,7 +1411,8 @@
     "sendNow": "Hozir yuborib ko'rish",
     "sent": "Yuborildi",
     "noRecipients": "Qabul qiluvchi yo'q: Telegram'ni ulang yoki guruh qo'shing",
-    "schedule": "Jadval (Toshkent vaqti): kunlik — har kuni 21:00; haftalik — dushanba 09:00; oylik — oyning 1-kuni 09:00; kam qolganlar — har kuni 09:00 (bo'lsa).",
-    "ownBotTitle": "O'z botingiz (ixtiyoriy, eski usul)"
+    "schedule": "Jadval (Toshkent vaqti): kunlik — har kuni 21:00; haftalik — dushanba 09:00; oylik — oyning 1-kuni 09:00; kam qolganlar va muddati o'tgan qarzlar — har kuni 09:00 (bo'lsa).",
+    "ownBotTitle": "O'z botingiz (ixtiyoriy, eski usul)",
+    "debtDue": "Muddati o'tgan qarzlar"
   }
 }

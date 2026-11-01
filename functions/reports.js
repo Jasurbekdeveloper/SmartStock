@@ -8,7 +8,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEKDAYS = ['yakshanba', 'dushanba', 'seshanba', 'chorshanba', 'payshanba', 'juma', 'shanba'];
 const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
 
-export const REPORT_DEFAULTS = { daily: true, weekly: true, monthly: true, lowStock: true, toAdmins: true, groupChatId: null, groupTitle: null };
+export const REPORT_DEFAULTS = { daily: true, weekly: true, monthly: true, lowStock: true, debtDue: true, toAdmins: true, groupChatId: null, groupTitle: null };
 
 /** Local (Tashkent) calendar parts of an instant. */
 function local(date) {
@@ -156,6 +156,33 @@ export function formatLowStock({ storeName, items, limit = 30 }) {
   for (const p of items.slice(0, limit)) {
     const icon = num(p.quantity) <= 0 ? '🔴' : '🟠';
     lines.push(`${icon} ${escapeHtml(p.name)} — ${qty(p.quantity)} ${escapeHtml(p.unit ?? '')} (min ${qty(p.minQuantity)})`);
+  }
+  if (items.length > limit) lines.push('', `…va yana ${items.length - limit} ta`);
+  return lines.join('\n');
+}
+
+const toDate = (v) => (v instanceof Date ? v : typeof v?.toDate === 'function' ? v.toDate() : v ? new Date(v) : null);
+
+/** Debts with money still owed whose "pay by" date has passed, oldest first. */
+export function overdueDebts(debts, now = new Date()) {
+  return debts
+    .map((d) => ({ ...d, due: toDate(d.dueDate) }))
+    .filter((d) => d.due && d.due.getTime() < now.getTime() && num(d.remainingAmount) > 0.005)
+    .sort((a, b) => a.due.getTime() - b.due.getTime());
+}
+
+/** items: { name, remainingAmount, due } */
+export function formatOverdueDebts({ storeName, items, currency = "so'm", now = new Date(), limit = 30 }) {
+  const total = items.reduce((s, d) => s + num(d.remainingAmount), 0);
+  const cur = escapeHtml(currency);
+  const lines = [
+    `📒 <b>Muddati o‘tgan qarzlar</b> — ${escapeHtml(storeName)}`,
+    `${items.length} ta qarz, jami <b>${money(total)}</b> ${cur}:`,
+    ''
+  ];
+  for (const d of items.slice(0, limit)) {
+    const days = Math.max(1, Math.floor((now.getTime() - d.due.getTime()) / DAY_MS));
+    lines.push(`• ${escapeHtml(d.name)} — ${money(d.remainingAmount)} ${cur} (${days} kun kechikdi)`);
   }
   if (items.length > limit) lines.push('', `…va yana ${items.length - limit} ta`);
   return lines.join('\n');

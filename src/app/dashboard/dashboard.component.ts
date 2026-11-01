@@ -13,8 +13,6 @@ import { roundMoney } from '../core/utils/pos-math';
 import { Product, ProductService } from '../core/services/product.service';
 import { SettingsService } from '../core/services/settings.service';
 import { Customer, Debt, DebtService } from '../core/services/debt.service';
-import { NotificationStateService } from '../core/services/notification-state.service';
-import { TelegramNotificationService } from '../core/services/telegram-notification.service';
 import { ToastService } from '../core/services/toast.service';
 import { TranslatePipe } from '../core/pipes/translate.pipe';
 import { SumPipe } from '../core/pipes/sum.pipe';
@@ -27,12 +25,10 @@ import { AuthService } from '../core/services/auth.service';
 import { Permission } from '../core/auth/permissions';
 import {
   debtDueToastStorageKey,
-  debtsNeedingTelegramAlert,
   isLowStock,
   isOverdueDebt,
   lowStockToastStorageKey,
   markToastShown,
-  productsNeedingTelegramAlert,
   shouldShowToast
 } from '../core/utils/low-stock-alert.util';
 
@@ -78,8 +74,6 @@ const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 export class DashboardComponent implements OnInit {
   private settingsService = inject(SettingsService);
   private debtService = inject(DebtService);
-  private notificationStateService = inject(NotificationStateService);
-  private telegramService = inject(TelegramNotificationService);
   private toastService = inject(ToastService);
   private translateService = inject(TranslateService);
 
@@ -274,8 +268,8 @@ export class DashboardComponent implements OnInit {
     if (products === null || debts === null || customers === null) return;
 
     this.alertsChecked = true;
+    // Telegram alerts are sent by the server (Settings → Telegram reports).
     this.showInAppAlerts(products, debts, customers);
-    void this.sendTelegramAlerts(products, debts, customers);
   }
 
   private customerName(customerId: string, customers: Customer[]): string {
@@ -311,41 +305,5 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  /** Telegram alert, deduped via the shared `notificationState/telegram` Firestore doc
-   *  (so multiple cashiers opening the dashboard the same day don't spam the chat).
-   *
-   *  This whole check is wrapped in a try/catch: it's a best-effort background
-   *  notification, not core functionality, and the dedup doc's one-shot `getDoc()`
-   *  rejects outright (rather than silently falling back to a cached/stale read, the
-   *  way a live `onSnapshot` listener would) whenever the device has no network and
-   *  nothing cached yet -- e.g. a cashier's very first dashboard load of the day
-   *  happening while offline. Left unguarded, that rejection surfaces as an unhandled
-   *  promise rejection (this `void`-called method has no caller to catch it) on every
-   *  such load, even though the rest of the dashboard renders fine from cache. */
-  private async sendTelegramAlerts(products: Product[], debts: Debt[], customers: Customer[]): Promise<void> {
-    try {
-      const state = await this.notificationStateService.getState();
 
-      for (const product of productsNeedingTelegramAlert(products, state)) {
-        const sent = await this.telegramService.sendMessage(
-          `Kam qoldiq: "${product.name}" — qoldiq ${formatNumber(product.quantity, 2)} ${product.unit} ` +
-            `(minimal: ${formatNumber(product.minQuantity ?? 0, 2)}).`
-        );
-        // Only recorded as "sent" in the shared dedup doc if the message actually went
-        // out — a no-op (no token configured yet) must not be treated as sent, or a
-        // later-configured token would silently skip it for the rest of the window.
-        if (sent) await this.notificationStateService.markLowStockSent(product.id);
-      }
-
-      for (const debt of debtsNeedingTelegramAlert(debts, state)) {
-        const sent = await this.telegramService.sendMessage(
-          `Qarz muddati o'tdi: ${this.customerName(debt.customerId, customers)} — ` +
-            `qoldiq ${formatNumber(debt.remainingAmount, 0)} so'm.`
-        );
-        if (sent) await this.notificationStateService.markDebtDueSent(debt.id);
-      }
-    } catch (err) {
-      console.debug('Telegram alert check skipped (likely offline):', err);
-    }
-  }
 }

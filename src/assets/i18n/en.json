@@ -1411,7 +1411,8 @@
     "sendNow": "Send now",
     "sent": "Sent",
     "noRecipients": "No recipients: link Telegram or connect a group",
-    "schedule": "Schedule (Tashkent time): daily — 21:00; weekly — Monday 09:00; monthly — 1st at 09:00; low stock — daily 09:00 (if any).",
-    "ownBotTitle": "Your own bot (optional, legacy)"
+    "schedule": "Schedule (Tashkent time): daily — 21:00; weekly — Monday 09:00; monthly — 1st at 09:00; low stock and overdue debts — daily 09:00 (if any).",
+    "ownBotTitle": "Your own bot (optional, legacy)",
+    "debtDue": "Overdue debts"
   }
 }

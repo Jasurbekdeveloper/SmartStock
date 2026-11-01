@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy": "ng build --configuration production && firebase deploy --only hosting",
-    "release": "ng test --watch=false && ng build --configuration production && npm --prefix functions ci && git add -A && git commit -m \"Telegram hisobot: mavjud indeks bilan so'rov\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push",
+    "release": "ng test --watch=false && ng build --configuration production && npm --prefix functions ci && git add -A && git commit -m \"Eski Telegram bot sozlamasi olib tashlandi, qarz eslatmasi serverga, yagona domen\" -m \"Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" -m \"Claude-Session: https://claude.ai/code/session_011N4vy5Xk2vrJ38qgcpUHqi\" && git push",
     "firebase:login": "npm install -g firebase-tools && firebase login",
     "deploy:firebase": "firebase deploy --only hosting:app,firestore:rules,firestore:indexes,storage,functions"
   },

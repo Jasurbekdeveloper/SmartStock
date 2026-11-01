@@ -105,7 +105,7 @@
       <!-- Integrations (admin-only page, so no extra role gating needed here) -->
       <mat-tab [label]="'settings.integrations' | translate">
         @let rp = reports();
-        <section class="p-6 space-y-4 border-b border-gray-200 dark:border-gray-800">
+        <section class="p-6 space-y-4">
           <div>
             <h3 class="text-base font-semibold">{{ 'reports.title' | translate }}</h3>
             <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{{ 'reports.intro' | translate: { bot: '@' + reportBot } }}</p>
@@ -115,6 +115,7 @@
             <mat-slide-toggle [checked]="rp.weekly" (change)="setReports({ weekly: $event.checked })">{{ 'reports.weekly' | translate }}</mat-slide-toggle>
             <mat-slide-toggle [checked]="rp.monthly" (change)="setReports({ monthly: $event.checked })">{{ 'reports.monthly' | translate }}</mat-slide-toggle>
             <mat-slide-toggle [checked]="rp.lowStock" (change)="setReports({ lowStock: $event.checked })">{{ 'reports.lowStock' | translate }}</mat-slide-toggle>
+            <mat-slide-toggle [checked]="rp.debtDue" (change)="setReports({ debtDue: $event.checked })">{{ 'reports.debtDue' | translate }}</mat-slide-toggle>
           </div>
 
           <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-3">
@@ -143,33 +144,6 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'reports.schedule' | translate }}</p>
         </section>
 
-        @let it = integrations();
-        <form (ngSubmit)="saveIntegrations()" class="p-6 space-y-2">
-          @if (loadingIntegrations()) {
-          <p class="text-gray-500 dark:text-gray-400 text-center py-4">{{ 'messages.loading' | translate }}</p>
-          } @else {
-          <h3 class="text-base font-semibold">{{ 'reports.ownBotTitle' | translate }}</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ 'settings.telegramHint' | translate }}</p>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            <mat-form-field appearance="outline" class="w-full md:col-span-2">
-              <mat-label>{{ 'settings.telegramBotToken' | translate }}</mat-label>
-              <input matInput [(ngModel)]="it.telegramBotToken" name="telegramBotToken" autocomplete="off" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>{{ 'settings.telegramChatId' | translate }}</mat-label>
-              <input matInput [(ngModel)]="it.telegramChatId" name="telegramChatId" autocomplete="off" />
-            </mat-form-field>
-          </div>
-
-          <div class="pt-2">
-            <button mat-flat-button color="primary" type="submit" [disabled]="savingIntegrations()">
-              {{ 'common.save' | translate }}
-            </button>
-          </div>
-          }
-        </form>
       </mat-tab>
 
       <!-- Fiscal cash register (REGOS: VCR) — stored on this device only -->

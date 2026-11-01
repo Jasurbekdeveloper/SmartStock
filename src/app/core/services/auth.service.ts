@@ -188,7 +188,7 @@ export class AuthService {
   }
 
   /** Admin: sends one report now to the store's Telegram recipients. */
-  sendTelegramReportNow(kind: 'daily' | 'weekly' | 'monthly' | 'lowStock'): Observable<{ sent: number; recipients: number }> {
+  sendTelegramReportNow(kind: 'daily' | 'weekly' | 'monthly' | 'lowStock' | 'debtDue'): Observable<{ sent: number; recipients: number }> {
     const call = httpsCallable<{ kind: string }, { sent: number; recipients: number }>(this.functions, 'sendTelegramReportNow');
     return from(call({ kind })).pipe(map((result) => result.data));
   }

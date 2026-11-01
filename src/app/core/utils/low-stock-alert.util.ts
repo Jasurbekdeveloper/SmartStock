@@ -1,10 +1,8 @@
 import { Product } from '../services/product.service';
 import { Debt } from '../services/debt.service';
-import { NotificationState } from '../services/notification-state.service';
 
-/** Don't re-alert about the same product/debt more than once within this window,
- *  whether that's the in-app toast (localStorage-backed) or the shared Telegram
- *  alert (Firestore-backed) — both dedup mechanisms use the same 24h window. */
+/** Don't show the in-app toast about the same product/debt more than once within this
+ *  window. (Telegram alerts are sent by the server's scheduled reports.) */
 export const ALERT_DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** True if `product.quantity` has dropped to/below its configured `minQuantity`. */
@@ -19,28 +17,13 @@ export function isOverdueDebt(debt: Debt): boolean {
 }
 
 /** True if `lastSentAtIso` is missing, or older than `ALERT_DEDUP_WINDOW_MS`. */
-function isOutsideDedupWindow(lastSentAtIso: string | undefined): boolean {
+function isOutsideDedupWindow(lastSentAtIso: string | null | undefined): boolean {
   if (!lastSentAtIso) return true;
   return Date.now() - new Date(lastSentAtIso).getTime() >= ALERT_DEDUP_WINDOW_MS;
 }
 
-/** Low-stock products that (a) are below their min quantity AND (b) haven't had a
- *  Telegram alert sent for them within the last 24h, per the shared Firestore
- *  `notificationState/telegram` doc. */
-export function productsNeedingTelegramAlert(products: Product[], state: NotificationState): Product[] {
-  return products.filter((p) => isLowStock(p) && isOutsideDedupWindow(state.lowStockLastSentAt?.[p.id]));
-}
-
-/** Overdue debts that haven't had a Telegram alert sent for them within the last 24h,
- *  per the shared Firestore `notificationState/telegram` doc. */
-export function debtsNeedingTelegramAlert(debts: Debt[], state: NotificationState): Debt[] {
-  return debts.filter((d) => isOverdueDebt(d) && isOutsideDedupWindow(state.debtDueLastSentAt?.[d.id]));
-}
-
 /** localStorage key used to dedup the in-app toast for a given low-stock product —
- *  inherently per-device, unlike the Firestore-backed Telegram dedup above, which is
- *  intentional: the in-app toast is only ever seen by whoever's device it fires on,
- *  so there's no cross-device spam problem to solve for it. */
+ *  per-device on purpose: the toast is only ever seen on the device it fires on. */
 export function lowStockToastStorageKey(productId: string): string {
   return `low_stock_notified_${productId}`;
 }

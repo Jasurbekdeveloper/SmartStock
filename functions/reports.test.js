@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatLowStock, formatReport, lowStockItems, money, reportRange, summarize } from './reports.js';
+import { formatLowStock, formatOverdueDebts, formatReport, lowStockItems, money, overdueDebts, reportRange, summarize } from './reports.js';
 
 // Sunday 1 Nov 2026, 21:00 in Tashkent = 16:00 UTC.
 const sundayEvening = new Date(Date.UTC(2026, 10, 1, 16, 0));
@@ -67,4 +67,22 @@ test('low stock lists only products at or under their minimum', () => {
   const text = formatLowStock({ storeName: 'S', items, limit: 1 });
   assert.match(text, /🔴 B — 0 kg \(min 3\)/);
   assert.match(text, /va yana 1 ta/);
+});
+
+test('overdue debts: only past due with money owed, oldest first', () => {
+  const now = new Date(Date.UTC(2026, 10, 1, 4));
+  const items = overdueDebts(
+    [
+      { id: 'a', remainingAmount: 50000, dueDate: new Date(Date.UTC(2026, 9, 30)) },
+      { id: 'b', remainingAmount: 0, dueDate: new Date(Date.UTC(2026, 9, 1)) },
+      { id: 'c', remainingAmount: 20000, dueDate: { toDate: () => new Date(Date.UTC(2026, 9, 20)) } },
+      { id: 'd', remainingAmount: 10000, dueDate: new Date(Date.UTC(2026, 10, 5)) },
+      { id: 'e', remainingAmount: 10000 }
+    ],
+    now
+  );
+  assert.deepEqual(items.map((d) => d.id), ['c', 'a']);
+  const text = formatOverdueDebts({ storeName: 'S', items: items.map((d) => ({ ...d, name: d.id === 'c' ? 'Ali' : 'Vali' })), now });
+  assert.match(text, /2 ta qarz, jami <b>70 000<\/b>/);
+  assert.match(text, /Ali — 20 000 so'm \(12 kun kechikdi\)/);
 });

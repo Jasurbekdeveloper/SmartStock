@@ -457,7 +457,14 @@ const docs = (snap) => snap.docs.map((d) => d.data());
 
 async function periodDocs(collectionName, tenantId, from, to) {
   return docs(
-    await db.collection(collectionName).where('tenantId', '==', tenantId).where('createdAt', '>=', from).where('createdAt', '<', to).get()
+    // Newest first, so the existing (tenantId, createdAt DESC) index serves the query.
+    await db
+      .collection(collectionName)
+      .where('tenantId', '==', tenantId)
+      .where('createdAt', '>=', from)
+      .where('createdAt', '<', to)
+      .orderBy('createdAt', 'desc')
+      .get()
   );
 }
 

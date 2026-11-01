@@ -90,6 +90,22 @@ export class AuditLogService {
     for (const key of Object.keys(data)) {
       if (data[key] === undefined) delete data[key];
     }
-    return data;
+    // before/after diffs often hold `undefined` (a field that didn't exist yet, e.g. a
+    // first photo); Firestore rejects those anywhere in the document.
+    return firestoreSafe(data) as Record<string, unknown>;
   }
+}
+
+/** Deep copy with every nested `undefined` turned into `null` (Firestore refuses
+ *  undefined). Only plain objects and arrays are walked — Dates, Timestamps and
+ *  FieldValue sentinels are kept as they are. */
+export function firestoreSafe(value: unknown): unknown {
+  if (value === undefined) return null;
+  if (Array.isArray(value)) return value.map(firestoreSafe);
+  if (value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = firestoreSafe(v);
+    return out;
+  }
+  return value;
 }

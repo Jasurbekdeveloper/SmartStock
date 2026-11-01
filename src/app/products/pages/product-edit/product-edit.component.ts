@@ -371,7 +371,12 @@ export class ProductEditComponent implements OnInit, OnDestroy {
       }
       const stockBatch = initialBatchFromExtras(this.extras, undated, payload.cost || undefined);
       if (stockBatch) await firstValueFrom(this.batchService.create(product.id, stockBatch));
-      this.logProductChanges(before, payload);
+      // The product is saved by now: a failing history entry must not report the save as failed.
+      try {
+        this.logProductChanges(before, payload);
+      } catch (err) {
+        console.error('Audit log error:', err);
+      }
       await this.router.navigate(['/products/list']);
     } catch (err) {
       console.error('Update product error:', err);
@@ -415,6 +420,6 @@ export class ProductEditComponent implements OnInit, OnDestroy {
         before: beforeDiff,
         after: afterDiff
       })
-      .subscribe();
+      .subscribe({ error: (err) => console.error('Audit log error:', err) });
   }
 }

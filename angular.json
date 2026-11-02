@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "SmartStock": {
+    "MarketHisob": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -65,10 +65,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "SmartStock:build:production"
+              "buildTarget": "MarketHisob:build:production"
             },
             "development": {
-              "buildTarget": "SmartStock:build:development"
+              "buildTarget": "MarketHisob:build:development"
             }
           },
           "defaultConfiguration": "development"

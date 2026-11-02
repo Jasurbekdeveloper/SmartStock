@@ -2,7 +2,7 @@
 
 ## 📚 Ushbu qo'llanma
 
-SmartStock asosiy loyihada **4 tilli lokalizatsiya** va **Dark Mode** qo'shilgan.
+MarketHisob asosiy loyihada **4 tilli lokalizatsiya** va **Dark Mode** qo'shilgan.
 
 ## 🌐 Qo'llab-quvvatlanuvchi Tillar
 

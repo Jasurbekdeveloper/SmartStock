@@ -30,7 +30,7 @@ if (existingTenant.exists && existingTenant.data().ownerId !== ownerUid) {
 
 const legacySettings = await db.doc('settings/general').get();
 await tenantRef.set({
-  name: existingTenant.data()?.name ?? legacySettings.data()?.storeName ?? 'SmartStock',
+  name: existingTenant.data()?.name ?? legacySettings.data()?.storeName ?? 'MarketHisob',
   ownerId: ownerUid,
   ownerName: ownerSnapshot.data().displayName ?? '',
   ownerEmail: ownerSnapshot.data().email ?? '',

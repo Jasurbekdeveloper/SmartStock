@@ -1,4 +1,4 @@
-# SmartStock
+# MarketHisob
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
 
@@ -61,7 +61,7 @@ must be provisioned by an administrator. Each provisioned store has a `tenantId`
 and product images are stored under that store's Storage path. Billing and multiple stores per
 owner are not enabled yet.
 
-Before deploying the tenant-aware client and rules to a Firebase project that already has SmartStock
+Before deploying the tenant-aware client and rules to a Firebase project that already has MarketHisob
 data, back up Firestore and migrate the existing store first. Use an active admin UID from that project.
 The migration script uses the Firebase Admin SDK with Application Default Credentials; do not commit
 service-account keys or put credentials in source control:

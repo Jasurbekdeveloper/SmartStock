@@ -1,7 +1,7 @@
 # MarketHisob (repo: SmartStock)
 
 Do'konlar uchun ko'p do'konli (SaaS) POS va ombor tizimi. Foydalanuvchi bilan o'zbek tilida gaplashing.
-Brend foydalanuvchiga "MarketHisob" deb ko'rinadi; ichki nomlarda `smartstock`/`hisobla` qolgan, ularni o'zgartirmang.
+Brend hamma joyda "MarketHisob". Faqat tashqi tizimlarga bog'langan nomlar eski: Firebase loyiha ID'si `smartstock-d737f` (va undan olingan hosting sayti, `FIREBASE_SERVICE_ACCOUNT_SMARTSTOCK_D737F` secret'i), Telegram bot `hisobla_auth_bot`, GitHub repo nomi `SmartStock`. Ularni kodda o'zgartirmang, bular tashqarida o'zgaradi.
 
 ## Stek
 Angular 21 (standalone, signals, zone.js'siz), Angular Material, Tailwind v4, Firebase (Auth, Firestore, Hosting), vitest, ngx-translate.

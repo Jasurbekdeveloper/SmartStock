@@ -35,7 +35,7 @@ interface LogRow {
   price: number;
 }
 
-const STICKY_KEY = 'smartstock_quick_entry';
+const STICKY_KEY = 'markethisob_quick_entry';
 
 /**
  * Scanner-first data entry: scan a barcode, and either restock the product it belongs

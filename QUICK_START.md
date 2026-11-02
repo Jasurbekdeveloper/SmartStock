@@ -1,8 +1,8 @@
-# SmartStock - Quick Start Guide
+# MarketHisob - Quick Start Guide
 
 ## 🎯 Quick Overview
 
-SmartStock is now fully set up with a complete modular Angular architecture. Below is a quick reference for what's implemented and how to use it.
+MarketHisob is now fully set up with a complete modular Angular architecture. Below is a quick reference for what's implemented and how to use it.
 
 ## 🚀 Getting Started (5 minutes)
 

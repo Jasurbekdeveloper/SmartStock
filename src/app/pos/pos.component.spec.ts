@@ -238,7 +238,7 @@ describe('PosComponent checkout (cashier)', () => {
     await t.settle();
     await payAndFinish(t);
     const payload = fiscal.sale.mock.calls[0][0];
-    expect(payload.positions[0]).toMatchObject({ icps: '00401001001000000', package_code: '1500001', quantity: 1000, label: '0104780069000130215AbCdEfGh1\u001d93abcd' });
+    expect(payload.positions[0]).toMatchObject({ icps: '00401001001000000', package_code: '1500001', quantity: 1000, label: '0104780069000130215AbCdEfGh1' });
     expect(payload.payments).toEqual([{ type: 1, value: 500000 }]);
     expect(createSale.mock.calls[0][0].fiscal).toEqual(receipt);
     fiscal.enabled.set(false);
@@ -258,6 +258,24 @@ describe('PosComponent checkout (cashier)', () => {
     pos.onNumpadInput('10');
     pos.commitNumpad();
     expect(pos.cart()[0].discount).toBe(25000);
+  });
+
+  it('types quantity and price with the physical keyboard into the selected line', async () => {
+    const t = await setup();
+    const pos = t.fixture.componentInstance;
+    pos.showNumpad.set(true);
+    t.tile('Sement').click();
+    await t.settle();
+    pos.selectLine('p1', 'qty');
+    (document.activeElement as HTMLElement | null)?.blur();
+    const press = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    press('1');
+    await new Promise((r) => setTimeout(r, 120));
+    press('2');
+    await new Promise((r) => setTimeout(r, 120));
+    press('Enter');
+    expect(pos.cart()[0].quantity).toBe(12);
+    expect(t.dialogs()).toBe(0);
   });
 
   it('keeps the till usable when saving the sale fails', async () => {

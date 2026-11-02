@@ -82,15 +82,15 @@ export interface CashMovementDialogData {
         </label>
 
         @if (overDrawer()) {
-        <p class="badge badge--amber !rounded-lg !py-1.5 !px-3 w-full">
-          <mat-icon class="!w-4 !h-4 !text-base">warning</mat-icon>{{ 'finance.moreThanDrawer' | translate }}
+        <p class="badge badge--red !rounded-lg !py-1.5 !px-3 w-full" role="alert">
+          <mat-icon class="!w-4 !h-4 !text-base">error</mat-icon>{{ 'finance.insufficientCash' | translate }}
         </p>
         }
       </div>
 
       <div class="cm__actions">
         <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
-        <button mat-flat-button color="primary" type="button" [disabled]="!(amount() > 0)" (click)="save()">
+        <button mat-flat-button color="primary" type="button" [disabled]="!(amount() > 0) || overDrawer()" (click)="save()">
           {{ 'common.save' | translate }}
         </button>
       </div>
@@ -138,7 +138,8 @@ export class CashMovementDialogComponent {
   }
 
   save() {
-    if (!(this.amount() > 0)) return;
+    // Cash can't leave a drawer that doesn't hold it.
+    if (!(this.amount() > 0) || this.overDrawer()) return;
     this.ref.close({ type: this.type(), amount: this.amount(), reason: this.reason(), note: this.note() });
   }
 }

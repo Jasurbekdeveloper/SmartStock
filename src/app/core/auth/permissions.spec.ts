@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { homePath, PERMISSION_GROUPS, ROLE_PERMISSIONS, roleCan } from './permissions';
+import { afterEach } from 'vitest';
+import { homePath, normalizeRolePermissions, PERMISSION_GROUPS, ROLE_PERMISSIONS, roleCan, setRolePermissions } from './permissions';
 
 describe('permissions', () => {
   it('lets a cashier sell and see only their own sales', () => {
@@ -7,7 +8,7 @@ describe('permissions', () => {
     expect(roleCan('cashier', 'sales.viewOwn')).toBe(true);
     expect(roleCan('cashier', 'sales.viewAll')).toBe(false);
     expect(roleCan('cashier', 'products.manage')).toBe(false);
-    expect(roleCan('cashier', 'sales.refund')).toBe(false);
+    expect(roleCan('cashier', 'sales.refund')).toBe(true);
     expect(roleCan('cashier', 'reports.view')).toBe(false);
   });
 
@@ -26,5 +27,24 @@ describe('permissions', () => {
   it('lists every permission in the table', () => {
     const listed = new Set(PERMISSION_GROUPS.flatMap((g) => g.permissions));
     for (const permission of ROLE_PERMISSIONS.admin) expect(listed.has(permission)).toBe(true);
+  });
+
+  describe('set by the super admin', () => {
+    afterEach(() => setRolePermissions(null));
+
+    it('uses the stored set instead of the defaults', () => {
+      setRolePermissions({ cashier: ['pos.sell', 'products.manage'], manager: [], admin: [] });
+      expect(roleCan('cashier', 'products.manage')).toBe(true);
+      expect(roleCan('cashier', 'sales.refund')).toBe(false);
+      expect(roleCan('manager', 'reports.view')).toBe(false);
+      setRolePermissions(null);
+      expect(roleCan('cashier', 'products.manage')).toBe(false);
+    });
+
+    it('keeps the admin able to manage users and settings, drops unknown ids, fills missing roles', () => {
+      const map = normalizeRolePermissions({ admin: ['pos.sell', 'nonsense'] });
+      expect(map.admin).toEqual(['pos.sell', 'users.manage', 'settings.manage']);
+      expect(map.cashier).toEqual([...ROLE_PERMISSIONS.cashier]);
+    });
   });
 });

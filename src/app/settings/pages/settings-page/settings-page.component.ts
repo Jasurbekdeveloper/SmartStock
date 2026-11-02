@@ -28,7 +28,7 @@ import { TenantService } from '../../../core/services/tenant.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { FiscalConfig, FiscalService } from '../../../core/services/fiscal.service';
+import { FiscalConfig, FiscalService, blockedAsMixedContent } from '../../../core/services/fiscal.service';
 import { LabelSettings, LabelSize, withLabelDefaults } from '../../../core/utils/labels';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
@@ -157,8 +157,12 @@ export class SettingsPageComponent implements OnInit {
 
   /** Sys.Initialize with the values typed (before saving), so a wrong address shows at once. */
   async testFiscal() {
-    this.fiscalTesting.set(true);
     this.fiscalStatus.set(null);
+    if (blockedAsMixedContent(this.fiscalForm().url.trim())) {
+      this.fiscalStatus.set({ ok: false, text: this.translation.translate('fiscal.useBridge') });
+      return;
+    }
+    this.fiscalTesting.set(true);
     try {
       const info = await this.fiscal.initialize({ ...this.fiscalForm(), url: this.fiscalForm().url.trim().replace(/\/+$/, '') });
       this.fiscalStatus.set({

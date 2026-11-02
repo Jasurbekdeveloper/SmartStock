@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { ShiftService } from './shift.service';
 import {
   collection,
   doc,
@@ -123,6 +125,7 @@ export class StockService {
   private auditLogService = inject(AuditLogService);
   private batchService = inject(BatchService);
   private supplierService = inject(SupplierService);
+  private shiftService = inject(ShiftService);
 
   getStockEntries(): Observable<StockEntry[]> {
     const entriesQuery = tenantQuery(this.firestore, 'stockEntries', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
@@ -334,7 +337,9 @@ export class StockService {
         )
       );
     }
-    return from(commitOrQueue(wb));
+    const check =
+      input.method === 'cash' && paidNow > 0 && input.drawerShiftId ? this.shiftService.ensureCash(input.drawerShiftId, paidNow) : Promise.resolve();
+    return from(check).pipe(switchMap(() => from(commitOrQueue(wb))));
   }
 
   private recordMovement(

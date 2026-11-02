@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { MAX_RECEIVE_LINES, StockService } from '../../../core/services/stock.service';
 import { SupplierService } from '../../../core/services/supplier.service';
-import { ShiftService } from '../../../core/services/shift.service';
+import { ShiftService, isInsufficientCash } from '../../../core/services/shift.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -279,7 +279,7 @@ export class StockInComponent {
         },
         error: (err) => {
           console.error('Receive goods error:', err);
-          this.errorKey.set('messages.error');
+          this.errorKey.set(isInsufficientCash(err) ? 'finance.insufficientCash' : 'messages.error');
           this.submitting.set(false);
         }
       });

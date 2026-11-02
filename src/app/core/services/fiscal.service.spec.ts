@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FiscalService } from './fiscal.service';
+import { FiscalService, blockedAsMixedContent, vcrAuth, vcrError } from './fiscal.service';
 
 describe('FiscalService (REGOS: VCR JSON-RPC)', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
@@ -71,5 +71,21 @@ describe('FiscalService (REGOS: VCR JSON-RPC)', () => {
     );
     const systems = await service().paymentSystems();
     expect(systems).toEqual([{ id: 1, code: 'clickpass', name: 'Click Pass', success: [3], failure: [7], needsToken: true }]);
+  });
+
+  it('encodes the login UTF-8 safely and spots addresses an https page cannot call', () => {
+    expect(vcrAuth('kassa', 'kas123456')).toBe(btoa('kassa:kas123456'));
+    expect(atob(vcrAuth('kassa', 'пароль'))).toBe(String.fromCharCode(...new TextEncoder().encode('kassa:пароль')));
+    expect(blockedAsMixedContent('http://vcr-test.regos.uz', 'https:')).toBe(true);
+    expect(blockedAsMixedContent('http://127.0.0.1:18347', 'https:')).toBe(false);
+    expect(blockedAsMixedContent('https://vcr.example.uz', 'https:')).toBe(false);
+    expect(blockedAsMixedContent('http://vcr-test.regos.uz', 'http:')).toBe(false);
+  });
+
+  it('reads VCR errors in the { error, description } shape', () => {
+    const err = vcrError({ error: 704016, description: 'Принтер не обнаружен.' });
+    expect(err.code).toBe(704016);
+    expect(err.message).toBe('704016: Принтер не обнаружен.');
+    expect(vcrError({ error: 'bad' }).message).toBe('bad');
   });
 });

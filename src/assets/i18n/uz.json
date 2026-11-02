@@ -853,7 +853,8 @@
       "plans": "Tariflar",
       "audit": "Jurnal",
       "leads": "Arizalar",
-      "site": "Sayt"
+      "site": "Sayt",
+      "roles": "Rollar va huquqlar"
     },
     "overview": {
       "title": "Platforma",
@@ -994,7 +995,8 @@
         "tenant_edit": "Do'kon tahrirlandi",
         "tenant_owner": "Egasi almashdi",
         "payment_void": "To'lov bekor qilindi",
-        "site_update": "Sayt yangilandi"
+        "site_update": "Sayt yangilandi",
+        "roles_update": "Rollar huquqlari o'zgardi"
       }
     },
     "site": {
@@ -1095,6 +1097,35 @@
       "storeOpened": "Do'kon ochilgan",
       "notNotified": "Telegram'ga yuborilmadi",
       "notNotifiedHint": "Worker sozlamasini tekshiring: TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_IDS (worker/README.md)"
+    },
+    "navGroup": {
+      "manage": "Boshqaruv",
+      "settings": "Sozlamalar"
+    },
+    "roles": {
+      "title": "Rollar va huquqlar",
+      "subtitle": "Har bir rol (admin, menejer, kassir) nimani qila olishi — barcha do'konlar uchun. Menyu, sahifalar va server qoidalari shu jadval bo'yicha ishlaydi.",
+      "defaults": "Standartga qaytarish",
+      "unsaved": "O'zgarishlar hali saqlanmagan.",
+      "locked": "Admin bu huquqni yo'qota olmaydi (do'kon o'z sozlamalarisiz qolmasligi uchun)",
+      "changedFromDefault": "Standartdan farq qiladi",
+      "note": "O'zgarish saqlangach, xodimlarning menyusi va ruxsatlari darhol yangilanadi (sahifani yangilash shart emas).",
+      "confirmTitle": "Huquqlarni saqlash",
+      "confirmText": "Bu o'zgarish platformadagi barcha do'konlarga darhol ta'sir qiladi. Davom etasizmi?"
+    },
+    "usage": {
+      "title": "Foydalanish",
+      "error": "Ma'lumotni olib bo'lmadi (server funksiyasi hali deploy qilinmagan bo'lishi mumkin).",
+      "products": "Tovar turlari",
+      "quantity": "Ombordagi jami miqdor",
+      "categories": "Kategoriyalar",
+      "sales": "Sotuvlar (cheklar)",
+      "customers": "Mijozlar",
+      "users": "Xodimlar",
+      "files": "Yuklangan fayllar",
+      "fileCount": "ta fayl",
+      "productImages": "mahsulot rasmlari",
+      "categoryImages": "kategoriya rasmlari"
     }
   },
   "scanner": {
@@ -1269,7 +1300,8 @@
     "cashbookSubtitle": "Sotuvdan tashqari kassaga kirgan va chiqqan naqd pul",
     "needOpenShift": "Kassa amalini yozish uchun POS'da smena oching",
     "noMovements": "Kassa amallari yo'q",
-    "noMovementsHint": "Inkassatsiya, maydalik qo'shish yoki kassadan xarajat qilinganda shu yerda ko'rinadi va smena hisobotiga kiradi."
+    "noMovementsHint": "Inkassatsiya, maydalik qo'shish yoki kassadan xarajat qilinganda shu yerda ko'rinadi va smena hisobotiga kiradi.",
+    "insufficientCash": "Kassada mablag' yetarli emas"
   },
   "expiry": {
     "expiredWarning": "yaroqlilik muddati o'tgan!",
@@ -1381,7 +1413,8 @@
     "policySendHint": "O'chirilsa, hech bir kassa soliqqa chek yubormaydi (virtual kassa sozlangan bo'lsa ham).",
     "policyDebt": "Qarzga sotuvlarni ham yuborish",
     "policyDebtHint": "Qarzga sotilgan mol sotuv paytida chekka tushadi (markirovka kodlari ham yopiladi), mijoz qarzini to'laganda esa to'lov cheki chiqadi.",
-    "deviceTitle": "Shu kompyuterdagi virtual kassa"
+    "deviceTitle": "Shu kompyuterdagi virtual kassa",
+    "useBridge": "Bu manzilga brauzer to'g'ridan-to'g'ri ulana olmaydi (https sahifadan http manzilga so'rov bloklanadi). Kompyuterda start-bridge.bat ni shu manzil bilan ishga tushiring va bu yerga http://127.0.0.1:18347 yozing."
   },
   "payments": {
     "viaSystem": "To'lov tizimi orqali (to'liq summa):",

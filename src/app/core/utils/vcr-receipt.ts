@@ -8,6 +8,7 @@
  */
 import { isValidMxikCode } from './product-identifiers';
 import { ean13CheckDigit } from './product-identifiers';
+import { parseMarkingCode } from './marking';
 
 export interface VcrPosition {
   name: string;
@@ -63,6 +64,18 @@ export function vcrBarcode(barcode: string | null | undefined, markingCode?: str
   return '';
 }
 
+/**
+ * Marking code as VCR takes it in `label`: GS separators are not allowed there, so the
+ * identification part (01 GTIN 21 serial) is sent without the crypto tail. A code
+ * scanned without its separators can't be split — then it goes whole, minus any
+ * characters VCR doesn't accept.
+ */
+export function vcrLabel(markingCode: string): string {
+  const parsed = parseMarkingCode(markingCode);
+  if (parsed?.serial) return `01${parsed.gtin}21${parsed.serial}`;
+  return markingCode.replace(/[^A-Za-z0-9!"%&'()*+,\-./_:;=<>?]/g, '');
+}
+
 export function vcrVatValue(vatRate: number): number {
   return vatRate > 0 ? Math.round(vatRate * 10000) : -1;
 }
@@ -102,7 +115,7 @@ export function buildVcrPositions(lines: FiscalLineInput[], vatRate: number): Vc
       const paidParts = splitEven(paid, codes.length);
       const discParts = splitEven(discount, codes.length);
       codes.forEach((label, i) =>
-        out.push({ ...common, barcode: vcrBarcode(l.barcode, label), quantity: 1000, amount: paidParts[i] + discParts[i], discount: discParts[i], label })
+        out.push({ ...common, barcode: vcrBarcode(l.barcode, label), quantity: 1000, amount: paidParts[i] + discParts[i], discount: discParts[i], label: vcrLabel(label) })
       );
     } else {
       out.push({ ...common, barcode: vcrBarcode(l.barcode), quantity: vcrQuantity(l.quantity, l.unit), amount: paid + discount, discount });

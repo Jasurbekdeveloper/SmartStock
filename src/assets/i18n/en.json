@@ -853,7 +853,8 @@
       "plans": "Plans",
       "audit": "Log",
       "leads": "Leads",
-      "site": "Website"
+      "site": "Website",
+      "roles": "Roles & permissions"
     },
     "overview": {
       "title": "Platform",
@@ -994,7 +995,8 @@
         "tenant_edit": "Store edited",
         "tenant_owner": "Owner changed",
         "payment_void": "Payment cancelled",
-        "site_update": "Website updated"
+        "site_update": "Website updated",
+        "roles_update": "Role permissions changed"
       }
     },
     "site": {
@@ -1095,6 +1097,35 @@
       "storeOpened": "Store opened",
       "notNotified": "Not sent to Telegram",
       "notNotifiedHint": "Check the Worker settings: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_IDS (worker/README.md)"
+    },
+    "navGroup": {
+      "manage": "Manage",
+      "settings": "Settings"
+    },
+    "roles": {
+      "title": "Roles & permissions",
+      "subtitle": "What each role (admin, manager, cashier) may do — for every store. Menus, pages and server rules follow this table.",
+      "defaults": "Reset to defaults",
+      "unsaved": "Changes are not saved yet.",
+      "locked": "The admin can't lose this (so a store never locks itself out)",
+      "changedFromDefault": "Differs from the default",
+      "note": "Once saved, staff menus and access update immediately (no reload needed).",
+      "confirmTitle": "Save permissions",
+      "confirmText": "This affects every store on the platform immediately. Continue?"
+    },
+    "usage": {
+      "title": "Usage",
+      "error": "Couldn't load usage (the server function may not be deployed yet).",
+      "products": "Products",
+      "quantity": "Units in stock",
+      "categories": "Categories",
+      "sales": "Sales (receipts)",
+      "customers": "Customers",
+      "users": "Staff",
+      "files": "Uploaded files",
+      "fileCount": "files",
+      "productImages": "product images",
+      "categoryImages": "category images"
     }
   },
   "scanner": {
@@ -1269,7 +1300,8 @@
     "cashbookSubtitle": "Cash put into or taken out of tills outside sales",
     "needOpenShift": "Open a shift in the POS to record cash in / out",
     "noMovements": "No cash movements",
-    "noMovementsHint": "Collections, float top-ups and till expenses show up here and in the shift's Z-report."
+    "noMovementsHint": "Collections, float top-ups and till expenses show up here and in the shift's Z-report.",
+    "insufficientCash": "Not enough cash in the drawer"
   },
   "expiry": {
     "expiredWarning": "expired!",
@@ -1381,7 +1413,8 @@
     "policySendHint": "When off, no till sends receipts (even with a virtual register set up).",
     "policyDebt": "Also send sales on debt",
     "policyDebtHint": "Goods sold on debt go on a receipt at the sale (marking codes are closed); each repayment gets a credit receipt.",
-    "deviceTitle": "Virtual register on this computer"
+    "deviceTitle": "Virtual register on this computer",
+    "useBridge": "The browser can't call this address directly (an https page can't call an http address). Run start-bridge.bat on this computer with that address and enter http://127.0.0.1:18347 here."
   },
   "payments": {
     "viaSystem": "Through a payment system (full amount):",

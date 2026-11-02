@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
+import { from, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 import { CashMovement, CashMovementService } from '../../core/services/cash-movement.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ShiftService } from '../../core/services/shift.service';
+import { ShiftService, insufficientCashMessage } from '../../core/services/shift.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { PeriodKey, periodRange } from '../../core/utils/period';
@@ -86,18 +86,26 @@ export class CashbookComponent {
   record() {
     const shift = this.openShift();
     if (!shift) return;
-    this.dialog
-      .open(CashMovementDialogComponent, { width: '440px', maxWidth: '96vw', data: {} })
-      .afterClosed()
-      .subscribe((input) => {
-        if (!input) return;
-        this.cashMovements.add(shift.id, input).subscribe({
-          next: () => this.toast.success(this.translation.translate('finance.cashMovementSaved')),
-          error: (err) => {
-            console.error('Cash movement error:', err);
-            this.toast.error(this.translation.translate('messages.error'));
-          }
-        });
+    // The dialog shows what the drawer holds and refuses to take out more.
+    from(this.shiftService.drawerCash(shift.id).catch(() => undefined))
+      .pipe(
+        switchMap((expectedCash) =>
+          this.dialog.open(CashMovementDialogComponent, { width: '440px', maxWidth: '96vw', data: { expectedCash } }).afterClosed()
+        ),
+        switchMap((input) => {
+          if (!input) return of(null);
+          const check = input.type === 'out' ? this.shiftService.ensureCash(shift.id, input.amount) : Promise.resolve();
+          return from(check).pipe(switchMap(() => this.cashMovements.add(shift.id, input)));
+        })
+      )
+      .subscribe({
+        next: (id) => {
+          if (id) this.toast.success(this.translation.translate('finance.cashMovementSaved'));
+        },
+        error: (err) => {
+          console.error('Cash movement error:', err);
+          this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
+        }
       });
   }
 }

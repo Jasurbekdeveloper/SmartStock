@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { PlatformService } from '../../../core/services/platform.service';
+import { PlatformService, TenantUsage } from '../../../core/services/platform.service';
+import { formatNumber } from '../../../core/utils/format-number';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { AppUser, StoreRole } from '../../../core/services/auth.service';
@@ -64,6 +65,40 @@ export class TenantDetailComponent {
   users = toSignal(this.id$.pipe(switchMap((id) => this.platform.getTenantUsers(id))), { initialValue: [] });
   payments = toSignal(this.id$.pipe(switchMap((id) => this.platform.getPayments(id))), { initialValue: [] });
   plans = toSignal(this.platform.getPlans(), { initialValue: [] });
+  /** Catalog, stock and storage used by the store; 'error' when the function can't be reached. */
+  usage = toSignal(
+    this.id$.pipe(
+      switchMap((id) =>
+        this.platform.tenantUsage(id).pipe(
+          map((u): TenantUsage | 'loading' | 'error' => u),
+          startWith('loading' as const),
+          catchError((err) => {
+            console.error('Tenant usage error:', err);
+            return of('error' as const);
+          })
+        )
+      )
+    ),
+    { initialValue: 'loading' as const }
+  );
+  usageData = computed(() => {
+    const u = this.usage();
+    return typeof u === 'object' ? u : null;
+  });
+  readonly num = (v: number) => formatNumber(v, 0);
+
+  /** 1536 → "1.5 KB", 5_242_880 → "5.0 MB". */
+  bytes(n: number): string {
+    if (n < 1024) return `${n} B`;
+    const units = ['KB', 'MB', 'GB', 'TB'];
+    let v = n / 1024;
+    let i = 0;
+    while (v >= 1024 && i < units.length - 1) {
+      v /= 1024;
+      i++;
+    }
+    return `${v.toFixed(1)} ${units[i]}`;
+  }
 
   readonly badge = STATE_BADGE;
   readonly stateKey = stateKey;

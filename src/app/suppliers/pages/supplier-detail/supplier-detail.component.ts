@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Supplier, SupplierService, SupplierTransaction } from '../../../core/services/supplier.service';
 import { StockEntry, StockService } from '../../../core/services/stock.service';
-import { ShiftService } from '../../../core/services/shift.service';
+import { ShiftService, insufficientCashMessage } from '../../../core/services/shift.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -102,7 +102,7 @@ export class SupplierDetailComponent implements OnInit {
         error: (err) => {
           console.error('Supplier payment error:', err);
           this.saving.set(false);
-          this.toast.error(this.translation.translate('messages.error'));
+          this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
         }
       });
   }

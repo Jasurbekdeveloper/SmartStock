@@ -11,7 +11,7 @@ import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 import { Expense, ExpenseService } from '../../core/services/expense.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ShiftService } from '../../core/services/shift.service';
+import { ShiftService, insufficientCashMessage } from '../../core/services/shift.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { AuditLogService } from '../../core/services/audit-log.service';
@@ -95,7 +95,7 @@ export class ExpensesComponent {
         const done = () => this.toast.success(this.translation.translate('finance.expenseSaved'));
         const fail = (err: unknown) => {
           console.error('Save expense error:', err);
-          this.toast.error(this.translation.translate('messages.error'));
+          this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
         };
         if (data.expense) {
           const patch = data.expense.cashMovementId ? { ...result.input, amount: data.expense.amount, method: data.expense.method } : result.input;

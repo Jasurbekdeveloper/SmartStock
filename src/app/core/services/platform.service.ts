@@ -15,7 +15,9 @@ import {
   where,
   writeBatch
 } from 'firebase/firestore';
-import { FIRESTORE } from '../firebase/firebase.providers';
+import { FIREBASE_FUNCTIONS, FIRESTORE } from '../firebase/firebase.providers';
+import { httpsCallable } from 'firebase/functions';
+import { RolePermissionMap } from '../auth/permissions';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { createAuthAccount } from '../firebase/create-auth-account';
 import {
@@ -66,14 +68,23 @@ export const SAMPLE_PLANS: Omit<Plan, 'id'>[] = [
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export interface TenantUsage {
+  products: number;
+  totalQuantity: number;
+  categories: number;
+  customers: number;
+  users: number;
+  sales: number;
+  files: { count: number; bytes: number; products: { count: number; bytes: number }; categories: { count: number; bytes: number } };
+}
+
 /** Super-admin operations across all stores. Every write is also allowed only to
  *  platform admins by firestore.rules (`isSuperAdmin()`). */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PlatformService {
   private firestore: Firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private functions = inject(FIREBASE_FUNCTIONS);
 
   getTenants(): Observable<Tenant[]> {
     return fromCollectionQuery<Tenant>(query(collection(this.firestore, 'tenants'), orderBy('createdAt', 'desc')));
@@ -331,6 +342,34 @@ export class PlatformService {
     });
     this.addAudit(batch, 'payment_record', tenant.id, tenant.name, `${input.amount} × ${input.months}m (${input.method})`);
     return from(batch.commit());
+  }
+
+  // ---------------------------------------------------------------- role permissions
+
+  /** What each store role may do, for the whole platform (undefined = defaults). */
+  getRolePermissions(): Observable<Record<string, unknown> | undefined> {
+    return fromDocRef<Record<string, unknown>>(doc(this.firestore, 'platformConfig', 'rolePermissions'));
+  }
+
+  saveRolePermissions(map: RolePermissionMap, details: string): Observable<void> {
+    const batch = writeBatch(this.firestore);
+    batch.set(doc(this.firestore, 'platformConfig', 'rolePermissions'), {
+      admin: map.admin,
+      manager: map.manager,
+      cashier: map.cashier,
+      updatedAt: serverTimestamp(),
+      updatedBy: this.actorId()
+    });
+    this.addAudit(batch, 'roles_update', '', '', details);
+    return from(batch.commit());
+  }
+
+  // ---------------------------------------------------------------- usage
+
+  /** Catalog size, stock and uploaded files of one store (Cloud Function, super admin only). */
+  tenantUsage(tenantId: string): Observable<TenantUsage> {
+    const call = httpsCallable<{ tenantId: string }, TenantUsage>(this.functions, 'tenantUsage');
+    return from(call({ tenantId })).pipe(map((r) => r.data));
   }
 
   private actorId(): string {

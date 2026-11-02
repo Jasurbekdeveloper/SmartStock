@@ -26,6 +26,58 @@
     }
   </div>
 
+  <!-- Usage: catalog, stock, uploaded files -->
+  <section>
+    <h2 class="font-semibold mb-3">{{ 'platform.usage.title' | translate }}</h2>
+    @switch (usage()) {
+    @case ('loading') {
+    <p class="pf-muted text-sm">{{ 'messages.loading' | translate }}</p>
+    }
+    @case ('error') {
+    <p class="pf-note pf-note--warn"><mat-icon>cloud_off</mat-icon>{{ 'platform.usage.error' | translate }}</p>
+    }
+    @default {
+    @if (usageData(); as u) {
+    <div class="pf-stats">
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>inventory_2</mat-icon>{{ 'platform.usage.products' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.products) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>stacks</mat-icon>{{ 'platform.usage.quantity' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.totalQuantity) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>category</mat-icon>{{ 'platform.usage.categories' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.categories) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>receipt_long</mat-icon>{{ 'platform.usage.sales' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.sales) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>groups</mat-icon>{{ 'platform.usage.customers' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.customers) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>badge</mat-icon>{{ 'platform.usage.users' | translate }}</span>
+        <div class="pf-stat__value">{{ num(u.users) }}</div>
+      </div>
+      <div class="pf-stat">
+        <span class="pf-stat__label"><mat-icon>cloud</mat-icon>{{ 'platform.usage.files' | translate }}</span>
+        <div class="pf-stat__value">{{ bytes(u.files.bytes) }}</div>
+        <div class="text-xs pf-muted mt-1">
+          {{ num(u.files.count) }} {{ 'platform.usage.fileCount' | translate }} ·
+          {{ 'platform.usage.productImages' | translate }} {{ bytes(u.files.products.bytes) }} ·
+          {{ 'platform.usage.categoryImages' | translate }} {{ bytes(u.files.categories.bytes) }}
+        </div>
+      </div>
+    </div>
+    }
+    }
+    }
+  </section>
+
   <div class="grid gap-6 lg:grid-cols-3">
     <!-- Store info -->
     <mat-card class="!p-5">

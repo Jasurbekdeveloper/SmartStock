@@ -75,7 +75,8 @@ export type PlatformAuditAction =
   | 'tenant_edit'
   | 'tenant_owner'
   | 'payment_void'
-  | 'site_update';
+  | 'site_update'
+  | 'roles_update';
 
 /** `platformAudit/{id}` — what the super admin did, immutable. */
 export interface PlatformAuditEntry {

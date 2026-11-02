@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, from, of } from 'rxjs';
+import { Observable, firstValueFrom, forkJoin, from, of } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 import {
   addDoc,
@@ -16,9 +16,29 @@ import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery, fromDocRef } from '../firebase/firestore.utils';
 import { Sale, SaleReturn, SalesService, saleCardIn, saleCashIn } from './sales.service';
 import { roundMoney } from '../utils/pos-math';
+import { formatNumber } from '../utils/format-number';
 import { AuthService } from './auth.service';
 import { CashMovement, CashMovementService } from './cash-movement.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
+
+/** Taking more cash out of a drawer than it holds. */
+export class InsufficientCashError extends Error {
+  constructor(readonly available: number, readonly needed: number) {
+    super('INSUFFICIENT_CASH');
+  }
+}
+
+export function isInsufficientCash(err: unknown): err is InsufficientCashError {
+  return err instanceof InsufficientCashError || (err as Error | null)?.message === 'INSUFFICIENT_CASH';
+}
+
+/** "Kassada mablag' yetarli emas (kassada: 120 000)" for an InsufficientCashError, else null. */
+export function insufficientCashMessage(err: unknown, translate: (key: string) => string): string | null {
+  if (!isInsufficientCash(err)) return null;
+  const available = err instanceof InsufficientCashError ? err.available : null;
+  const tail = available === null ? '' : ` (${translate('finance.inDrawer')}: ${formatNumber(Math.max(0, available), 0)})`;
+  return translate('finance.insufficientCash') + tail;
+}
 
 export interface Shift {
   id: string;
@@ -175,6 +195,24 @@ export class ShiftService {
     return fromCollectionQuery<Shift>(query(shiftsCollection, where('tenantId', '==', requireTenantId(this.authService)), where('cashierId', '==', uid))).pipe(
       map((shifts) => shifts.slice().sort((a, b) => b.openedAt.getTime() - a.openedAt.getTime()))
     );
+  }
+
+  /** Cash the shift's drawer holds now: float + cash sales − cash refunds ± movements
+   *  (the Z-report formula). */
+  async drawerCash(shiftId: string): Promise<number> {
+    const [shift, sales, returns, movements] = await Promise.all([
+      firstValueFrom(this.getShiftById(shiftId)),
+      firstValueFrom(this.getShiftSales(shiftId)),
+      firstValueFrom(this.salesService.getReturnsForShift(shiftId)),
+      firstValueFrom(this.cashMovements.getForShift(shiftId))
+    ]);
+    return roundMoney((shift?.startingCash ?? 0) + computeShiftTotals(sales, returns, movements).cashDrawerDelta);
+  }
+
+  /** Throws InsufficientCashError when `amount` is more than the drawer holds. */
+  async ensureCash(shiftId: string, amount: number): Promise<void> {
+    const available = await this.drawerCash(shiftId);
+    if (amount > available + 0.005) throw new InsufficientCashError(available, amount);
   }
 
   getShiftSales(shiftId: string): Observable<Sale[]> {

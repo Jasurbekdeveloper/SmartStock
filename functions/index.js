@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { AggregateField, FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
@@ -570,6 +571,67 @@ export const sendTelegramReportNow = onCall({ secrets: [TELEGRAM_BOT_TOKEN] }, a
   const empty = kind === 'debtDue' ? '✅ Muddati o‘tgan qarz yo‘q.' : '✅ Kam qolgan mahsulot yo‘q.';
   const text = (await buildReportText(tenantId, settings, kind, new Date())) ?? empty;
   return deliver(tenantId, config, text);
+});
+
+// ---------- Super admin: what a store uses ----------
+
+async function requireSuperAdmin(request) {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'SIGN_IN_REQUIRED');
+  }
+  const admin = await db.doc(`platformAdmins/${request.auth.uid}`).get();
+  if (!admin.exists) {
+    throw new HttpsError('permission-denied', 'SUPER_ADMIN_ONLY');
+  }
+}
+
+async function countOf(collectionName, tenantId) {
+  const snap = await db.collection(collectionName).where('tenantId', '==', tenantId).count().get();
+  return snap.data().count;
+}
+
+/** Files under `<folder>/<tenantId>/` in the default bucket: how many and how big. */
+async function folderUsage(folder, tenantId) {
+  const [files] = await getStorage().bucket().getFiles({ prefix: `${folder}/${tenantId}/` });
+  return { count: files.length, bytes: files.reduce((sum, f) => sum + Number(f.metadata?.size ?? 0), 0) };
+}
+
+/** Catalog size, stock on hand and uploaded files of one store (tenant detail page). */
+export const tenantUsage = onCall({ timeoutSeconds: 120 }, async (request) => {
+  await requireSuperAdmin(request);
+  const tenantId = String(request.data?.tenantId ?? '');
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(tenantId)) {
+    throw new HttpsError('invalid-argument', 'BAD_TENANT');
+  }
+  const productsAgg = db
+    .collection('products')
+    .where('tenantId', '==', tenantId)
+    .aggregate({ count: AggregateField.count(), quantity: AggregateField.sum('quantity') })
+    .get();
+  const [products, categories, customers, users, sales, productFiles, categoryFiles] = await Promise.all([
+    productsAgg,
+    countOf('categories', tenantId),
+    countOf('customers', tenantId),
+    countOf('users', tenantId),
+    countOf('sales', tenantId),
+    folderUsage('products', tenantId),
+    folderUsage('categories', tenantId)
+  ]);
+  const p = products.data();
+  return {
+    products: p.count ?? 0,
+    totalQuantity: Math.round((p.quantity ?? 0) * 1000) / 1000,
+    categories,
+    customers,
+    users,
+    sales,
+    files: {
+      count: productFiles.count + categoryFiles.count,
+      bytes: productFiles.bytes + categoryFiles.bytes,
+      products: productFiles,
+      categories: categoryFiles
+    }
+  };
 });
 
 // ---------- Demo requests from the marketing site ----------

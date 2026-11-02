@@ -12,7 +12,7 @@ import { Functions, httpsCallable } from 'firebase/functions';
 import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIREBASE_FUNCTIONS, FIRESTORE } from '../firebase/firebase.providers';
 import { fromDocRef } from '../firebase/firestore.utils';
-import { Permission, roleCan } from '../auth/permissions';
+import { Permission, roleCan, setRolePermissions } from '../auth/permissions';
 
 /** `superadmin` is the platform operator (no store); the rest belong to one store. */
 export type UserRole = 'superadmin' | 'admin' | 'cashier' | 'manager';
@@ -78,7 +78,10 @@ export class AuthService {
       }
 
       fromDocRef<Omit<AppUser, 'uid'>>(doc(this.firestore, 'users', firebaseUser.uid)).subscribe({
-        next: (profile) => {
+        next: async (profile) => {
+          // Role permissions as the super admin set them — loaded before the user is
+          // announced, so route guards and menus never act on the defaults by mistake.
+          await this.watchRolePermissions();
           this.currentUserSubject.next(
             profile && profile.active ? { uid: firebaseUser.uid, ...profile } : null
           );
@@ -101,6 +104,27 @@ export class AuthService {
         }
       }, 60 * 1000);
     }
+  }
+
+  private rolePermissionsWatch: Promise<void> | null = null;
+
+  /** Live `platformConfig/rolePermissions` (resolves after the first snapshot). */
+  private watchRolePermissions(): Promise<void> {
+    this.rolePermissionsWatch ??= new Promise<void>((resolve) => {
+      fromDocRef<Record<string, unknown>>(doc(this.firestore, 'platformConfig', 'rolePermissions')).subscribe({
+        next: (config) => {
+          setRolePermissions(config ?? null);
+          resolve();
+        },
+        error: () => {
+          // Not readable (e.g. signed out meanwhile): the defaults apply.
+          setRolePermissions(null);
+          this.rolePermissionsWatch = null;
+          resolve();
+        }
+      });
+    });
+    return this.rolePermissionsWatch;
   }
 
   private isSessionExpired(): boolean {

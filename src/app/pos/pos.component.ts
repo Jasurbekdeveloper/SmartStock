@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { combineLatest, defer, of } from 'rxjs';
+import { combineLatest, defer, from, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,7 +18,7 @@ import { PaymentMethod, Sale, SaleDebtInput, SaleItem, SalesService } from '../c
 import { DebtService } from '../core/services/debt.service';
 import { AuthService } from '../core/services/auth.service';
 import { roleCan } from '../core/auth/permissions';
-import { Shift, ShiftService, computeShiftTotals } from '../core/services/shift.service';
+import { Shift, ShiftService, computeShiftTotals, insufficientCashMessage } from '../core/services/shift.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
 import { CashMovementDialogComponent, CashMovementDialogData } from '../shared/components/cash-movement-dialog/cash-movement-dialog.component';
 import { PriceTier, daysUntilExpiry, expiryState, hasWholesale, resolveTier, tierPrice } from '../core/utils/price-tier';
@@ -43,7 +43,7 @@ import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
 import { NumericInputDirective } from '../shared/directives/numeric-input.directive';
-import { NumpadComponent } from '../shared/components/numpad/numpad.component';
+import { NumpadComponent, applyNumpadKey } from '../shared/components/numpad/numpad.component';
 import { OnscreenKeyboardComponent, applyTextKey } from '../shared/components/onscreen-keyboard/onscreen-keyboard.component';
 import { DebtPaymentDialogComponent } from '../shared/components/debt-payment-dialog/debt-payment-dialog.component';
 import { SidebarStateService } from '../layout/sidebar/sidebar-state.service';
@@ -476,13 +476,17 @@ export class PosComponent implements OnInit {
       .subscribe((input) => {
         this.dialogOpen.set(false);
         if (!input) return;
-        this.cashMovements.add(shift.id, input).subscribe({
-          next: () => this.toast.success(this.translation.translate('finance.cashMovementSaved')),
-          error: (err) => {
-            console.error('Cash movement error:', err);
-            this.toast.error(this.translation.translate('messages.error'));
-          }
-        });
+        // Checked again against the drawer as it is now (another sale may have changed it).
+        const check = input.type === 'out' ? this.shiftService.ensureCash(shift.id, input.amount) : Promise.resolve();
+        from(check)
+          .pipe(switchMap(() => this.cashMovements.add(shift.id, input)))
+          .subscribe({
+            next: () => this.toast.success(this.translation.translate('finance.cashMovementSaved')),
+            error: (err) => {
+              console.error('Cash movement error:', err);
+              this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
+            }
+          });
       });
   }
 
@@ -985,6 +989,9 @@ export class PosComponent implements OnInit {
     }
     if (code) {
       this.cleanupLeakedCharacter(code);
+      // The scan's first digit may have reached the keypad before the burst was detected.
+      this.numpadFresh.set(true);
+      this.numpadText.set('');
       this.addProductByBarcode(code);
       return;
     }
@@ -1025,6 +1032,12 @@ export class PosComponent implements OnInit {
     const inSearchBox = document.activeElement === this.searchInputRef?.nativeElement;
 
     if (event.key === 'Enter') {
+      // A number typed on the physical keyboard for the selected line: Enter applies it.
+      if (!this.isTypingTarget() && this.showNumpad() && this.selectedLine() && !this.numpadFresh()) {
+        event.preventDefault();
+        this.commitNumpad();
+        return;
+      }
       if (inSearchBox && this.searchQuery().trim()) {
         // Enter in a non-empty search adds an exact barcode match, or the only result.
         const results = this.displayedProducts();
@@ -1047,6 +1060,16 @@ export class PosComponent implements OnInit {
     if (this.isTypingTarget()) return;
 
     const selected = this.selectedLineId();
+    // Physical keyboard (top row or numpad) types into the on-screen keypad: quantity,
+    // price or discount of the selected line, like the keys on the screen.
+    if (selected && this.showNumpad() && !event.ctrlKey && !event.metaKey && !event.altKey && !this.scannerGun.wasPartOfBurst()) {
+      const key = event.key === 'Backspace' ? '⌫' : event.key === ',' || event.key === '.' ? event.key : /^\d$/.test(event.key) ? event.key : null;
+      if (key) {
+        event.preventDefault();
+        this.onNumpadInput(applyNumpadKey(this.numpadFresh() ? '' : this.numpadText(), key, { decimal: true }));
+        return;
+      }
+    }
     if (selected && (event.key === '+' || event.key === '-')) {
       event.preventDefault();
       this.stepQuantity(selected, event.key === '+' ? 1 : -1);

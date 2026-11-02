@@ -73,13 +73,35 @@ function load(): FiscalConfig {
 export function vcrError(result: unknown): FiscalError {
   if (result && typeof result === 'object') {
     const r = result as Record<string, unknown>;
-    const code = Number(r['code'] ?? r['Code'] ?? r['error_code'] ?? NaN);
-    const message = String(r['message'] ?? r['Message'] ?? r['description'] ?? r['error'] ?? JSON.stringify(result));
+    // VCR answers { error: 704016, description: "…" }; other shapes are tolerated too.
+    const code = Number(r['error'] ?? r['code'] ?? r['Code'] ?? r['error_code'] ?? NaN);
+    const message = String(r['description'] ?? r['message'] ?? r['Message'] ?? (typeof r['error'] === 'string' ? r['error'] : null) ?? JSON.stringify(result));
     return new FiscalError(Number.isFinite(code) ? `${code}: ${message}` : message, Number.isFinite(code) ? code : undefined);
   }
   const text = String(result ?? 'VCR error');
   const code = Number(/(\d{6})/.exec(text)?.[1]);
   return new FiscalError(text, Number.isFinite(code) ? code : undefined);
+}
+
+/** HTTP Basic-style `auth` value; UTF-8 safe (a Cyrillic password must not break btoa). */
+export function vcrAuth(login: string, password: string): string {
+  let binary = '';
+  for (const byte of new TextEncoder().encode(`${login}:${password}`)) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
+ * An https page may not call a plain-http address on another computer (the browser
+ * blocks it as mixed content). Only this computer (127.0.0.1 / localhost) is allowed —
+ * so a remote or test VCR has to go through the local bridge.
+ */
+export function blockedAsMixedContent(url: string, pageProtocol = typeof location === 'undefined' ? 'https:' : location.protocol): boolean {
+  try {
+    const u = new URL(url);
+    return pageProtocol === 'https:' && u.protocol === 'http:' && !['127.0.0.1', 'localhost', '[::1]'].includes(u.hostname);
+  } catch {
+    return false;
+  }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -107,12 +129,13 @@ export class FiscalService {
   }
 
   private async send<T>(method: string, params: unknown, config: FiscalConfig, attempt = 0): Promise<T> {
+    if (blockedAsMixedContent(config.url)) throw new FiscalError('VCR_UNREACHABLE');
     let response: Response;
     try {
       response = await fetch(config.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
-        body: JSON.stringify({ id: ++this.requestId, jsonrpc: '2.0', method, params, auth: btoa(`${config.login}:${config.password}`) }),
+        body: JSON.stringify({ id: ++this.requestId, jsonrpc: '2.0', method, params, auth: vcrAuth(config.login, config.password) }),
         signal: AbortSignal.timeout(60_000)
       });
     } catch {

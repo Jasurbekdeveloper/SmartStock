@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { ShiftService } from './shift.service';
 import { Timestamp, collection, deleteDoc, doc, orderBy, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromCollectionQuery } from '../firebase/firestore.utils';
@@ -36,6 +37,7 @@ export type ExpenseInput = Pick<Expense, 'category' | 'amount' | 'date' | 'metho
 export class ExpenseService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private shiftService = inject(ShiftService);
 
   /** Expenses dated within [from, to], newest first. */
   getExpenses(fromDate: Date, toDate: Date): Observable<Expense[]> {
@@ -99,7 +101,12 @@ export class ExpenseService {
         tenantId
       )
     );
-    return from(batch.commit()).pipe(map(() => expenseRef.id));
+    // Cash can't leave a drawer that doesn't hold it.
+    const check = fromShiftId ? this.shiftService.ensureCash(fromShiftId, input.amount) : Promise.resolve();
+    return from(check).pipe(
+      switchMap(() => from(batch.commit())),
+      map(() => expenseRef.id)
+    );
   }
 
   /** Editing an expense taken from a till is limited to the note/category — the cash

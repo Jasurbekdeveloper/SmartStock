@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { ShiftService } from './shift.service';
 import {
   addDoc,
   collection,
@@ -76,6 +77,7 @@ export interface SupplierPaymentInput {
 export class SupplierService {
   private firestore = inject(FIRESTORE);
   private authService = inject(AuthService);
+  private shiftService = inject(ShiftService);
 
   getSuppliers(): Observable<Supplier[]> {
     const tenantId = requireTenantId(this.authService);
@@ -198,7 +200,8 @@ export class SupplierService {
         )
       );
     }
-    return from(commitOrQueue(wb));
+    const check = fromDrawer ? this.shiftService.ensureCash(input.drawerShiftId!, amount) : Promise.resolve();
+    return from(check).pipe(switchMap(() => from(commitOrQueue(wb))));
   }
 
   deleteSupplier(id: string): Observable<void> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPartPayments, buildVcrPayments, buildVcrPositions, scaleVcrPositions, fiscalProblems, pickPackageForUnit, vcrBarcode, vcrQuantity, vcrVatValue } from './vcr-receipt';
+import { vcrLabel, buildPartPayments, buildVcrPayments, buildVcrPositions, scaleVcrPositions, fiscalProblems, pickPackageForUnit, vcrBarcode, vcrQuantity, vcrVatValue } from './vcr-receipt';
 
 const sut = { productId: 'p1', name: 'Sut 1L', barcode: '4780069000130', mxikCode: '00401001001000000', packageCode: '1500001', unit: 'dona' };
 
@@ -16,7 +16,8 @@ describe('VCR receipt', () => {
     const codes = ['0104780069000130215AAA\u001d93xx', '0104780069000130215BBB\u001d93yy', '0104780069000130215CCC\u001d93zz'];
     const ps = buildVcrPositions([{ ...sut, barcode: '', quantity: 3, paid: 10000, discount: 1, markingCodes: codes }], 0.12);
     expect(ps).toHaveLength(3);
-    expect(ps.map((p) => p.label)).toEqual(codes);
+    // GS isn't allowed in VCR's label: the identification part goes, without the crypto tail.
+    expect(ps.map((p) => p.label)).toEqual(codes.map((c) => c.split('\u001d')[0]));
     expect(ps.every((p) => p.quantity === 1000)).toBe(true);
     expect(ps.reduce((s, p) => s + p.amount - p.discount, 0)).toBe(1000000);
     expect(ps[0].barcode).toBe('4780069000130');
@@ -27,6 +28,12 @@ describe('VCR receipt', () => {
     expect(buildVcrPayments(ps, 5000)).toEqual([{ type: 1, value: 734567 }, { type: 2, value: 500000 }]);
     expect(buildVcrPayments(ps, 0)).toEqual([{ type: 1, value: 1234567 }]);
     expect(buildVcrPayments(ps, 0, 'pay-1')).toEqual([{ type: 2, payment_id: 'pay-1' }]);
+  });
+
+  it('cleans marking codes scanned without separators', () => {
+    expect(vcrLabel('0104780069000130215AAA93xyz')).toBe('0104780069000130215AAA93xyz');
+    expect(vcrLabel('0104780069000130215AAA\u001d93ab~c')).toBe('0104780069000130215AAA');
+    expect(vcrLabel('01047800690001302 1x~y')).toBe('010478006900013021xy');
   });
 
   it('a debt sale only pays what was taken now', () => {

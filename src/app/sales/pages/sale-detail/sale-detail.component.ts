@@ -9,13 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { Sale, SalesService, saleCardIn, saleCashIn } from '../../../core/services/sales.service';
 import { DebtService } from '../../../core/services/debt.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { ShiftService } from '../../../core/services/shift.service';
+import { Shift, ShiftService, insufficientCashMessage } from '../../../core/services/shift.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
-import { firstValueFrom, of, switchMap, take } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
 import { FiscalReceipt, FiscalService } from '../../../core/services/fiscal.service';
 import { ProductService } from '../../../core/services/product.service';
 import { FiscalLineInput, buildVcrPositions, fiscalProblems, toTiyin } from '../../../core/utils/vcr-receipt';
@@ -139,6 +139,18 @@ export class SaleDetailComponent {
     const user = this.currentUser();
     if (!sale) return;
 
+    // Refunds are booked on the shift of whoever gives the money back, so their
+    // Z-report nets the cash out of the drawer — which must hold that much cash.
+    let shift: Shift | undefined;
+    try {
+      shift = user ? await firstValueFrom(this.shiftService.getOpenShiftForUser(user.uid).pipe(take(1))) : undefined;
+      if (shift && result.refundMethod === 'cash') await this.shiftService.ensureCash(shift.id, result.refundAmount);
+    } catch (err) {
+      console.error('Return cash check error:', err);
+      this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
+      return;
+    }
+
     let fiscal: FiscalReceipt | undefined;
     try {
       fiscal = await this.fiscalRefund(sale, result);
@@ -148,26 +160,18 @@ export class SaleDetailComponent {
       return;
     }
 
-    // Refunds are booked on the shift of whoever gives the money back, so their
-    // Z-report nets the cash out of the drawer.
-    const shift$ = user ? this.shiftService.getOpenShiftForUser(user.uid).pipe(take(1)) : of(undefined);
-
-    shift$
-      .pipe(
-        switchMap((shift) =>
-          this.salesService.createReturn({
-            saleId: sale.id,
-            ...(sale.receiptNo ? { receiptNo: sale.receiptNo } : {}),
-            items: result.items,
-            refundAmount: result.refundAmount,
-            refundMethod: result.refundMethod,
-            ...(result.reason ? { reason: result.reason } : {}),
-            ...(shift ? { shiftId: shift.id } : {}),
-            ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {}),
-            ...(fiscal ? { fiscal } : {})
-          })
-        )
-      )
+    this.salesService
+      .createReturn({
+        saleId: sale.id,
+        ...(sale.receiptNo ? { receiptNo: sale.receiptNo } : {}),
+        items: result.items,
+        refundAmount: result.refundAmount,
+        refundMethod: result.refundMethod,
+        ...(result.reason ? { reason: result.reason } : {}),
+        ...(shift ? { shiftId: shift.id } : {}),
+        ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {}),
+        ...(fiscal ? { fiscal } : {})
+      })
       .subscribe({
         next: () => this.toast.success(this.translation.translate('returns.saved')),
         error: (err) => {

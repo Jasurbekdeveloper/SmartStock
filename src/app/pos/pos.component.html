@@ -358,6 +358,7 @@
       <app-numpad
         [value]="numpadFresh() ? '' : numpadText()"
         [decimal]="true"
+        [keyboard]="false"
         (valueChange)="onNumpadInput($event)"
         (enter)="commitNumpad()"
       />

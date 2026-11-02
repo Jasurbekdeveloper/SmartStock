@@ -93,6 +93,13 @@ service cloud.firestore {
       return hasPerm(tenantId, perm) && tenantWritable(tenantId);
     }
 
+    // Returning a sale (sales.refund): the cashier who made it, or anyone whose role may
+    // see every sale (sales.viewAll). The role's permission is still what switches it on.
+    function canRefundSale(tenantId, saleCashierId) {
+      return canPerm(tenantId, 'sales.refund')
+        && (hasPerm(tenantId, 'sales.viewAll') || saleCashierId == request.auth.uid);
+    }
+
     function hasPermOrOwner(tenantId, perm, ownerUid) {
       return hasPerm(tenantId, perm) || (isTenantMember(tenantId) && ownerUid == request.auth.uid);
     }
@@ -312,8 +319,9 @@ service cloud.firestore {
       allow read: if hasPermOrOwner(resource.data.tenantId, 'sales.viewAll', resource.data.get('cashierId', ''));
       allow create: if canWrite(request.resource.data.tenantId)
         && request.resource.data.cashierId == request.auth.uid;
-      // A return (permission sales.refund) only bumps refundedAmount.
-      allow update: if canPerm(resource.data.tenantId, 'sales.refund')
+      // A return (permission sales.refund, own sales unless the role sees all) only
+      // bumps refundedAmount.
+      allow update: if canRefundSale(resource.data.tenantId, resource.data.get('cashierId', ''))
         && request.resource.data.tenantId == resource.data.tenantId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundedAmount'])
         && request.resource.data.refundedAmount <= resource.data.total + 1;
@@ -324,7 +332,10 @@ service cloud.firestore {
     // Immutable once written; attributed to the active user creating it.
     match /returns/{id} {
       allow read: if isTenantMember(resource.data.tenantId);
-      allow create: if canPerm(request.resource.data.tenantId, 'sales.refund')
+      allow create: if canRefundSale(
+            request.resource.data.tenantId,
+            get(/databases/$(database)/documents/sales/$(request.resource.data.saleId)).data.get('cashierId', ''))
+        && get(/databases/$(database)/documents/sales/$(request.resource.data.saleId)).data.tenantId == request.resource.data.tenantId
         && request.resource.data.cashierId == request.auth.uid;
       allow update, delete: if false;
     }

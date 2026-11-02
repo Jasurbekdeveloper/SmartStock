@@ -278,6 +278,14 @@ describe('PosComponent checkout (cashier)', () => {
     expect(t.dialogs()).toBe(0);
   });
 
+  it('moves focus to the search box when letters are typed with no field focused', async () => {
+    const t = await setup();
+    (document.activeElement as HTMLElement | null)?.blur();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true, cancelable: true }));
+    expect((document.activeElement as HTMLInputElement | null)?.tagName).toBe('INPUT');
+    expect(t.dialogs()).toBe(0);
+  });
+
   it('keeps the till usable when saving the sale fails', async () => {
     createSale.mockImplementationOnce(() => throwError(() => new Error('permission-denied')));
     const t = await setup();

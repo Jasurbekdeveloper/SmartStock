@@ -43,7 +43,7 @@ import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
 import { NumericInputDirective } from '../shared/directives/numeric-input.directive';
-import { NumpadComponent, applyNumpadKey } from '../shared/components/numpad/numpad.component';
+import { NumpadComponent, applyNumpadKey, isKeyboardEntryTarget } from '../shared/components/numpad/numpad.component';
 import { OnscreenKeyboardComponent, applyTextKey } from '../shared/components/onscreen-keyboard/onscreen-keyboard.component';
 import { DebtPaymentDialogComponent } from '../shared/components/debt-payment-dialog/debt-payment-dialog.component';
 import { SidebarStateService } from '../layout/sidebar/sidebar-state.service';
@@ -1080,6 +1080,14 @@ export class PosComponent implements OnInit {
       event.preventDefault();
       if (selected) this.removeFromCart(selected);
       else this.confirmClearCart();
+      return;
+    }
+
+    // Anything else typed on the physical keyboard goes to the search box, wherever
+    // focus was left (e.g. on a product tile). Focusing during keydown lets the
+    // browser put the character into the box.
+    if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey && !isKeyboardEntryTarget(document.activeElement)) {
+      this.searchInputRef?.nativeElement.focus();
     }
   }
 

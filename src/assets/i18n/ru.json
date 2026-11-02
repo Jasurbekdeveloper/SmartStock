@@ -877,7 +877,12 @@
       "owner": "Владелец",
       "plan": "Тариф",
       "status": "Статус",
-      "paidUntil": "Срок"
+      "paidUntil": "Срок",
+      "products": "Видов товаров",
+      "files": "Объём файлов",
+      "totalUsage": "Всего",
+      "productsShort": "видов товаров",
+      "filesShort": "файлов"
     },
     "create": {
       "title": "Новый магазин",

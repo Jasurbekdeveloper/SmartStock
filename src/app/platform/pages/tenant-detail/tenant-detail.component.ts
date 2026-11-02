@@ -28,7 +28,7 @@ import {
 } from '../../../core/models/saas';
 import { authCreateErrorKey } from '../../../core/firebase/create-auth-account';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { STATE_BADGE, generatePassword, money, stateKey } from '../../platform-ui';
+import { STATE_BADGE, formatBytes, generatePassword, money, stateKey } from '../../platform-ui';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 @Component({
@@ -87,18 +87,7 @@ export class TenantDetailComponent {
   });
   readonly num = (v: number) => formatNumber(v, 0);
 
-  /** 1536 → "1.5 KB", 5_242_880 → "5.0 MB". */
-  bytes(n: number): string {
-    if (n < 1024) return `${n} B`;
-    const units = ['KB', 'MB', 'GB', 'TB'];
-    let v = n / 1024;
-    let i = 0;
-    while (v >= 1024 && i < units.length - 1) {
-      v /= 1024;
-      i++;
-    }
-    return `${v.toFixed(1)} ${units[i]}`;
-  }
+  readonly bytes = formatBytes;
 
   readonly badge = STATE_BADGE;
   readonly stateKey = stateKey;

@@ -877,7 +877,12 @@
       "owner": "Egasi",
       "plan": "Tarif",
       "status": "Holat",
-      "paidUntil": "Muddat"
+      "paidUntil": "Muddat",
+      "products": "Mahsulot turi",
+      "files": "Fayllar hajmi",
+      "totalUsage": "Jami",
+      "productsShort": "mahsulot turi",
+      "filesShort": "fayllar"
     },
     "create": {
       "title": "Yangi do'kon",

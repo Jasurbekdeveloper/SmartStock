@@ -25,6 +25,14 @@
     </mat-form-field>
   </div>
 
+  @if (tenants()?.length) {
+  <p class="text-sm text-gray-500 dark:text-gray-400">
+    {{ 'platform.tenants.totalUsage' | translate }}:
+    <b class="text-gray-900 dark:text-white">{{ num(totals().products) }}</b> {{ 'platform.tenants.productsShort' | translate }} ·
+    <b class="text-gray-900 dark:text-white">{{ bytes(totals().bytes) }}</b> {{ 'platform.tenants.filesShort' | translate }}
+  </p>
+  }
+
   <mat-card class="!p-0 overflow-hidden">
     @if (tenants() === undefined) {
     <p class="p-8 text-center text-gray-500">{{ 'messages.loading' | translate }}</p>
@@ -42,6 +50,8 @@
             <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.owner' | translate }}</th>
             <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.plan' | translate }}</th>
             <th class="px-5 py-3 text-left font-medium">{{ 'platform.tenants.status' | translate }}</th>
+            <th class="px-5 py-3 text-right font-medium">{{ 'platform.tenants.products' | translate }}</th>
+            <th class="px-5 py-3 text-right font-medium">{{ 'platform.tenants.files' | translate }}</th>
             <th class="px-5 py-3 text-right font-medium">{{ 'platform.tenants.paidUntil' | translate }}</th>
           </tr>
         </thead>
@@ -61,6 +71,20 @@
             <td class="px-5 py-3">{{ row.tenant.planName || '—' }}</td>
             <td class="px-5 py-3">
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="badge[row.info.state]">{{ stateKey(row.info.state) | translate }}</span>
+            </td>
+            @let u = usage()[row.tenant.id];
+            <td class="px-5 py-3 text-right tabular-nums whitespace-nowrap">
+              @if (u === undefined) { <span class="text-gray-400">…</span> }
+              @else if (u === 'error') { <span class="text-gray-400" [attr.title]="'platform.usage.error' | translate">—</span> }
+              @else { {{ num(u.products) }} }
+            </td>
+            <td class="px-5 py-3 text-right tabular-nums whitespace-nowrap">
+              @if (u === undefined) { <span class="text-gray-400">…</span> }
+              @else if (u === 'error') { <span class="text-gray-400">—</span> }
+              @else {
+              {{ bytes(u.files.bytes) }}
+              <div class="text-xs text-gray-500">{{ num(u.files.count) }} {{ 'platform.usage.fileCount' | translate }}</div>
+              }
             </td>
             <td class="px-5 py-3 text-right tabular-nums whitespace-nowrap">
               @if (row.tenant.paidUntil) {

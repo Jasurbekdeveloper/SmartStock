@@ -1,8 +1,8 @@
-# SmartStock - Angular POS & Inventory System
+# MarketHisob - Angular POS & Inventory System
 
 ## 📋 Project Overview
 
-SmartStock is a comprehensive Point-of-Sale (POS) and inventory management system built with Angular 21. It provides a complete solution for managing products, stock, sales, debts, and customer relationships.
+MarketHisob is a comprehensive Point-of-Sale (POS) and inventory management system built with Angular 21. It provides a complete solution for managing products, stock, sales, debts, and customer relationships.
 
 ## 🏗️ Project Architecture
 
@@ -373,7 +373,7 @@ For issues or questions, please refer to the Angular documentation:
 
 ## 📄 License
 
-This project is part of the SmartStock application suite.
+This project is part of the MarketHisob application suite.
 
 ---
 

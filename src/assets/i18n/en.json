@@ -32,7 +32,7 @@
     "ownerName": "Owner name",
     "passwordHint": "At least 6 characters",
     "existingAccount": "Already have an account?",
-    "noAccount": "New to SmartStock?",
+    "noAccount": "New to MarketHisob?",
     "invalidRegistration": "Complete every field and use a password with at least 6 characters.",
     "registrationFailed": "Could not create your account. Check your details and try again."
   },

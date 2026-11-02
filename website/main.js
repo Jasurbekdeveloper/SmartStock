@@ -14,7 +14,8 @@ const CONFIG = {
 
 const LANGS = ['uz', 'ru', 'en'];
 // Bumped with the 2026-10 redesign so cached content without the "modules" list isn't painted.
-const CACHE_KEY = 'hisobla_site_v2';
+const CACHE_KEY = 'markethisob_site_v2';
+const LANG_KEY = 'markethisob_lang';
 
 // Icon names must match FEATURE_ICONS in src/app/platform/pages/site/site-content.ts.
 const ICONS = {
@@ -302,7 +303,7 @@ function render() {
 
 function setLang(next) {
   lang = LANGS.includes(next) ? next : 'uz';
-  try { localStorage.setItem('hisobla_lang', lang); } catch (e) { /* storage unavailable */ }
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* storage unavailable */ }
   render();
 }
 
@@ -450,7 +451,7 @@ function observeReveal() {
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
-try { lang = localStorage.getItem('hisobla_lang') || ''; } catch (e) { lang = ''; }
+try { lang = localStorage.getItem(LANG_KEY) || localStorage.getItem('hisobla_lang') || ''; } catch (e) { lang = ''; }
 if (!lang) lang = (navigator.language || '').toLowerCase().startsWith('ru') ? 'ru' : 'uz';
 observeReveal();
 load();

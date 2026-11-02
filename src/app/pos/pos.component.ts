@@ -52,8 +52,8 @@ import { ThemeService } from '../core/services/theme.service';
 import { Language } from '../core/services/translation.service';
 
 export type NumpadMode = 'qty' | 'price' | 'discount' | 'percent';
-const NUMPAD_STORAGE_KEY = 'smartstock_pos_numpad';
-const OSK_STORAGE_KEY = 'smartstock_pos_osk';
+const NUMPAD_STORAGE_KEY = 'markethisob_pos_numpad';
+const OSK_STORAGE_KEY = 'markethisob_pos_osk';
 /** Category tile colours (background, text) — products without a photo get one. */
 const TILE_TONES: [string, string][] = [
   ['var(--brand-soft)', 'var(--brand-strong)'],
@@ -86,7 +86,7 @@ const isTouch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coars
 /** Browsing without a search shows this many products at most, most-sold first. */
 const BROWSE_LIMIT = 60;
 const SEARCH_LIMIT = 120;
-const VIEW_MODE_STORAGE_KEY = 'smartstock_pos_view';
+const VIEW_MODE_STORAGE_KEY = 'markethisob_pos_view';
 
 @Component({
   selector: 'app-pos',
@@ -1265,7 +1265,7 @@ export class PosComponent implements OnInit {
   }
 }
 
-const HELD_CARTS_STORAGE_KEY = 'smartstock_pos_held_carts';
+const HELD_CARTS_STORAGE_KEY = 'markethisob_pos_held_carts';
 
 interface CartItem {
   productId: string;

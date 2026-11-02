@@ -1,8 +1,8 @@
-# ✅ SmartStock Project - Complete Setup Summary
+# ✅ MarketHisob Project - Complete Setup Summary
 
 ## 🎉 Project Successfully Created!
 
-Your complete **SmartStock POS & Inventory Management System** is now fully set up with all modules, components, services, and features as specified.
+Your complete **MarketHisob POS & Inventory Management System** is now fully set up with all modules, components, services, and features as specified.
 
 ---
 
@@ -322,7 +322,7 @@ Use any username/password (demo mode):
 
 ## 🎉 Ready to Use!
 
-Your SmartStock application is **fully configured and ready to run**. 
+Your MarketHisob application is **fully configured and ready to run**. 
 
 Start with:
 1. `npm install` - Install dependencies

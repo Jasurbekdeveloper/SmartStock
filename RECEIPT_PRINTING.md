@@ -3,7 +3,7 @@
 Brauzer xavfsizlik siyosati tufayli veb-sahifa hech qachon foydalanuvchi
 tasdig'isiz to'g'ridan-to'g'ri printerga chop eta olmaydi — `window.print()`
 har doim OS/brauzer print-dialogini ochadi. Bu kodda tuzatib bo'lmaydigan
-brauzer cheklovi, SmartStock buni o'zi avtomatik hal qila olmaydi.
+brauzer cheklovi, MarketHisob buni o'zi avtomatik hal qila olmaydi.
 
 ## Amaliy yechim: kiosk-printing rejimi
 
@@ -26,5 +26,5 @@ printerga** chop etadi. Bu bir martalik OS sozlamasi (ilovada emas).
 
 - Windows'dagi standart printer termoprinter bo'lishi shart, aks holda
   `--kiosk-printing` xato printerga jo'natadi.
-- Sinov: SmartStock'da bir sotuvni oching → "Chekni chop etish" → dialog
+- Sinov: MarketHisob'da bir sotuvni oching → "Chekni chop etish" → dialog
   chiqmasdan chop etilsa, sozlama to'g'ri ishlayapti.

@@ -2,7 +2,7 @@
 
 ## ✅ What's Included
 
-The SmartStock project now includes:
+The MarketHisob project now includes:
 
 ### ✨ Complete Module Structure
 - ✅ Core Module (services, guards, interceptors)
@@ -101,7 +101,7 @@ The app has demo authentication - any username/password works:
 After installation, here's what you have:
 
 ```
-SmartStock/
+MarketHisob/
 ├── src/
 │   ├── app/
 │   │   ├── core/              ← Services, guards, interceptors
@@ -340,6 +340,6 @@ npm start -- --port 4300
 
 ## 🎉 You're All Set!
 
-The SmartStock POS system is ready to use. Start with the QUICK_START.md guide to learn the main features, then check PROJECT_STRUCTURE.md for detailed information about each module.
+The MarketHisob POS system is ready to use. Start with the QUICK_START.md guide to learn the main features, then check PROJECT_STRUCTURE.md for detailed information about each module.
 
 **Enjoy! 🚀**

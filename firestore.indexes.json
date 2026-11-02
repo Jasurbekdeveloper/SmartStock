@@ -9,6 +9,20 @@
           "order": "ASCENDING"
         },
         {
+          "fieldPath": "quantity",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "tenantId",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "name",
           "order": "ASCENDING"
         }

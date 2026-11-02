@@ -70,7 +70,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface TenantUsage {
   products: number;
-  totalQuantity: number;
+  /** null when the server could not add it up (the sum index is missing or still building). */
+  totalQuantity: number | null;
   categories: number;
   customers: number;
   users: number;

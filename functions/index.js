@@ -603,13 +603,20 @@ export const tenantUsage = onCall({ timeoutSeconds: 120 }, async (request) => {
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(tenantId)) {
     throw new HttpsError('invalid-argument', 'BAD_TENANT');
   }
-  const productsAgg = db
-    .collection('products')
-    .where('tenantId', '==', tenantId)
-    .aggregate({ count: AggregateField.count(), quantity: AggregateField.sum('quantity') })
-    .get();
-  const [products, categories, customers, users, sales, productFiles, categoryFiles] = await Promise.all([
-    productsAgg,
+  const productsQuery = db.collection('products').where('tenantId', '==', tenantId);
+  // Summing a field needs a composite index (firestore.indexes.json). While it is still
+  // building, or missing, the product count and file sizes must still come through.
+  const stockTotal = productsQuery
+    .aggregate({ quantity: AggregateField.sum('quantity') })
+    .get()
+    .then((snap) => snap.data().quantity ?? 0)
+    .catch((err) => {
+      console.warn('tenantUsage: stock total unavailable', tenantId, err?.code, err?.details ?? err?.message);
+      return null;
+    });
+  const [products, totalQuantity, categories, customers, users, sales, productFiles, categoryFiles] = await Promise.all([
+    productsQuery.count().get(),
+    stockTotal,
     countOf('categories', tenantId),
     countOf('customers', tenantId),
     countOf('users', tenantId),
@@ -617,10 +624,9 @@ export const tenantUsage = onCall({ timeoutSeconds: 120 }, async (request) => {
     folderUsage('products', tenantId),
     folderUsage('categories', tenantId)
   ]);
-  const p = products.data();
   return {
-    products: p.count ?? 0,
-    totalQuantity: Math.round((p.quantity ?? 0) * 1000) / 1000,
+    products: products.data().count ?? 0,
+    totalQuantity: totalQuantity === null ? null : Math.round(totalQuantity * 1000) / 1000,
     categories,
     customers,
     users,

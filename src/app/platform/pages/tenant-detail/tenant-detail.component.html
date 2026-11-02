@@ -45,7 +45,7 @@
       </div>
       <div class="pf-stat">
         <span class="pf-stat__label"><mat-icon>stacks</mat-icon>{{ 'platform.usage.quantity' | translate }}</span>
-        <div class="pf-stat__value">{{ num(u.totalQuantity) }}</div>
+        <div class="pf-stat__value">{{ u.totalQuantity === null ? '—' : num(u.totalQuantity) }}</div>
       </div>
       <div class="pf-stat">
         <span class="pf-stat__label"><mat-icon>category</mat-icon>{{ 'platform.usage.categories' | translate }}</span>

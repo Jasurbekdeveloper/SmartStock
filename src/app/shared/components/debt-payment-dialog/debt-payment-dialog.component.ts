@@ -109,10 +109,10 @@ interface Debtor {
             <span class="money">{{ amountText() || '0' }}</span>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button type="button" class="dp__quick" (click)="amountText.set(owedNow() + '')">{{ 'debts.payAll' | translate }}</button>
-            <button type="button" class="dp__quick" (click)="amountText.set(half() + '')">½</button>
+            <button type="button" class="dp__quick" (click)="setQuickAmount(owedNow())">{{ 'debts.payAll' | translate }}</button>
+            <button type="button" class="dp__quick" (click)="setQuickAmount(half())">½</button>
           </div>
-          <app-numpad [value]="amountText()" (valueChange)="amountText.set($event)" [decimal]="false" [okLabel]="'debts.accept' | translate" (enter)="save()" />
+          <app-numpad [value]="amountFresh() ? '' : amountText()" (valueChange)="onAmountInput($event)" [decimal]="false" [okLabel]="'debts.accept' | translate" (enter)="save()" />
         </div>
       </div>
       <div class="dp__foot">
@@ -164,6 +164,8 @@ export class DebtPaymentDialogComponent {
   query = signal('');
   method = signal<DebtPaymentMethod>('cash');
   amountText = signal('');
+  /** While true, the next key replaces the amount (set by the quick buttons). */
+  amountFresh = signal(true);
   saving = signal(false);
   private picked = signal<string | null>(this.data.customerId ?? null);
 
@@ -211,6 +213,17 @@ export class DebtPaymentDialogComponent {
   pick(d: Debtor | null) {
     this.picked.set(d?.id ?? null);
     this.amountText.set('');
+    this.amountFresh.set(true);
+  }
+
+  setQuickAmount(value: number) {
+    this.amountText.set(String(value));
+    this.amountFresh.set(true);
+  }
+
+  onAmountInput(text: string) {
+    this.amountText.set(text);
+    this.amountFresh.set(false);
   }
 
   save() {

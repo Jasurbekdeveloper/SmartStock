@@ -1111,7 +1111,9 @@
       "changedFromDefault": "Differs from the default",
       "note": "Once saved, staff menus and access update immediately (no reload needed).",
       "confirmTitle": "Save permissions",
-      "confirmText": "This affects every store on the platform immediately. Continue?"
+      "confirmText": "This affects every store on the platform immediately. Continue?",
+      "loadFailed": "Could not read the role settings, showing the defaults. Usually the Firestore rules are not deployed (firebase deploy --only firestore:rules).",
+      "saveDenied": "Saving was refused. The Firestore rules may not be deployed (firebase deploy --only firestore:rules)."
     },
     "usage": {
       "title": "Usage",

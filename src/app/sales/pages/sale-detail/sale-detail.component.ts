@@ -63,6 +63,8 @@ export class SaleDetailComponent {
   canReturn = computed(() => {
     const sale = this.sale();
     if (!sale || !this.authService.can('sales.refund')) return false;
+    // Mirrors firestore.rules: a cashier returns their own sales; roles that see every sale, any.
+    if (!this.authService.can('sales.viewAll') && sale.cashierId !== this.currentUser()?.uid) return false;
     const returned = this.returnedQty();
     const soldByProduct = new Map<string, number>();
     for (const item of sale.items) soldByProduct.set(item.productId, (soldByProduct.get(item.productId) ?? 0) + item.quantity);

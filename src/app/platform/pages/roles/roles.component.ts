@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -41,6 +42,9 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
       </div>
     </div>
 
+    @if (problem()) {
+    <p class="pf-note pf-note--warn" role="alert"><mat-icon>error</mat-icon>{{ problem()! | translate }}</p>
+    }
     @if (dirty()) {
     <p class="pf-note pf-note--warn"><mat-icon>edit_note</mat-icon>{{ 'platform.roles.unsaved' | translate }}</p>
     }
@@ -114,7 +118,21 @@ export class PlatformRolesComponent {
   readonly groups = PERMISSION_GROUPS;
   readonly total = PERMISSION_GROUPS.reduce((n, g) => n + g.permissions.length, 0);
 
-  private stored = toSignal(this.platform.getRolePermissions(), { initialValue: undefined });
+  /** i18n key of what went wrong (config unreadable, save refused), shown above the table. */
+  problem = signal<string | null>(null);
+
+  /** An unreadable config (e.g. the rules aren't deployed yet) must not blank the page:
+   *  the table falls back to the defaults and says why. */
+  private stored = toSignal(
+    this.platform.getRolePermissions().pipe(
+      catchError((err) => {
+        console.error('Load role permissions error:', err);
+        this.problem.set('platform.roles.loadFailed');
+        return of(undefined);
+      })
+    ),
+    { initialValue: undefined }
+  );
   /** What the table shows; null until the admin changes something (then it's a draft). */
   private draft = signal<RolePermissionMap | null>(null);
   saving = signal(false);
@@ -169,12 +187,15 @@ export class PlatformRolesComponent {
           next: () => {
             this.saving.set(false);
             this.draft.set(null);
+            this.problem.set(null);
             this.toast.success(this.translation.translate('messages.saved'));
           },
           error: (err) => {
             console.error('Save role permissions error:', err);
             this.saving.set(false);
-            this.toast.error(this.translation.translate('messages.error'));
+            const denied = (err as { code?: string } | null)?.code === 'permission-denied';
+            this.problem.set(denied ? 'platform.roles.saveDenied' : null);
+            this.toast.error(this.translation.translate(denied ? 'platform.roles.saveDenied' : 'messages.error'));
           }
         });
       });

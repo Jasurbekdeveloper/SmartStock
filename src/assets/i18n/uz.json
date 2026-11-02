@@ -1111,7 +1111,9 @@
       "changedFromDefault": "Standartdan farq qiladi",
       "note": "O'zgarish saqlangach, xodimlarning menyusi va ruxsatlari darhol yangilanadi (sahifani yangilash shart emas).",
       "confirmTitle": "Huquqlarni saqlash",
-      "confirmText": "Bu o'zgarish platformadagi barcha do'konlarga darhol ta'sir qiladi. Davom etasizmi?"
+      "confirmText": "Bu o'zgarish platformadagi barcha do'konlarga darhol ta'sir qiladi. Davom etasizmi?",
+      "loadFailed": "Rollar sozlamasini o'qib bo'lmadi, standart huquqlar ko'rsatilyapti. Odatda sabab: Firestore qoidalari deploy qilinmagan (firebase deploy --only firestore:rules).",
+      "saveDenied": "Saqlashga ruxsat yo'q. Firestore qoidalari deploy qilinmagan bo'lishi mumkin (firebase deploy --only firestore:rules)."
     },
     "usage": {
       "title": "Foydalanish",

@@ -20,7 +20,7 @@ import { AuthService } from './auth.service';
 import { requireTenantId, tenantQuery, withTenant } from './tenant-data';
 import { commitOrQueue, stripUndefined } from './sales.service';
 import { roundMoney } from '../utils/pos-math';
-import { VcrPosition, scaleVcrPositions, toTiyin } from '../utils/vcr-receipt';
+import { FiscalLine, LegacyVcrPosition, legacyPositionToLine, toTiyin } from '../utils/fiscal-receipt';
 import { FiscalService } from './fiscal.service';
 import { SettingsService } from './settings.service';
 
@@ -115,7 +115,8 @@ export interface Debt {
   dueDate?: Date;
   /** Set when the debt sale went to the tax office: its goods, for the credit receipt
    *  of every repayment. */
-  fiscalCredit?: { saleReceiptId: string; positions: VcrPosition[] };
+  /** `positions`: debts saved before the fiscal agent existed. */
+  fiscalCredit?: { saleReceiptId: string; lines?: FiscalLine[]; positions?: LegacyVcrPosition[] };
 }
 
 @Injectable({
@@ -126,6 +127,8 @@ export class DebtService {
   private authService = inject(AuthService);
   private fiscal = inject(FiscalService);
   private settings = inject(SettingsService);
+  /** Credit receipts of the repayment being taken, kept until that repayment is saved. */
+  private pendingCredits: { key: string; codes: string[]; receiptIds: string[] } | null = null;
 
   getDebts(): Observable<Debt[]> {
     const debtsQuery = tenantQuery(this.firestore, 'debts', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
@@ -217,19 +220,28 @@ export class DebtService {
     const creditIds = new Map<string, string>();
     const policy = this.settings.fiscalPolicy();
     if (this.fiscal.enabled() && policy.send && policy.sendDebt && input.method !== 'bank') {
+      // A retry of the same payment keeps its codes and the receipts already issued:
+      // a receipt may exist even though its answer never came, or the save failed after it.
+      const key = JSON.stringify({ customerId: input.customerId, method: input.method, slices });
+      if (this.pendingCredits?.key !== key) {
+        this.pendingCredits = { key, codes: paymentRefs.map((ref) => `Q-${ref.id}`), receiptIds: [] };
+      }
+      const attempt = this.pendingCredits;
       for (const [i, slice] of slices.entries()) {
         const credit = debts.find((d) => d.id === slice.debtId)?.fiscalCredit;
-        if (!credit?.positions?.length) continue;
-        const positions = scaleVcrPositions(credit.positions, toTiyin(slice.amount));
-        if (positions.length === 0) continue;
-        const value = positions.reduce((s, p) => s + p.amount, 0);
-        const receipt = await this.fiscal.credit({
-          code: `Q-${paymentRefs[i].id}`,
-          positions,
-          payments: [{ type: input.method === 'card' ? 2 : 1, value }],
-          cashierName: user?.displayName
-        });
-        creditIds.set(slice.debtId, receipt.id);
+        const lines = credit?.lines ?? credit?.positions?.map(legacyPositionToLine) ?? [];
+        const amountTiyin = toTiyin(slice.amount);
+        if (amountTiyin <= 0 || lines.every((l) => l.paidTiyin <= 0)) continue;
+        attempt.receiptIds[i] ??= (
+          await this.fiscal.credit({
+            code: attempt.codes[i],
+            lines,
+            method: input.method === 'card' ? 'card' : 'cash',
+            amountTiyin,
+            cashierName: user?.displayName
+          })
+        ).id;
+        creditIds.set(slice.debtId, attempt.receiptIds[i]);
       }
     }
 
@@ -281,6 +293,7 @@ export class DebtService {
       );
     }
     await commitOrQueue(wb);
+    this.pendingCredits = null;
     return { applied, paidDebts: slices };
   }
 

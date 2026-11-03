@@ -23,7 +23,7 @@ Angular 21 (standalone, signals, zone.js'siz), Angular Material, Tailwind v4, Fi
 - `functions/` — Cloud Functions (Blaze tarifi kerak)
 - `worker/` — Cloudflare Worker (saytdan kelgan so'rovlar)
 - `website/` — marketing sayti, matnlari `content.json`da
-- `bridge/` — fiskal qurilma ko'prigi
+- `fiscal-agent/` — kassa kompyuteridagi fiskal agent (.NET). Soliq provayderlari faqat shu yerda, ilova ularni tanimaydi. Testlari: `dotnet test fiscal-agent/FiscalAgent.slnx`
 - `scripts/tenant-migration/` — ko'chirish va super admin yaratish
 - Ishga tushirish qadamlari: `SAAS_SETUP.md`
 

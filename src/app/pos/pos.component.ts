@@ -37,8 +37,8 @@ import { BatchService } from '../core/services/batch.service';
 import { ProductBatchSummary, allocateFefo, batchesByProduct, isBlockedExpired, summarizeBatches } from '../core/utils/batches';
 import { createScannerGunDetector } from '../core/utils/scanner-input.util';
 import { barcodeMatchesGtin, parseMarkingCode } from '../core/utils/marking';
-import { FiscalReceipt, FiscalService } from '../core/services/fiscal.service';
-import { FiscalLineInput, VcrPosition, buildPartPayments, buildVcrPayments, buildVcrPositions, fiscalProblems } from '../core/utils/vcr-receipt';
+import { FiscalReceipt, FiscalService, fiscalErrorText } from '../core/services/fiscal.service';
+import { FiscalLine, FiscalLineInput, fiscalProblems, toFiscalLines, toTiyin } from '../core/utils/fiscal-receipt';
 import { normalizeForSearch } from '../core/utils/uzbek-transliteration';
 import { variantLabel } from '../core/utils/product-variants';
 import { PRODUCT_UNITS } from '../core/constants/units';
@@ -129,6 +129,8 @@ export class PosComponent implements OnInit {
 
   private productService = inject(ProductService);
   private fiscal = inject(FiscalService);
+  /** The fiscal receipt of the sale being paid, kept until that sale is saved. */
+  private pendingFiscal: { key: string; code: string; receipt?: FiscalReceipt } | null = null;
   private categoryService = inject(CategoryService);
   private salesService = inject(SalesService);
   private debtService = inject(DebtService);
@@ -861,7 +863,7 @@ export class PosComponent implements OnInit {
     const paymentMethod: PaymentMethod = split.card > 0 && split.cash > 0 ? 'mixed' : split.card > 0 ? 'card' : 'cash';
     const shift = this.activeShift();
     const user = this.currentUser();
-    const receiptNo = generateReceiptNo();
+    let receiptNo = generateReceiptNo();
 
     const sale: Omit<Sale, 'id' | 'createdAt'> = {
       receiptNo,
@@ -888,14 +890,15 @@ export class PosComponent implements OnInit {
         : { amount: split.debt, customerId: payment.customerId };
     }
 
-    const save = (fiscal?: FiscalReceipt, fiscalSkipped?: string, fiscalPositions?: VcrPosition[]) =>
+    const save = (fiscal?: FiscalReceipt, fiscalSkipped?: string, fiscalLines?: FiscalLine[]) =>
       this.salesService
         .createSale(
-          { ...sale, ...(fiscal ? { fiscal } : {}), ...(fiscalSkipped ? { fiscalSkipped } : {}) },
-          debt && fiscalPositions ? { ...debt, fiscalPositions } : debt
+          { ...sale, receiptNo, ...(fiscal ? { fiscal } : {}), ...(fiscalSkipped ? { fiscalSkipped } : {}) },
+          debt && fiscalLines ? { ...debt, fiscalLines } : debt
         )
         .subscribe({
           next: (saleId) => {
+            this.pendingFiscal = null;
             this.submitting.set(false);
             this.clearCart();
             this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt });
@@ -939,22 +942,37 @@ export class PosComponent implements OnInit {
       this.toast.error(`${problems[0].name}: ${this.translation.translate(problems[0].key)}`);
       return;
     }
-    const positions = buildVcrPositions(lines, this.vatRate());
+    const fiscalLines = toFiscalLines(lines, this.vatRate());
+    const fiscalPayment = onDebt
+      ? { cardTiyin: toTiyin(split.card), cashTiyin: toTiyin(split.cash) }
+      : { cardTiyin: toTiyin(split.card), ...(payment.paymentId ? { paymentId: payment.paymentId } : {}) };
+    // A retry of the same sale keeps its code: the receipt may already exist even though
+    // the answer never came, and a new code would issue a second one.
+    const key = JSON.stringify({ lines: fiscalLines, payment: fiscalPayment });
+    if (this.pendingFiscal?.key !== key) this.pendingFiscal = { key, code: receiptNo };
+    const attempt = this.pendingFiscal;
+    receiptNo = attempt.code;
+    if (attempt.receipt) {
+      save(attempt.receipt, undefined, onDebt ? fiscalLines : undefined);
+      return;
+    }
     this.fiscal
       .sale({
-        code: receiptNo,
-        positions,
-        payments: onDebt ? buildPartPayments(split.cash, split.card) : buildVcrPayments(positions, split.card, payment.vcrPaymentId),
+        code: attempt.code,
+        lines: fiscalLines,
+        payment: fiscalPayment,
         cashierName: user?.displayName,
         sessionCode: shift?.id
       })
       .then(
-        (receipt) => save(receipt, undefined, onDebt ? positions : undefined),
+        (receipt) => {
+          attempt.receipt = receipt;
+          save(receipt, undefined, onDebt ? fiscalLines : undefined);
+        },
         (err: Error) => {
           console.error('Fiscal receipt error:', err);
           this.submitting.set(false);
-          const msg = err.message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : err.message;
-          this.toast.error(`${this.translation.translate('fiscal.saleFailed')}: ${msg}`);
+          this.toast.error(`${this.translation.translate('fiscal.saleFailed')}: ${fiscalErrorText(err, (k) => this.translation.translate(k))}`);
         }
       );
   }

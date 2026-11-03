@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { MxikPackage, MxikResult, MxikSelection, MxikService } from '../../../core/services/mxik.service';
-import { pickPackageForUnit } from '../../../core/utils/vcr-receipt';
+import { pickPackageForUnit } from '../../../core/utils/fiscal-receipt';
 
 export interface MxikPickerData {
   /** Product name — the first search. */

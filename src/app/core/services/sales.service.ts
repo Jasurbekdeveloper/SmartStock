@@ -57,7 +57,7 @@ export interface SaleItem {
 export type PaymentMethod = 'cash' | 'card' | 'mixed';
 
 import type { FiscalReceipt } from './fiscal.service';
-import type { VcrPosition } from '../utils/vcr-receipt';
+import type { FiscalLine } from '../utils/fiscal-receipt';
 
 export interface Sale {
   id: string;
@@ -106,7 +106,7 @@ export interface SaleDebtInput {
   /** ...create this new customer as part of the same atomic write. */
   newCustomer?: { name: string; phone: string };
   /** Goods of a fiscalised debt sale, kept on the debt for the credit receipts of its repayments. */
-  fiscalPositions?: VcrPosition[];
+  fiscalLines?: FiscalLine[];
 }
 
 export interface SaleReturnItem {
@@ -269,8 +269,8 @@ export class SalesService {
         totalAmount: debt.amount,
         paidAmount: 0,
         remainingAmount: debt.amount,
-        ...(sale.fiscal && debt.fiscalPositions?.length
-          ? { fiscalCredit: { saleReceiptId: sale.fiscal.id, positions: debt.fiscalPositions.map(({ label: _label, ...p }) => p) } }
+        ...(sale.fiscal && debt.fiscalLines?.length
+          ? { fiscalCredit: { saleReceiptId: sale.fiscal.id, lines: debt.fiscalLines.map(({ markingCodes: _codes, ...l }) => l) } }
           : {}),
         createdAt: serverTimestamp()
       }));

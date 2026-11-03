@@ -1,0 +1,31 @@
+name: Fiscal agent
+
+# Only tests and builds the agent; it doesn't touch the live site's deploy.
+on:
+  push:
+    paths:
+      - 'fiscal-agent/**'
+      - '.github/workflows/fiscal-agent.yml'
+  pull_request:
+    paths:
+      - 'fiscal-agent/**'
+      - '.github/workflows/fiscal-agent.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: fiscal-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test FiscalAgent.slnx --nologo
+      - run: dotnet publish src/FiscalAgent.Host -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
+      - run: Copy-Item install.ps1 publish/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fiscal-agent-win-x64
+          path: fiscal-agent/publish/

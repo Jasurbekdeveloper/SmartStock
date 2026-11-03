@@ -93,9 +93,9 @@
   @if (sale.fiscal; as f) {
   <div class="receipt__divider"></div>
   <div class="receipt__row"><span>{{ 'fiscal.terminal' | translate }}</span><span>{{ f.terminalId }}</span></div>
-  <div class="receipt__row"><span>{{ 'fiscal.receiptNo' | translate }}</span><span>{{ f.receiptNo }}</span></div>
-  <div class="receipt__row"><span>{{ 'fiscal.sign' | translate }}</span><span>{{ f.fiscalSign }}</span></div>
-  @if (fiscalQr(); as qr) { <div class="receipt__qr" [innerHTML]="qr"></div> }
+  @if (f.receiptNo) { <div class="receipt__row"><span>{{ 'fiscal.receiptNo' | translate }}</span><span>{{ f.receiptNo }}</span></div> }
+  @if (f.fiscalSign) { <div class="receipt__row"><span>{{ 'fiscal.sign' | translate }}</span><span>{{ f.fiscalSign }}</span></div> }
+  @if (fiscalQr(); as qr) { <div class="receipt__qr" [innerHTML]="qr"></div> } @else { <div class="receipt__row"><span>{{ 'fiscal.paperReceipt' | translate }}</span></div> }
   }
 
   <div class="receipt__divider"></div>

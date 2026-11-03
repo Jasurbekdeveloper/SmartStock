@@ -6,10 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
-import { FiscalService, PaymentSystem, VcrPaymentState } from '../../core/services/fiscal.service';
+import { FiscalPaymentState, FiscalService, PaymentSystem, fiscalErrorText } from '../../core/services/fiscal.service';
 import { TranslationService } from '../../core/services/translation.service';
 
-export interface VcrPaymentDialogData {
+export interface FiscalPaymentDialogData {
   system: PaymentSystem;
   /** So'm. */
   amount: number;
@@ -18,11 +18,11 @@ export interface VcrPaymentDialogData {
 /**
  * Takes a payment through the virtual cash register (Click Pass, Payme Go, Uzum, a bank
  * terminal…). Token systems: the cashier scans the code on the customer's phone. QR
- * systems: the customer scans the QR shown here. Closes with the VCR payment id, which
- * the sale's fiscal receipt then refers to.
+ * systems: the customer scans the QR shown here. Closes with the payment id, which the
+ * sale's fiscal receipt then refers to.
  */
 @Component({
-  selector: 'app-vcr-payment-dialog',
+  selector: 'app-fiscal-payment-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatProgressBarModule, TranslatePipe, CurrencyDisplayPipe],
   template: `
@@ -65,9 +65,9 @@ export interface VcrPaymentDialogData {
     :host ::ng-deep .vp__qr svg { width: 240px; height: 240px; }
   `
 })
-export class VcrPaymentDialogComponent implements AfterViewInit {
-  readonly data = inject<VcrPaymentDialogData>(MAT_DIALOG_DATA);
-  private ref = inject(MatDialogRef<VcrPaymentDialogComponent, string>);
+export class FiscalPaymentDialogComponent implements AfterViewInit {
+  readonly data = inject<FiscalPaymentDialogData>(MAT_DIALOG_DATA);
+  private ref = inject(MatDialogRef<FiscalPaymentDialogComponent, string>);
   private fiscal = inject(FiscalService);
   private translation = inject(TranslationService);
   private tokenInput = viewChild<ElementRef<HTMLInputElement>>('tokenInput');
@@ -78,9 +78,9 @@ export class VcrPaymentDialogComponent implements AfterViewInit {
   error = signal<string | null>(null);
   qrSvg = signal<SafeHtml>('');
   private sanitizer = inject(DomSanitizer);
-  /** Same id on a retry → VCR returns the same payment instead of charging twice. */
+  /** Same id on a retry → the register returns the same payment instead of charging twice. */
   private externalId = `mh-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  private payment: VcrPaymentState | null = null;
+  private payment: FiscalPaymentState | null = null;
   private stopped = false;
 
   constructor() {
@@ -121,7 +121,7 @@ export class VcrPaymentDialogComponent implements AfterViewInit {
       }
       await this.poll();
     } catch (err) {
-      this.error.set((err as Error).message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : (err as Error).message);
+      this.error.set(fiscalErrorText(err as Error, (k) => this.translation.translate(k)));
       if (this.data.system.needsToken) this.stage.set('token');
     } finally {
       this.busy.set(false);

@@ -10,7 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ShiftService } from '../../../core/services/shift.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { ToastService } from '../../../core/services/toast.service';
-import { FiscalService } from '../../../core/services/fiscal.service';
+import { FiscalService, fiscalErrorText } from '../../../core/services/fiscal.service';
 import { SettingsService } from '../../../core/services/settings.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
@@ -61,7 +61,7 @@ export class ShiftOpenComponent {
         this.toast.success(this.translation.translate('shifts.shiftOpened'));
         // The virtual cash register's fiscal shift (Z-report) opens with ours.
         if (this.fiscal.enabled() && this.settingsService.fiscalPolicy().send) {
-          this.fiscal.openShift().catch((err: Error) => this.toast.error(`${this.translation.translate('fiscal.shiftFailed')}: ${err.message}`));
+          this.fiscal.openShift().catch((err: Error) => this.toast.error(`${this.translation.translate('fiscal.shiftFailed')}: ${fiscalErrorText(err, (k) => this.translation.translate(k))}`));
         }
         this.router.navigate(['/pos']);
       },

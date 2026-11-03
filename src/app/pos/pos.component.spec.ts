@@ -238,10 +238,57 @@ describe('PosComponent checkout (cashier)', () => {
     await t.settle();
     await payAndFinish(t);
     const payload = fiscal.sale.mock.calls[0][0];
-    expect(payload.positions[0]).toMatchObject({ icps: '00401001001000000', package_code: '1500001', quantity: 1000, label: '0104780069000130215AbCdEfGh1' });
-    expect(payload.payments).toEqual([{ type: 1, value: 500000 }]);
+    expect(payload.lines[0]).toMatchObject({ mxikCode: '00401001001000000', packageCode: '1500001', quantity: 1, paidTiyin: 500000, markingCodes: ['0104780069000130215AbCdEfGh1\u001d93abcd'] });
+    expect(payload.payment).toEqual({ cardTiyin: 0 });
     expect(createSale.mock.calls[0][0].fiscal).toEqual(receipt);
     fiscal.enabled.set(false);
+  });
+
+  describe('retrying a fiscal sale', () => {
+    const receipt = { id: 'f1', amount: 500000, qrCodeUrl: '', terminalId: 'VG1', receiptNo: '', fiscalSign: '', dateTime: '' };
+
+    async function cartWithMarkedWater() {
+      fiscal.enabled.set(true);
+      fiscal.sale.mockReset();
+      const t = await setup();
+      (t.fixture.componentInstance as unknown as { addProductByBarcode(c: string): void }).addProductByBarcode('0104780069000130215AbCdEfGh1\u001d93abcd');
+      await t.settle();
+      return t;
+    }
+
+    async function payButFail(t: Awaited<ReturnType<typeof setup>>) {
+      t.payButton().click();
+      await t.settle();
+      t.overlayButtons().filter((b) => b.classList.contains('mat-mdc-unelevated-button')).at(-1)!.click();
+      await t.settle();
+    }
+
+    it('keeps the receipt code, so a receipt whose answer was lost is not issued twice', async () => {
+      const t = await cartWithMarkedWater();
+      fiscal.sale.mockRejectedValueOnce(new Error('no answer')).mockResolvedValueOnce(receipt);
+      await payButFail(t);
+      expect(createSale).not.toHaveBeenCalled();
+
+      await payAndFinish(t);
+      const [first, second] = fiscal.sale.mock.calls.map((c) => c[0].code);
+      expect(second).toBe(first);
+      expect(createSale.mock.calls[0][0].receiptNo).toBe(first);
+      fiscal.enabled.set(false);
+    });
+
+    it('reuses the issued receipt when only saving the sale failed', async () => {
+      const t = await cartWithMarkedWater();
+      fiscal.sale.mockResolvedValueOnce(receipt);
+      createSale.mockReturnValueOnce(throwError(() => new Error('offline')));
+      await payButFail(t);
+      expect(createSale).toHaveBeenCalledTimes(1);
+
+      await payAndFinish(t);
+      expect(fiscal.sale).toHaveBeenCalledTimes(1);
+      expect(createSale.mock.calls[1][0].fiscal).toEqual(receipt);
+      expect(createSale.mock.calls[1][0].receiptNo).toBe(fiscal.sale.mock.calls[0][0].code);
+      fiscal.enabled.set(false);
+    });
   });
 
   it('sets quantity and discount of the selected line from the on-screen keypad', async () => {

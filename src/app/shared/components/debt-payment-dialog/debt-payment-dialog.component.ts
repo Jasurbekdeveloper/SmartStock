@@ -9,7 +9,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { CollectPaymentResult, Debt, DebtPaymentMethod, DebtService } from '../../../core/services/debt.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { FiscalError } from '../../../core/services/fiscal.service';
+import { FiscalError, fiscalErrorText } from '../../../core/services/fiscal.service';
 import { ShiftService } from '../../../core/services/shift.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TranslationService } from '../../../core/services/translation.service';
@@ -249,8 +249,7 @@ export class DebtPaymentDialogComponent {
           console.error('Debt payment error:', err);
           this.saving.set(false);
           if (err instanceof FiscalError) {
-            const msg = err.message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : err.message;
-            this.toast.error(`${this.translation.translate('fiscal.creditFailed')}: ${msg}`);
+            this.toast.error(`${this.translation.translate('fiscal.creditFailed')}: ${fiscalErrorText(err, (k) => this.translation.translate(k))}`);
           } else {
             this.toast.error(this.translation.translate('messages.error'));
           }

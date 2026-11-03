@@ -15,6 +15,7 @@ import {
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
+import { isFiscalQrUrl } from '../../../core/utils/fiscal-receipt';
 
 /**
  * Dedicated, isolated print target for one sale — kept as its own route
@@ -94,7 +95,7 @@ export class ReceiptComponent implements OnInit {
     if (id) {
       this.salesService.getSaleById(id).subscribe(sale => {
         this.sale.set(sale ?? null);
-        if (sale?.fiscal?.qrCodeUrl) void this.renderFiscalQr(sale.fiscal.qrCodeUrl);
+        if (sale?.fiscal && isFiscalQrUrl(sale.fiscal.qrCodeUrl)) void this.renderFiscalQr(sale.fiscal.qrCodeUrl);
       });
     }
   }

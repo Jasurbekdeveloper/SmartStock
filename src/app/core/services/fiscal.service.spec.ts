@@ -1,10 +1,25 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FiscalService, blockedAsMixedContent, vcrAuth, vcrError } from './fiscal.service';
+import { FiscalError, FiscalService, fiscalErrorText } from './fiscal.service';
+import { FiscalLine } from '../utils/fiscal-receipt';
 
-describe('FiscalService (REGOS: VCR JSON-RPC)', () => {
+const line: FiscalLine = {
+  productId: 'p1',
+  name: 'Sut',
+  quantity: 1,
+  paidTiyin: 900000,
+  discountTiyin: 0,
+  vatRate: 0.12,
+  barcode: null,
+  mxikCode: '00401001001000000',
+  packageCode: '1500001',
+  unit: 'dona'
+};
+
+describe('FiscalService (fiscal agent)', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
-  const reply = (body: unknown) => Promise.resolve({ status: 200, json: () => Promise.resolve(body) } as Response);
+  const reply = (body: unknown, status = 200) =>
+    Promise.resolve({ status, ok: status < 400, text: () => Promise.resolve(body === undefined ? '' : JSON.stringify(body)) } as Response);
 
   beforeEach(() => {
     localStorage.clear();
@@ -15,77 +30,66 @@ describe('FiscalService (REGOS: VCR JSON-RPC)', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  function service() {
-    const s = TestBed.inject(FiscalService);
-    s.saveConfig({ enabled: true, url: 'http://127.0.0.1:18347/', login: 'kassa', password: 'kas123456' });
-    return s;
-  }
-
-  it('sends a JSON-RPC sale with Base64 login:password and reads the fiscal data', async () => {
+  it('sends a sale to the agent in its own format and reads the fiscal data', async () => {
     fetchMock.mockReturnValueOnce(
-      reply({ id: 1, ok: true, result: { Id: 'r1', Amount: 900000, QRCodeURL: 'https://ofd.soliq.uz/check?t=VG1', TerminalID: 'VG1', ReceiptNo: '759', DateTime: '2026-11-01 10:00:00', FiscalSign: '848035748636' } })
+      reply({ provider: 'regos', id: 'r1', amountTiyin: 900000, qrCodeUrl: 'https://ofd.soliq.uz/check?t=VG1', terminalId: 'VG1', receiptNo: '759', dateTime: '2026-11-01 10:00:00', fiscalSign: '848035748636' })
     );
-    const s = service();
-    expect(s.enabled()).toBe(true);
-    const receipt = await s.sale({ code: 'R-1', positions: [], payments: [{ type: 1, value: 900000 }] });
+    const receipt = await TestBed.inject(FiscalService).sale({ code: 'R-1', lines: [line], payment: { cardTiyin: 0 } });
     const [url, init] = fetchMock.mock.calls[0];
-    const body = JSON.parse(init.body);
-    expect(url).toBe('http://127.0.0.1:18347');
-    expect(body).toMatchObject({ jsonrpc: '2.0', method: 'Receipt.Sale', auth: btoa('kassa:kas123456') });
-    expect(body.params.code).toBe('R-1');
-    expect(receipt).toMatchObject({ qrCodeUrl: 'https://ofd.soliq.uz/check?t=VG1', fiscalSign: '848035748636', receiptNo: '759' });
+    expect(url).toBe('http://127.0.0.1:18348/v1/receipts/sale');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual({ code: 'R-1', lines: [line], payment: { cardTiyin: 0 } });
+    expect(init.body).not.toMatch(/auth|password|login/i);
+    expect(receipt).toEqual({ provider: 'regos', id: 'r1', amount: 900000, qrCodeUrl: 'https://ofd.soliq.uz/check?t=VG1', terminalId: 'VG1', receiptNo: '759', dateTime: '2026-11-01 10:00:00', fiscalSign: '848035748636' });
   });
 
-  it('retries while VCR is busy and reports other errors', async () => {
-    vi.useFakeTimers();
-    fetchMock
-      .mockReturnValueOnce(reply({ ok: false, result: { code: 704042, message: 'busy' } }))
-      .mockReturnValueOnce(reply({ ok: true, result: { TerminalID: 'VG1' } }))
-      .mockReturnValueOnce(reply({ ok: false, result: { code: 705511, message: 'IKPU xatosi' } }));
-    const s = service();
-    const init = s.initialize();
-    await vi.advanceTimersByTimeAsync(1100);
-    await expect(init).resolves.toMatchObject({ TerminalID: 'VG1' });
-    await expect(s.zReportInfo()).rejects.toThrow('705511: IKPU xatosi');
-    vi.useRealTimers();
+  it('names the original receipt on a refund', async () => {
+    fetchMock.mockReturnValueOnce(reply({ provider: 'regos', id: 'r2', amountTiyin: 100, qrCodeUrl: '', terminalId: '', receiptNo: '', dateTime: '', fiscalSign: '' }));
+    const refund = { code: 'R-1-R1', lines: [line], method: 'card' as const, amountTiyin: 100, originalQrCodeUrl: 'https://ofd/x', originalReceiptId: 'r1' };
+    await TestBed.inject(FiscalService).refund(refund);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(refund);
   });
 
-  it('says when VCR cannot be reached', async () => {
+  it('accepts the empty answer of a shift operation', async () => {
+    fetchMock.mockReturnValueOnce(reply(undefined));
+    await expect(TestBed.inject(FiscalService).openShift()).resolves.toBeUndefined();
+    expect(fetchMock.mock.calls[0][0]).toBe('http://127.0.0.1:18348/v1/shift/open');
+  });
+
+  it('reports what the agent refused, with its code', async () => {
+    fetchMock.mockReturnValueOnce(reply({ code: '705511', message: '705511: IKPU xatosi' }, 502));
+    const err = await TestBed.inject(FiscalService).initialize().catch((e) => e);
+    expect(err).toBeInstanceOf(FiscalError);
+    expect(err.code).toBe('705511');
+    expect(err.message).toBe('705511: IKPU xatosi');
+  });
+
+  it('tells apart a missing agent, a stopped register and a refusal', async () => {
+    const t = (k: string) => `[${k}]`;
     fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    await expect(service().initialize()).rejects.toThrow('VCR_UNREACHABLE');
+    const missing = await TestBed.inject(FiscalService).initialize().catch((e) => e);
+    expect(fiscalErrorText(missing, t)).toBe('[fiscal.agentUnreachable]');
+    expect(fiscalErrorText(new FiscalError('x', 'PROVIDER_UNREACHABLE'), t)).toBe('[fiscal.unreachable]');
+    expect(fiscalErrorText(new FiscalError('x', 'NOT_CONFIGURED'), t)).toBe('[fiscal.notConfigured]');
+    expect(fiscalErrorText(new FiscalError('x', 'RECEIPT_UNCONFIRMED'), t)).toBe('[fiscal.unconfirmed]');
+    expect(fiscalErrorText(new FiscalError('x', 'WRONG_RECEIPT'), t)).toBe('[fiscal.wrongReceipt]');
+    expect(fiscalErrorText(new FiscalError('705511: IKPU xatosi', '705511'), t)).toBe('705511: IKPU xatosi');
   });
 
-  it('lists only the payment systems that are available and support Payment.Start', async () => {
-    fetchMock.mockReturnValueOnce(
-      reply({
-        ok: true,
-        result: {
-          systems: [
-            { payment_system_id: 1, code: 'clickpass', name: 'Click Pass', available: true, sort_order: 2,
-              operations: [{ method: 'Payment.Start', required_fields: ['amount', 'external_id', 'token'], polling: { success_statuses: [3], failure_statuses: [7] } }] },
-            { payment_system_id: 2, code: 'paymego', name: 'Payme Go', available: false, operations: [{ method: 'Payment.Start' }] },
-            { payment_system_id: -1, code: 'pax', name: 'Terminal', available: true, sort_order: 1, operations: [{ method: 'Payment.Create' }] }
-          ]
-        }
-      })
-    );
-    const systems = await service().paymentSystems();
-    expect(systems).toEqual([{ id: 1, code: 'clickpass', name: 'Click Pass', success: [3], failure: [7], needsToken: true }]);
+  it('removes the old VCR password from the browser and keeps the on/off choice', () => {
+    localStorage.setItem('markethisob_fiscal_vcr', JSON.stringify({ enabled: true, url: 'http://127.0.0.1:18347', login: 'kassa', password: 'kas123456' }));
+    const s = TestBed.inject(FiscalService);
+    expect(s.enabled()).toBe(true);
+    expect(s.config()).toEqual({ enabled: true });
+    expect(localStorage.getItem('markethisob_fiscal_vcr')).toBeNull();
+    expect(JSON.stringify({ ...localStorage })).not.toContain('kas123456');
   });
 
-  it('encodes the login UTF-8 safely and spots addresses an https page cannot call', () => {
-    expect(vcrAuth('kassa', 'kas123456')).toBe(btoa('kassa:kas123456'));
-    expect(atob(vcrAuth('kassa', 'пароль'))).toBe(String.fromCharCode(...new TextEncoder().encode('kassa:пароль')));
-    expect(blockedAsMixedContent('http://vcr-test.regos.uz', 'https:')).toBe(true);
-    expect(blockedAsMixedContent('http://127.0.0.1:18347', 'https:')).toBe(false);
-    expect(blockedAsMixedContent('https://vcr.example.uz', 'https:')).toBe(false);
-    expect(blockedAsMixedContent('http://vcr-test.regos.uz', 'http:')).toBe(false);
-  });
-
-  it('reads VCR errors in the { error, description } shape', () => {
-    const err = vcrError({ error: 704016, description: 'Принтер не обнаружен.' });
-    expect(err.code).toBe(704016);
-    expect(err.message).toBe('704016: Принтер не обнаружен.');
-    expect(vcrError({ error: 'bad' }).message).toBe('bad');
+  it('remembers the on/off choice on this device', () => {
+    const s = TestBed.inject(FiscalService);
+    expect(s.enabled()).toBe(false);
+    s.saveConfig({ enabled: true });
+    expect(s.enabled()).toBe(true);
+    expect(JSON.parse(localStorage.getItem('markethisob_fiscal')!)).toEqual({ enabled: true });
   });
 });

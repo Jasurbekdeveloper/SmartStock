@@ -11,11 +11,14 @@ import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { roundMoney } from '../../../core/utils/pos-math';
 import { BatchAllocation, restoreAllocation, subtractAllocations } from '../../../core/utils/batches';
+import { isFiscalQrUrl } from '../../../core/utils/fiscal-receipt';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
 export interface ReturnDialogData {
   sale: Sale;
   previousReturns: SaleReturn[];
+  /** The refund goes on a fiscal receipt, which needs the QR code of the paper sale receipt. */
+  needsFiscalQr?: boolean;
 }
 
 export interface ReturnDialogResult {
@@ -23,6 +26,7 @@ export interface ReturnDialogResult {
   refundAmount: number;
   refundMethod: 'cash' | 'card';
   reason?: string;
+  originalQrCodeUrl?: string;
 }
 
 interface ReturnRow {
@@ -85,6 +89,17 @@ interface ReturnRow {
         </mat-button-toggle-group>
       </div>
 
+      @if (data.needsFiscalQr) {
+        <mat-form-field appearance="outline" class="w-full mt-4" subscriptSizing="dynamic">
+          <mat-label>{{ 'fiscal.originalQr' | translate }}</mat-label>
+          <input matInput autocomplete="off" [ngModel]="fiscalQr()" (ngModelChange)="fiscalQr.set($event)" />
+          <mat-hint>{{ 'fiscal.originalQrHint' | translate }}</mat-hint>
+        </mat-form-field>
+        @if (fiscalQr().trim() && !fiscalQrValid()) {
+          <p class="mt-1 text-xs text-red-700 dark:text-red-300">{{ 'fiscal.originalQrInvalid' | translate }}</p>
+        }
+      }
+
       <mat-form-field appearance="outline" class="w-full mt-4" subscriptSizing="dynamic">
         <mat-label>{{ 'returns.reason' | translate }}</mat-label>
         <input matInput [ngModel]="reason()" (ngModelChange)="reason.set($event)" />
@@ -100,7 +115,7 @@ interface ReturnRow {
     }
     <mat-dialog-actions align="end">
       <button mat-button (click)="dialogRef.close()">{{ 'common.cancel' | translate }}</button>
-      <button mat-flat-button color="warn" [disabled]="refundAmount() <= 0" (click)="submit()">
+      <button mat-flat-button color="warn" [disabled]="!canSubmit()" (click)="submit()">
         {{ 'returns.confirm' | translate }}
       </button>
     </mat-dialog-actions>
@@ -114,6 +129,9 @@ export class ReturnDialogComponent {
   qty = signal<number[]>(this.rows.map(() => 0));
   refundMethod = signal<'cash' | 'card'>(this.data.sale.paymentMethod === 'card' ? 'card' : 'cash');
   reason = signal('');
+  fiscalQr = signal('');
+  fiscalQrValid = computed(() => isFiscalQrUrl(this.fiscalQr()));
+  canSubmit = computed(() => this.refundAmount() > 0 && (!this.data.needsFiscalQr || this.fiscalQrValid()));
 
   /** Money can only go back up to what was actually paid — the unpaid (debt) part of
    *  a sale and anything already refunded are excluded. */
@@ -175,13 +193,14 @@ export class ReturnDialogComponent {
       }))
       .map((item) => (item.batches.length ? item : { ...item, batches: undefined }))
       .filter((item) => item.quantity > 0);
-    if (items.length === 0) return;
+    if (items.length === 0 || !this.canSubmit()) return;
 
     this.dialogRef.close({
       items,
       refundAmount: this.refundAmount(),
       refundMethod: this.refundMethod(),
-      reason: this.reason().trim() || undefined
+      reason: this.reason().trim() || undefined,
+      ...(this.data.needsFiscalQr ? { originalQrCodeUrl: this.fiscalQr().trim() } : {})
     });
   }
 }

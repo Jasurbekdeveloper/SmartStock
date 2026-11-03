@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FiscalAgent.Core/FiscalAgent.Core.csproj" />
+    <Project Path="src/FiscalAgent.Host/FiscalAgent.Host.csproj" />
+    <Project Path="src/FiscalAgent.Providers.Regos/FiscalAgent.Providers.Regos.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FiscalAgent.Tests/FiscalAgent.Tests.csproj" />
+  </Folder>
+</Solution>

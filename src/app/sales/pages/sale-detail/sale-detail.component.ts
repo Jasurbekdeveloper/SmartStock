@@ -16,9 +16,9 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { firstValueFrom, take } from 'rxjs';
-import { FiscalReceipt, FiscalService } from '../../../core/services/fiscal.service';
+import { FiscalReceipt, FiscalService, fiscalErrorText } from '../../../core/services/fiscal.service';
 import { ProductService } from '../../../core/services/product.service';
-import { FiscalLineInput, buildVcrPositions, fiscalProblems, toTiyin } from '../../../core/utils/vcr-receipt';
+import { FiscalLineInput, fiscalProblems, isFiscalQrUrl, toFiscalLines, toTiyin } from '../../../core/utils/fiscal-receipt';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ReturnDialogComponent, ReturnDialogData, ReturnDialogResult } from '../../components/return-dialog/return-dialog.component';
 
@@ -86,7 +86,11 @@ export class SaleDetailComponent {
     const sale = this.sale();
     if (!sale) return;
 
-    const data: ReturnDialogData = { sale, previousReturns: this.returns() };
+    const data: ReturnDialogData = {
+      sale,
+      previousReturns: this.returns(),
+      needsFiscalQr: this.fiscal.enabled() && !!sale.fiscal && !isFiscalQrUrl(sale.fiscal.qrCodeUrl)
+    };
     this.dialog
       .open(ReturnDialogComponent, { width: '560px', maxWidth: '96vw', data })
       .afterClosed()
@@ -98,10 +102,11 @@ export class SaleDetailComponent {
   /**
    * Fiscal refund receipt for a sale that had a fiscal receipt: same MXIK / package as
    * the sale, the returned units' marking codes, and the money going back the way it is
-   * actually paid out (cash or card).
+   * actually paid out (cash or card). The original is named by the QR code scanned from
+   * its paper receipt, unless the provider gave us the link at the time of sale.
    */
   private async fiscalRefund(sale: Sale, result: ReturnDialogResult): Promise<FiscalReceipt | undefined> {
-    if (!this.fiscal.enabled() || !sale.fiscal?.qrCodeUrl) return undefined;
+    if (!this.fiscal.enabled() || !sale.fiscal) return undefined;
     const products = new Map((await firstValueFrom(this.productService.getProducts())).map((p) => [p.id, p]));
     const usedCodes = new Set(this.returns().flatMap((r) => r.items.flatMap((i) => i.markingCodes ?? [])));
     const lines: FiscalLineInput[] = result.items.map((item) => {
@@ -124,14 +129,13 @@ export class SaleDetailComponent {
     });
     const problems = fiscalProblems(lines);
     if (problems.length) throw new Error(`${problems[0].name}: ${this.translation.translate(problems[0].key)}`);
-    const vatRate = this.settingsService.vatRate();
-    const positions = buildVcrPositions(lines, vatRate);
-    const total = positions.reduce((s, p) => s + p.amount - p.discount, 0);
     return this.fiscal.refund({
       code: `${sale.receiptNo ?? sale.id}-R${this.returns().length + 1}`,
-      positions,
-      payments: [{ type: result.refundMethod === 'card' ? 2 : 1, value: Math.min(total, toTiyin(result.refundAmount)) }],
-      original: sale.fiscal,
+      lines: toFiscalLines(lines, this.settingsService.vatRate()),
+      method: result.refundMethod === 'card' ? 'card' : 'cash',
+      amountTiyin: toTiyin(result.refundAmount),
+      originalQrCodeUrl: result.originalQrCodeUrl ?? sale.fiscal.qrCodeUrl,
+      originalReceiptId: sale.fiscal.id,
       cashierName: this.currentUser()?.displayName
     });
   }
@@ -157,8 +161,7 @@ export class SaleDetailComponent {
     try {
       fiscal = await this.fiscalRefund(sale, result);
     } catch (err) {
-      const msg = (err as Error).message === 'VCR_UNREACHABLE' ? this.translation.translate('fiscal.unreachable') : (err as Error).message;
-      this.toast.error(`${this.translation.translate('fiscal.refundFailed')}: ${msg}`);
+      this.toast.error(`${this.translation.translate('fiscal.refundFailed')}: ${fiscalErrorText(err as Error, (k) => this.translation.translate(k))}`);
       return;
     }
 

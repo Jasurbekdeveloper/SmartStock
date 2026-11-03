@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "fake": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "FiscalAgent__Provider": "fake"
+      }
+    }
+  }
+}

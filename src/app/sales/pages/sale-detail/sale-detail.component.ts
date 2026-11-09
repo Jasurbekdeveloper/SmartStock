@@ -75,6 +75,11 @@ export class SaleDetailComponent {
     return this.customers().find((c) => c.id === customerId)?.name ?? customerId;
   }
 
+  /** The register's own clock time as it sent it; its "Z" isn't UTC, so no time zone shift. */
+  fiscalTime(dateTime: string): string {
+    return dateTime.replace('T', ' ').replace(/(\.\d+)?Z$/, '');
+  }
+
   printReceipt() {
     const sale = this.sale();
     if (!sale) return;

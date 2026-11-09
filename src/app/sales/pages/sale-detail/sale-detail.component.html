@@ -87,6 +87,32 @@
         <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'debts.customer' | translate }}</span><a class="font-semibold text-brand-600 dark:text-brand-400" [routerLink]="['/customers', sale.customerId]">{{ customerName(sale.customerId) }}</a></div>
         }
         }
+
+        <!-- Tax receipt: REGOS keeps the QR, number and sign to the paper receipt -->
+        <div class="pt-3 mt-1.5 space-y-1.5 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex justify-between items-center gap-2">
+            <span class="text-gray-500 dark:text-gray-400">{{ 'fiscal.saleReceipt' | translate }}</span>
+            @if (sale.fiscal) {
+            <span class="badge badge--green">{{ 'fiscal.saleSent' | translate }}</span>
+            } @else {
+            <span class="badge badge--gray">{{ 'fiscal.saleNotSent' | translate }}</span>
+            }
+          </div>
+          @if (sale.fiscal; as f) {
+          <div class="flex justify-between gap-2"><span class="text-gray-500 dark:text-gray-400">{{ 'fiscal.register' | translate }}</span><span class="tabular-nums">{{ (f.provider || 'regos') | uppercase }} · {{ f.terminalId }}</span></div>
+          <div class="flex justify-between gap-2"><span class="shrink-0 text-gray-500 dark:text-gray-400">{{ 'fiscal.receiptId' | translate }}</span><span class="min-w-0 tabular-nums truncate" [title]="f.id">{{ f.id }}</span></div>
+          @if (f.dateTime) {
+          <div class="flex justify-between gap-2"><span class="text-gray-500 dark:text-gray-400">{{ 'table.date' | translate }}</span><span class="tabular-nums">{{ fiscalTime(f.dateTime) }}</span></div>
+          }
+          @if (f.receiptNo) {
+          <div class="flex justify-between gap-2"><span class="text-gray-500 dark:text-gray-400">{{ 'fiscal.receiptNo' | translate }}</span><span class="tabular-nums">{{ f.receiptNo }}</span></div>
+          } @else {
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'fiscal.detailsOnPaper' | translate }}</p>
+          }
+          } @else if (sale.fiscalSkipped === 'debt') {
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'fiscal.skippedDebt' | translate }}</p>
+          }
+        </div>
       </div>
     </div>
   </mat-card>

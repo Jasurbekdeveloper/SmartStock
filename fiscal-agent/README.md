@@ -64,3 +64,8 @@ MarketHisob kodi o'zgarmaydi.
 - **`704044`:** oldingi operatsiya natijasi noma'lum. Kod va chek tarkibini o'zgartirmay qayta yuborish kerak, agent buni `RECEIPT_UNCONFIRMED` deb qaytaradi.
 
 Bu xatti-harakatlar REGOS hujjatiga asoslangan, test akkauntida hali sinalmagan.
+
+## REGOS test muhiti
+
+- **API:** `http://vcr-test.regos.uz`. Test foydalanuvchisini REGOS so'rov bo'yicha beradi.
+- **Onlayn veb-kamera:** https://vcr-camera.regos.uz test printeridagi bosma natijani ko'rsatadi. Qaytarishni sinash uchun QR kodni shu yerdagi chekdan oling.

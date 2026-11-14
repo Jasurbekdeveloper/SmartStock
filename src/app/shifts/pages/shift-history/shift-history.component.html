@@ -21,8 +21,8 @@
         @for (shift of pagination.paged(); track shift.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ shift.cashierName }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.openedAt | date: 'short' }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.closedAt ? (shift.closedAt | date: 'short') : '—' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.openedAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.closedAt ? (shift.closedAt | date: 'dd.MM.yyyy HH:mm') : '—' }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.startingCash | currencyDisplay }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.expectedCash !== undefined ? (shift.expectedCash | currencyDisplay) : '—' }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.countedCash !== undefined ? (shift.countedCash | currencyDisplay) : '—' }}</td>

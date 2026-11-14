@@ -8,6 +8,8 @@ export interface ConfirmDialogData {
   messageKey: string;
   /** Optional plain-text line under the message (e.g. what exactly is affected). */
   detail?: string;
+  /** Label of the confirm button (default "Tasdiqlash"), e.g. "Tozalash". */
+  confirmKey?: string;
 }
 
 @Component({
@@ -24,7 +26,7 @@ export interface ConfirmDialogData {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button (click)="dialogRef.close(false)">{{ 'common.cancel' | translate }}</button>
-      <button mat-flat-button color="warn" (click)="dialogRef.close(true)">{{ 'common.submit' | translate }}</button>
+      <button mat-flat-button color="warn" (click)="dialogRef.close(true)">{{ (data.confirmKey || 'common.confirmAction') | translate }}</button>
     </mat-dialog-actions>
   `
 })

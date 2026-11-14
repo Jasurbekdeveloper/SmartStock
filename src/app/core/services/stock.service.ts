@@ -46,6 +46,9 @@ export interface StockEntry {
   supplierId?: string;
   costPrice?: number;
   totalCost?: number;
+  /** Cost of goods lost by this movement (write-off, inventory shortage; negative for a
+   *  surplus) — counted in profit & loss. Absent on movements that are no loss. */
+  lossValue?: number;
   /** Supplier's invoice (nakladnoy) number of a delivery. */
   invoiceNo?: string;
   notes?: string;
@@ -101,13 +104,20 @@ export interface StockOutInput {
   currentQuantity: number;
   reason: string;
   notes?: string;
+  /** Product cost per unit — what the store loses on a write-off. */
+  unitCost?: number;
 }
+
+/** Stock-out reasons that are not a loss: the goods (or their money) come back. */
+export const NON_LOSS_OUT_REASONS: readonly string[] = ['returned', 'supplierReturn'];
 
 export interface StockAdjustmentInput {
   productId: string;
   countedQuantity: number;
   currentQuantity: number;
   notes?: string;
+  /** Product cost per unit, to value a shortage (or surplus) in profit & loss. */
+  unitCost?: number;
   /**
    * 'count' (default): an inventory count — the shelf holds exactly `countedQuantity`.
    * 'delta': a correction of what the form showed (`currentQuantity` → `countedQuantity`),
@@ -129,6 +139,15 @@ export class StockService {
 
   getStockEntries(): Observable<StockEntry[]> {
     const entriesQuery = tenantQuery(this.firestore, 'stockEntries', requireTenantId(this.authService), orderBy('createdAt', 'desc'));
+    return fromCollectionQuery<StockEntry>(entriesQuery);
+  }
+
+  /** Movements in a period (profit & loss: write-offs and inventory shortages). */
+  getStockEntriesInRange(fromDate: Date, toDate: Date): Observable<StockEntry[]> {
+    const entriesQuery = tenantQuery(
+      this.firestore, 'stockEntries', requireTenantId(this.authService),
+      where('createdAt', '>=', fromDate), where('createdAt', '<=', toDate), orderBy('createdAt', 'desc')
+    );
     return fromCollectionQuery<StockEntry>(entriesQuery);
   }
 
@@ -196,6 +215,7 @@ export class StockService {
 
   stockOut(input: StockOutInput): Observable<void> {
     const newQuantity = input.currentQuantity - input.quantity;
+    const isLoss = !NON_LOSS_OUT_REASONS.includes(input.reason) && (input.unitCost ?? 0) > 0;
     return this.recordMovement({
       productId: input.productId,
       type: 'out',
@@ -203,7 +223,9 @@ export class StockService {
       previousQuantity: input.currentQuantity,
       newQuantity,
       reason: input.reason,
-      notes: input.notes
+      notes: input.notes,
+      ...(input.unitCost ? { costPrice: input.unitCost } : {}),
+      ...(isLoss ? { lossValue: roundMoney(input.quantity * input.unitCost!) } : {})
     });
   }
 
@@ -238,7 +260,9 @@ export class StockService {
           quantity: input.countedQuantity,
           previousQuantity: input.currentQuantity,
           newQuantity: input.countedQuantity,
-          notes: input.notes
+          notes: input.notes,
+          // Shortage found by the count is a loss; a surplus gives some of it back.
+          ...(input.unitCost && delta !== 0 ? { costPrice: input.unitCost, lossValue: roundMoney(-delta * input.unitCost) } : {})
         },
         input.mode === 'delta' ? { quantity: increment(delta) } : undefined,
         (wb) => {

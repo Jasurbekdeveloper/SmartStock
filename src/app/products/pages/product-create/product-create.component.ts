@@ -315,6 +315,8 @@ export class ProductCreateComponent implements OnDestroy {
         if (!sel) return;
         this.mxikCode = sel.mxikCode;
         this.mxikMeta = { mxikName: sel.mxikName, packageCode: sel.packageCode, packageName: sel.packageName };
+        // Plain fields set after a dialog: zoneless Angular has to be told to redraw.
+        this.cdr.markForCheck();
       });
   }
   readonly mxikInvalid = (code: string) => !!code.trim() && !isValidMxikCode(code);
@@ -392,11 +394,23 @@ export class ProductCreateComponent implements OnDestroy {
   }
 
   /** `again`: stay on the form, cleared, for the next product ("Saqlab, yana qo'shish"). */
+  /** SKU is not something a shop owner should have to invent: an empty one becomes the
+   *  barcode, else a code from the name; an empty variant SKU gets the base SKU + number. */
+  private fillMissingSkus(): void {
+    if (!this.product.sku?.trim()) {
+      this.product.sku = this.product.barcode?.trim() || variantSkuSuffix([this.product.name]).slice(0, 16);
+    }
+    this.variants.forEach((v, i) => {
+      if (!v.sku?.trim()) v.sku = v.barcode?.trim() || `${(this.product.sku ?? "").trim()}-${i + 2}`;
+    });
+  }
+
   createProduct(again = false): void {
     void this.createProductAsync(again);
   }
 
   private async createProductAsync(again: boolean): Promise<void> {
+    this.fillMissingSkus();
     if (!this.fields.check()) {
       this.errorKey.set('products.fixHighlighted');
       return;

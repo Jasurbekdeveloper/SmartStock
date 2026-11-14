@@ -154,6 +154,41 @@ export function pnlByDay(sales: Sale[], expenses: ExpenseLike[], from: Date, to:
   }));
 }
 
+export interface StockLossEntry {
+  productId: string;
+  type: 'in' | 'out' | 'adjustment';
+  quantity: number;
+  previousQuantity: number;
+  newQuantity: number;
+  reason?: string;
+  totalCost?: number;
+  lossValue?: number;
+  createdAt?: Date;
+}
+
+const LOSS_OUT_REASONS = ['damaged', 'lost', 'expired', 'other'];
+
+/**
+ * Goods written off or missing at a count, as "writeOff" expenses for profit & loss.
+ * A movement with its own `lossValue` counts as recorded. Older movements are valued
+ * at the product's current cost. Batch write-offs (they carry `totalCost`) already
+ * booked their own expense, so they are skipped.
+ */
+export function stockLossExpenses(entries: StockLossEntry[], costOf: (productId: string) => number): ExpenseLike[] {
+  const out: ExpenseLike[] = [];
+  for (const e of entries) {
+    let amount: number;
+    if (typeof e.lossValue === 'number') amount = e.lossValue;
+    else if (e.totalCost !== undefined) continue;
+    else if (e.type === 'out' && LOSS_OUT_REASONS.includes(e.reason ?? '')) amount = e.quantity * (costOf(e.productId) || 0);
+    else if (e.type === 'adjustment') amount = (e.previousQuantity - e.newQuantity) * (costOf(e.productId) || 0);
+    else continue;
+    amount = roundMoney(amount);
+    if (amount !== 0) out.push({ amount, category: 'writeOff', date: e.createdAt ? new Date(e.createdAt) : new Date() });
+  }
+  return out;
+}
+
 /** Relative change for "vs previous period" badges; null when there is no base. */
 export function percentChange(current: number, previous: number): number | null {
   if (!previous) return null;

@@ -138,7 +138,8 @@ export class DashboardComponent implements OnInit {
     }
     const max = Math.max(1, ...days.map((d) => d.value));
     return days.map((d, i) => ({
-      label: d.date.toLocaleDateString(undefined, { weekday: 'short' }),
+      // Numeric day: browser weekday names came out in English.
+      label: `${String(d.date.getDate()).padStart(2, '0')}.${String(d.date.getMonth() + 1).padStart(2, '0')}`,
       value: d.value,
       pct: Math.max(2, (d.value / max) * 100),
       isToday: i === days.length - 1

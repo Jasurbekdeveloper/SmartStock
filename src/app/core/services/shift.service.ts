@@ -112,16 +112,21 @@ export class ShiftService {
   private authService = inject(AuthService);
   private cashMovements = inject(CashMovementService);
 
-  /** Opens a new shift for the given cashier, starting with the cash float they counted into the drawer. */
+  /** Opens a new shift for the given cashier, starting with the cash float they counted
+   *  into the drawer. A cashier has one open shift at a time: with one still open this
+   *  fails with SHIFT_ALREADY_OPEN (close it first). */
   openShift(cashierId: string, cashierName: string, startingCash: number): Observable<string> {
     return from(
-      addDoc(collection(this.firestore, 'shifts'), withTenant({
-        cashierId,
-        cashierName,
-        startingCash,
-        status: 'open',
-        openedAt: serverTimestamp()
-      }, requireTenantId(this.authService)))
+      firstValueFrom(this.getOpenShiftsForUser(cashierId)).then((open) => {
+        if (open.length > 0) throw new Error('SHIFT_ALREADY_OPEN');
+        return addDoc(collection(this.firestore, 'shifts'), withTenant({
+          cashierId,
+          cashierName,
+          startingCash,
+          status: 'open',
+          openedAt: serverTimestamp()
+        }, requireTenantId(this.authService)));
+      })
     ).pipe(map((ref) => ref.id));
   }
 
@@ -132,7 +137,7 @@ export class ShiftService {
    * to get `expectedCash`, then records the cashier's physical count and the variance
    * between the two (positive = surplus, negative = shortage).
    */
-  closeShift(shiftId: string, countedCash: number): Observable<void> {
+  closeShift(shiftId: string, countedCash: number, notes?: string): Observable<void> {
     return forkJoin({
       shiftSnap: from(getDoc(doc(this.firestore, 'shifts', shiftId))),
       sales: this.getShiftSales(shiftId).pipe(take(1)),
@@ -159,22 +164,31 @@ export class ShiftService {
             cardTotal,
             refundTotal,
             cashInTotal: cashIn,
-            cashOutTotal: cashOut
+            cashOutTotal: cashOut,
+            ...(notes?.trim() ? { notes: notes.trim() } : {})
           })
         );
       })
     );
   }
 
-  /** The cashier's currently open shift, if any — drives the POS soft-enforcement banner. */
+  /** The cashier's currently open shift, if any — the newest one when an old shift was
+   *  left open by mistake (the POS then asks to close the stale one). */
   getOpenShiftForUser(uid: string): Observable<Shift | undefined> {
+    return this.getOpenShiftsForUser(uid).pipe(map((shifts) => shifts[0]));
+  }
+
+  /** Every open shift of the cashier, newest first. */
+  getOpenShiftsForUser(uid: string): Observable<Shift[]> {
     const openShiftQuery = query(
       collection(this.firestore, 'shifts'),
       where('tenantId', '==', requireTenantId(this.authService)),
       where('cashierId', '==', uid),
       where('status', '==', 'open')
     );
-    return fromCollectionQuery<Shift>(openShiftQuery).pipe(map((shifts) => shifts[0]));
+    return fromCollectionQuery<Shift>(openShiftQuery).pipe(
+      map((shifts) => shifts.slice().sort((a, b) => (b.openedAt?.getTime?.() ?? Date.now()) - (a.openedAt?.getTime?.() ?? Date.now())))
+    );
   }
 
   getShiftById(id: string): Observable<Shift | undefined> {

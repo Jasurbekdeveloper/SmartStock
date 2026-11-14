@@ -15,7 +15,7 @@
           @for (s of suppliers(); track s.id) {
           <mat-option [value]="s.id">
             {{ s.name }}
-            @if (s.balance) { <span class="text-xs text-loss"> · {{ 'suppliers.owe' | translate }} {{ s.balance | currencyDisplay:0 }}</span> }
+            @if (s.balance) { <span class="text-xs text-debt"> · {{ 'suppliers.owe' | translate }} {{ s.balance | currencyDisplay:0 }}</span> }
           </mat-option>
           }
           <mat-option [value]="manualSupplierOption">{{ 'stock.supplierOther' | translate }}</mat-option>
@@ -33,7 +33,7 @@
       </mat-form-field>
     </div>
     @if (selectedSupplier()?.balance; as bal) {
-    <p class="text-sm -mt-2 mb-1 text-loss">{{ 'suppliers.currentDebt' | translate }}: <b class="money">{{ bal | currencyDisplay:0 }}</b></p>
+    <p class="text-sm -mt-2 mb-1 text-debt">{{ 'suppliers.currentDebt' | translate }}: <b class="money">{{ bal | currencyDisplay:0 }}</b></p>
     }
   </section>
 
@@ -174,7 +174,7 @@
       <div class="flex justify-between"><span class="text-muted">{{ 'stock.lines' | translate }}</span><b>{{ rows().length }}</b></div>
       <div class="flex justify-between items-baseline"><span class="text-muted">{{ 'stock.receiptTotal' | translate }}</span><b class="money text-2xl">{{ total() | currencyDisplay:0 }}</b></div>
       <div class="flex justify-between"><span class="text-muted">{{ 'stock.paidNow' | translate }}</span><b class="money">{{ paidNow() | currencyDisplay:0 }}</b></div>
-      <div class="flex justify-between items-baseline" [class.text-loss]="owed() > 0">
+      <div class="flex justify-between items-baseline" [class.text-debt]="owed() > 0">
         <span>{{ 'stock.toSupplierDebt' | translate }}</span><b class="money text-xl">{{ owed() | currencyDisplay:0 }}</b>
       </div>
       @if (errorKey(); as key) {

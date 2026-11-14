@@ -1,75 +1,70 @@
 <div class="space-y-6">
-  <h1 class="page-title">{{ 'stock.stockHistory' | translate }}</h1>
+  <div>
+    <h1 class="page-title">{{ 'stock.stockHistory' | translate }}</h1>
+    <p class="text-sm text-muted">{{ 'stock.journalHint' | translate }} ({{ days }})</p>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <label class="search-box !min-w-0 flex-1 max-w-md">
+      <mat-icon>search</mat-icon>
+      <input type="search" [value]="query()" (input)="setQuery($any($event.target).value)" [placeholder]="'stock.product' | translate" autocomplete="off" />
+    </label>
+    <mat-button-toggle-group [value]="kind()" (change)="setKind($event.value)">
+      <mat-button-toggle value="all">{{ 'sales.allPaymentMethods' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="in">{{ 'stock.typeIn' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="out">{{ 'stock.typeOut' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="sale">{{ 'stock.typeSale' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="return">{{ 'stock.typeReturn' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="adjustment">{{ 'stock.typeAdjustment' | translate }}</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
-      <thead class="bg-gray-100 dark:bg-gray-700">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.type' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.product' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.change' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.previousNew' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'stock.detail' | translate }}</th>
-          <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'table.date' | translate }}</th>
+          <th>{{ 'stock.type' | translate }}</th>
+          <th>{{ 'stock.product' | translate }}</th>
+          <th class="text-right">{{ 'stock.change' | translate }}</th>
+          <th>{{ 'stock.previousNew' | translate }}</th>
+          <th>{{ 'stock.detail' | translate }}</th>
+          <th class="text-right">{{ 'table.date' | translate }}</th>
         </tr>
       </thead>
       <tbody>
-        @for (entry of pagination.paged(); track entry.id) {
-        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3">
-            <span
-              class="px-2 py-1 text-xs rounded-full"
-              [class.bg-green-100]="entry.type === 'in'"
-              [class.text-green-800]="entry.type === 'in'"
-              [class.dark:bg-green-900]="entry.type === 'in'"
-              [class.dark:text-green-300]="entry.type === 'in'"
-              [class.bg-red-100]="entry.type === 'out'"
-              [class.text-red-800]="entry.type === 'out'"
-              [class.dark:bg-red-900]="entry.type === 'out'"
-              [class.dark:text-red-300]="entry.type === 'out'"
-              [class.bg-brand-100]="entry.type === 'adjustment'"
-              [class.text-brand-800]="entry.type === 'adjustment'"
-              [class.dark:bg-brand-900]="entry.type === 'adjustment'"
-              [class.dark:text-brand-300]="entry.type === 'adjustment'"
-            >
-              {{ typeLabelKey(entry.type) | translate }}
+        @for (row of pagination.paged(); track row.id) {
+        <tr>
+          <td>
+            <span class="badge" [class.badge--green]="row.change > 0" [class.badge--amber]="row.change < 0 && row.kind !== 'sale'" [class.badge--gray]="row.kind === 'sale' || row.change === 0">
+              {{ kindLabelKey(row.kind) | translate }}
             </span>
           </td>
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ productName(entry.productId) }}</td>
-          <td
-            class="px-4 py-3 font-semibold"
-            [class.text-green-600]="quantityChange(entry) > 0"
-            [class.text-red-600]="quantityChange(entry) < 0"
-            [class.dark:text-green-400]="quantityChange(entry) > 0"
-            [class.dark:text-red-400]="quantityChange(entry) < 0"
-          >
-            {{ quantityChange(entry) > 0 ? '+' : '' }}{{ quantityChange(entry) | sum:0 }}
+          <td class="font-medium">{{ productName(row.productId) }}</td>
+          <td class="text-right font-semibold money" [class.text-profit]="row.change > 0" [class.text-loss]="row.change < 0">
+            {{ row.change > 0 ? '+' : '' }}{{ row.change | sum: 3 }}
           </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.previousQuantity | sum:0 }} → {{ entry.newQuantity | sum:0 }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">
-            @if (entry.type === 'in') {
-              {{ entry.supplier }} @if (entry.costPrice) { ({{ entry.costPrice | currencyDisplay }}) }
-            } @else if (reasonLabelKey(entry.reason); as key) {
-              {{ key | translate }}@if (entry.notes) { — {{ entry.notes | translate }} }
-            } @else if (entry.notes) {
-              {{ entry.notes | translate }}
-            }
+          <td class="money text-muted">
+            @if (row.previous !== undefined) { {{ row.previous | sum: 3 }} → {{ row.next | sum: 3 }} } @else { — }
           </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>
+          <td>
+            @if (row.reasonKey) { {{ row.reasonKey | translate }}@if (row.detail) { — } }
+            @if (row.saleId) { <a class="text-[var(--brand)]" [routerLink]="['/sales', row.saleId]">{{ row.detail }}</a> } @else { {{ row.detail }} }
+          </td>
+          <td class="text-right text-muted whitespace-nowrap">{{ row.date | date: 'dd.MM.yyyy HH:mm' }}</td>
         </tr>
         }
       </tbody>
     </table>
     </div>
-    @if (stockEntries().length === 0) {
-      <p class="p-8 text-center text-gray-500 dark:text-gray-400">{{ 'messages.noStockEntriesFound' | translate }}</p>
+    @if (rows().length === 0) {
+      <p class="p-8 text-center text-muted">{{ 'messages.noStockEntriesFound' | translate }}</p>
     } @else {
       <mat-paginator
-        [length]="stockEntries().length"
+        [length]="rows().length"
         [pageIndex]="pagination.pageIndex()"
         [pageSize]="pagination.pageSize()"
-        [pageSizeOptions]="[10, 25, 50]"
+        [pageSizeOptions]="[25, 50, 100]"
         (page)="pagination.onPage($event)"
       ></mat-paginator>
     }

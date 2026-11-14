@@ -22,7 +22,8 @@
     "on": "yoqilgan",
     "off": "o'chirilgan",
     "back": "Orqaga",
-    "select": "Tanlash"
+    "select": "Tanlash",
+    "confirmAction": "Tasdiqlash"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",
@@ -214,7 +215,8 @@
     "editCorrection": "Mahsulot kartasida tuzatildi",
     "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi",
     "mxikPick": "Katalogdan tanlash",
-    "mxikPackage": "Qadoq"
+    "mxikPackage": "Qadoq",
+    "skuAutoHint": "Bo'sh qolsa, shtrix-koddan olinadi"
   },
   "units": {
     "dona": "dona",
@@ -227,7 +229,8 @@
     "qop": "qop",
     "quti": "quti",
     "rulon": "rulon",
-    "t": "tonna"
+    "t": "tonna",
+    "pcs": "dona"
   },
   "categories": {
     "title": "Kategoriyalar",
@@ -249,7 +252,7 @@
     "checkout": "Hisob-kitob",
     "paymentMethod": "To'lov usuli",
     "paidAmount": "To'lov miqdori",
-    "change": "Qolgan pul",
+    "change": "Qaytim",
     "subtotal": "Jami",
     "tax": "Soliq",
     "total": "Umumiy jami",
@@ -325,7 +328,9 @@
     "darkMode": "Tungi rejim",
     "lightMode": "Kunduzgi rejim",
     "cashierMenu": "Kassir menyusi",
-    "logoutHoldsCart": "Savatdagi tovarlar kechiktirilgan cheklarga saqlanadi va tizimdan chiqiladi."
+    "logoutHoldsCart": "Savatdagi tovarlar kechiktirilgan cheklarga saqlanadi va tizimdan chiqiladi.",
+    "discountLimit": "Chegirma limitdan oshdi, ruxsat etilgan",
+    "clearCartButton": "Tozalash"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -393,7 +398,13 @@
       "cash": "Naqd (seyf/egasi)",
       "drawer": "Kassadan naqd"
     },
-    "reasonAdjustment": "Tuzatish"
+    "reasonAdjustment": "Tuzatish",
+    "typeSale": "Sotuv",
+    "typeReturn": "Qaytarish",
+    "stockOutSaved": "chiqim qilindi",
+    "adjustmentSaved": "inventarizatsiya saqlandi",
+    "journalHint": "Kirim, chiqim, inventarizatsiya, sotuv va qaytarishlar. Sotuv va qaytarishlar oxirgi kunlar uchun, kun soni",
+    "reasonSupplierReturn": "Ta'minotchiga qaytarish"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -450,7 +461,13 @@
     "notes": "Izoh",
     "shiftOpen": "Smena ochiq",
     "cashIn": "Kassaga kiritilgan",
-    "cashOut": "Kassadan olingan"
+    "cashOut": "Kassadan olingan",
+    "alreadyOpen": "Sizda ochiq smena bor. Avval uni yoping",
+    "staleShift": "Eski smena ochiq qolgan, yoping",
+    "manyOpen": "Bir nechta ochiq smena bor, eskisini yoping",
+    "shortageNote": "Kamomad sababi",
+    "shortageNoteHint": "Kassada pul kam: sababini yozing",
+    "printZ": "Z-hisobotni chop etish"
   },
   "debts": {
     "title": "Qarzlarni boshqarish",
@@ -557,7 +574,14 @@
     "vatOnTop": "Narx ustiga",
     "vatModeHint": "Odatda chakana savdoda narxlar QQS bilan ko'rsatiladi (\"Narx ichida\"). QQS to'lovchisi bo'lmasangiz stavkani 0 qiling.",
     "storeTelegram": "Telegram (username)",
-    "workingHours": "Ish vaqti"
+    "workingHours": "Ish vaqti",
+    "posPolicy": "Kassa qoidalari",
+    "allowNegativeStock": "Minusga sotishga ruxsat",
+    "allowNegativeStockHint": "O'chiq bo'lsa, qoldig'i yo'q yoki yetmaydigan tovar sotilmaydi",
+    "blockExpired": "Muddati o'tgan tovarni bloklash",
+    "blockExpiredHint": "Kassir muddati o'tgan tovarni sota olmaydi, menejer har safar tasdiqlaydi",
+    "cashierMaxDiscount": "Kassir beradigan eng katta chegirma",
+    "cashierMaxDiscountHint": "Narxni o'zgartirish huquqi bor rollarga (menejer, admin) bu cheklov qo'llanmaydi"
   },
   "statistics": {
     "title": "Statistika",
@@ -600,7 +624,7 @@
     "todayRevenue": "Bugungi sotuv",
     "receiptsToday": "Bugungi cheklar soni",
     "avgReceiptValue": "O'rtacha chek summasi",
-    "todayNetProfit": "Bugungi sof foyda",
+    "todayNetProfit": "Bugungi yalpi foyda",
     "profitCaveat": "Faqat ushbu funksiya qo'shilgandan keyingi sotuvlar uchun hisoblanadi",
     "lowStock": "Kam qolgan mahsulotlar",
     "lowStockAlert": "Kam qoldi: \"{{name}}\" — {{quantity}} {{unit}} qoldi.",
@@ -1490,5 +1514,12 @@
     "camera": "Kamera bilan skanerlash",
     "change": "Boshqa mahsulot tanlash",
     "notFound": "Bunday mahsulot topilmadi"
+  },
+  "paginator": {
+    "itemsPerPage": "Sahifada",
+    "next": "Keyingi",
+    "previous": "Oldingi",
+    "first": "Birinchi",
+    "last": "Oxirgi"
   }
 }

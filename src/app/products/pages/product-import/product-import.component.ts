@@ -212,6 +212,8 @@ export class ProductImportComponent {
       };
       const optionalFields: Partial<Product> = {};
       if (parsed.minQuantity !== undefined) optionalFields.minQuantity = parsed.minQuantity;
+      if (parsed.wholesalePrice !== undefined) optionalFields.wholesalePrice = parsed.wholesalePrice;
+      if (parsed.wholesaleMinQty !== undefined) optionalFields.wholesaleMinQty = parsed.wholesaleMinQty;
       if (parsed.description !== undefined) optionalFields.description = parsed.description;
       if (parsed.color !== undefined) optionalFields.color = parsed.color;
       if (parsed.size !== undefined) optionalFields.size = parsed.size;

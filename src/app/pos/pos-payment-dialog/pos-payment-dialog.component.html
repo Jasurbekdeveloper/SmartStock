@@ -12,7 +12,7 @@
     <div class="text-right">
       @if (hasDebtPortion()) {
       <p class="pay__label">{{ 'pos.debit' | translate }}</p>
-      <p class="pay__side text-red-600 dark:text-red-400">{{ sp.debt | currencyDisplay:0 }}</p>
+      <p class="pay__side text-debt">{{ sp.debt | currencyDisplay:0 }}</p>
       } @else {
       <p class="pay__label">{{ 'pos.change' | translate }}</p>
       <p class="pay__side text-green-600 dark:text-green-400">{{ sp.change | currencyDisplay:0 }}</p>
@@ -105,6 +105,59 @@
     </div>
     }
 
+    <!-- Debt customer: first, so it is never hidden below the keypad -->
+    @if (hasDebtPortion()) {
+    <div class="pay__debt">
+      <p class="text-sm font-semibold mb-2">
+        {{ 'pos.debtWillBeCreated' | translate }}: {{ sp.debt | currencyDisplay:0 }}
+      </p>
+      <mat-button-toggle-group class="w-full mb-3" [value]="isNewCustomer()" (change)="isNewCustomer.set($event.value)">
+        <mat-button-toggle [value]="false" class="!flex-1">{{ 'debts.existingCustomer' | translate }}</mat-button-toggle>
+        <mat-button-toggle [value]="true" class="!flex-1">{{ 'debts.newCustomer' | translate }}</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      @if (isNewCustomer()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'debts.customerName' | translate }}</mat-label>
+          <input matInput [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'debts.customerPhone' | translate }}</mat-label>
+          <input matInput type="tel" [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" />
+        </mat-form-field>
+      </div>
+      } @else {
+      @if (selectedCustomer(); as sc) {
+      <div class="flex items-center gap-2 p-2 rounded-xl border border-[var(--brand)] bg-[var(--brand-soft)]">
+        <mat-icon>person</mat-icon>
+        <span class="flex-1 min-w-0 truncate font-semibold">{{ sc.name }} <span class="font-normal opacity-75">{{ sc.phone }}</span></span>
+        <button mat-icon-button type="button" (click)="selectedCustomerId.set('')"><mat-icon>close</mat-icon></button>
+      </div>
+      } @else {
+      <label class="search-box !min-w-0">
+        <mat-icon>person_search</mat-icon>
+        <input type="search" autocomplete="off" [value]="customerQuery()" (input)="customerQuery.set($any($event.target).value)" [placeholder]="'debts.searchCustomer' | translate" />
+      </label>
+      <div class="mt-1 max-h-48 overflow-auto rounded-xl border border-[var(--border)]">
+        @for (customer of customerMatches(); track customer.id) {
+        <button type="button" class="w-full text-left px-3 py-2 border-b border-[var(--border)] hover:bg-[var(--surface-2)]" (click)="selectedCustomerId.set(customer.id)">
+          <span class="font-semibold">{{ customer.name }}</span> <span class="text-xs text-muted">{{ customer.phone }}</span>
+        </button>
+        } @empty {
+        <p class="px-3 py-2 text-sm text-muted">{{ 'productPicker.notFound' | translate }}</p>
+        }
+      </div>
+      }
+      @if (selectedCustomerId() && currentDebtTotal() > 0) {
+      <p class="text-xs mt-1 opacity-80">{{ 'pos.currentDebt' | translate }}: {{ currentDebtTotal() | currencyDisplay:0 }}</p>
+      }
+      @if (creditLimitExceeded()) {
+      <p class="text-red-600 dark:text-red-400 text-xs font-medium mt-1">{{ creditLimitWarning() }}</p>
+      }
+      }
+    </div>
+    }
     <!-- Touch keypad: types into the amount last tapped (cash by default) -->
     @if (tender() !== 'card' || padTarget() === 'discount') {
     <div class="pay__pad">
@@ -133,46 +186,6 @@
       }
     </div>
 
-    <!-- Debt customer -->
-    @if (hasDebtPortion()) {
-    <div class="pay__debt">
-      <p class="text-sm font-semibold mb-2">
-        {{ 'pos.debtWillBeCreated' | translate }}: {{ sp.debt | currencyDisplay:0 }}
-      </p>
-      <mat-button-toggle-group class="w-full mb-3" [value]="isNewCustomer()" (change)="isNewCustomer.set($event.value)">
-        <mat-button-toggle [value]="false" class="!flex-1">{{ 'debts.existingCustomer' | translate }}</mat-button-toggle>
-        <mat-button-toggle [value]="true" class="!flex-1">{{ 'debts.newCustomer' | translate }}</mat-button-toggle>
-      </mat-button-toggle-group>
-
-      @if (isNewCustomer()) {
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'debts.customerName' | translate }}</mat-label>
-          <input matInput [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'debts.customerPhone' | translate }}</mat-label>
-          <input matInput type="tel" [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" />
-        </mat-form-field>
-      </div>
-      } @else {
-      <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-        <mat-label>{{ 'debts.selectCustomer' | translate }}</mat-label>
-        <mat-select [ngModel]="selectedCustomerId()" (ngModelChange)="selectedCustomerId.set($event)">
-          @for (customer of data.customers; track customer.id) {
-          <mat-option [value]="customer.id">{{ customer.name }} — {{ customer.phone }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      @if (selectedCustomerId() && currentDebtTotal() > 0) {
-      <p class="text-xs mt-1 opacity-80">{{ 'pos.currentDebt' | translate }}: {{ currentDebtTotal() | currencyDisplay:0 }}</p>
-      }
-      @if (creditLimitExceeded()) {
-      <p class="text-red-600 dark:text-red-400 text-xs font-medium mt-1">{{ creditLimitWarning() }}</p>
-      }
-      }
-    </div>
-    }
   </mat-dialog-content>
 
   <mat-dialog-actions class="!px-6 !pb-5 gap-2">

@@ -70,7 +70,7 @@ describe('PlatformRolesComponent', () => {
     save.click();
     await settle();
 
-    const confirm = [...document.querySelectorAll<HTMLButtonElement>('mat-dialog-container button')].find((b) => b.textContent?.includes('common.submit'));
+    const confirm = [...document.querySelectorAll<HTMLButtonElement>('mat-dialog-container button')].find((b) => b.textContent?.includes('common.confirmAction'));
     expect(confirm).toBeTruthy();
     confirm!.click();
     await settle();
@@ -96,7 +96,7 @@ describe('PlatformRolesComponent', () => {
     await settle();
     [...root.querySelectorAll('button')].find((b) => b.textContent?.includes('common.save'))!.click();
     await settle();
-    [...document.querySelectorAll<HTMLButtonElement>('mat-dialog-container button')].find((b) => b.textContent?.includes('common.submit'))!.click();
+    [...document.querySelectorAll<HTMLButtonElement>('mat-dialog-container button')].find((b) => b.textContent?.includes('common.confirmAction'))!.click();
     await settle();
     expect(fixture.componentInstance.saving()).toBe(false);
     expect(root.querySelector('[role="alert"]')?.textContent).toContain('platform.roles.saveDenied');

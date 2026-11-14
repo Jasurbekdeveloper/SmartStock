@@ -17,7 +17,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="stat">
       <p class="stat__label">{{ 'suppliers.balance' | translate }}</p>
-      <p class="stat__value money" [class.text-loss]="balance() > 0">{{ balance() | currencyDisplay:0 }}</p>
+      <p class="stat__value money" [class.text-debt]="balance() > 0">{{ balance() | currencyDisplay:0 }}</p>
       @if (overdue()) { <p class="stat__foot"><span class="badge badge--red">{{ 'suppliers.overdue' | translate }}</span></p> }
     </div>
     <div class="stat">
@@ -92,7 +92,7 @@
               @if (t.note) { <p class="text-xs text-muted">{{ t.note }}</p> }
             </td>
             <td class="text-right money">{{ t.amount | sum:0 }}</td>
-            <td class="text-right money font-semibold" [class.text-loss]="t.balanceChange > 0" [class.text-profit]="t.balanceChange < 0">
+            <td class="text-right money font-semibold" [class.text-debt]="t.balanceChange > 0" [class.text-profit]="t.balanceChange < 0">
               {{ t.balanceChange > 0 ? '+' : '' }}{{ t.balanceChange | sum:0 }}
             </td>
           </tr>

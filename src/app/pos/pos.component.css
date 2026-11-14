@@ -248,7 +248,8 @@
   color: #fff;
 }
 
-.pos-tile__flag--red { background: var(--danger); }
+/* Dark red on light red (7.6:1); white on light red was 2.8:1. */
+.pos-tile__flag--red { background: var(--danger-soft); color: var(--danger-strong); border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); }
 .pos-tile__flag--dark { background: #0e1624; }
 .pos-tile--expired { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 .pos-tile__name mark { background: #fde68a; color: inherit; border-radius: 3px; padding: 0 1px; }

@@ -25,8 +25,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'debts.remainingAmount' | translate }}</p>
           <p
             class="text-lg font-bold"
-            [class.text-red-600]="totalRemainingDebt() > 0"
-            [class.dark:text-red-400]="totalRemainingDebt() > 0"
+            [class.text-debt]="totalRemainingDebt() > 0"
             [class.text-green-600]="totalRemainingDebt() === 0"
             [class.dark:text-green-400]="totalRemainingDebt() === 0"
           >
@@ -68,7 +67,7 @@
         <tbody>
           @for (sale of sales(); track sale.id) {
           <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'medium' }}</td>
+            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
             <td class="px-4 py-3 text-gray-900 dark:text-white">{{ 'pos.' + sale.paymentMethod | translate }}</td>
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
             <td class="px-4 py-3">

@@ -100,6 +100,30 @@
           </div>
           }
         </form>
+
+        <!-- Till rules: saved as soon as they are changed. -->
+        @let pp = posPolicy();
+        <section class="p-6 space-y-3 border-t border-gray-200 dark:border-gray-800 max-w-2xl">
+          <h3 class="text-base font-semibold">{{ 'settings.posPolicy' | translate }}</h3>
+          <mat-slide-toggle [checked]="pp.allowNegativeStock" (change)="setPosPolicy({ allowNegativeStock: $event.checked })">{{ 'settings.allowNegativeStock' | translate }}</mat-slide-toggle>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'settings.allowNegativeStockHint' | translate }}</p>
+          <mat-slide-toggle [checked]="pp.blockExpired" (change)="setPosPolicy({ blockExpired: $event.checked })">{{ 'settings.blockExpired' | translate }}</mat-slide-toggle>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'settings.blockExpiredHint' | translate }}</p>
+          <label class="flex flex-wrap items-center gap-3 pt-2">
+            <span>{{ 'settings.cashierMaxDiscount' | translate }}</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              class="w-24 px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-right"
+              [value]="pp.cashierMaxDiscountPercent"
+              (change)="setMaxDiscount($any($event.target).value)"
+            />
+            <span>%</span>
+          </label>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'settings.cashierMaxDiscountHint' | translate }}</p>
+        </section>
       </mat-tab>
 
       <!-- Integrations (admin-only page, so no extra role gating needed here) -->

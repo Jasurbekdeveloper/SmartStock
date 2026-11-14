@@ -18,7 +18,8 @@ export function fromDocRef<T>(ref: DocumentReference): Observable<T | undefined>
   return new Observable<T | undefined>((subscriber) => {
     const unsubscribe = onSnapshot(
       ref,
-      (snap) => subscriber.next(snap.exists() ? (convertTimestamps({ id: snap.id, ...snap.data() }) as T) : undefined),
+      // estimate: a just-written serverTimestamp() shows the local time instead of nothing.
+      (snap) => subscriber.next(snap.exists() ? (convertTimestamps({ id: snap.id, ...snap.data({ serverTimestamps: 'estimate' }) }) as T) : undefined),
       (err) => subscriber.error(err)
     );
     return unsubscribe;
@@ -29,7 +30,7 @@ export function fromCollectionQuery<T>(query: Query): Observable<T[]> {
   return new Observable<T[]>((subscriber) => {
     const unsubscribe = onSnapshot(
       query,
-      (snap) => subscriber.next(snap.docs.map((d) => convertTimestamps({ id: d.id, ...d.data() }) as T)),
+      (snap) => subscriber.next(snap.docs.map((d) => convertTimestamps({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }) as T)),
       (err) => subscriber.error(err)
     );
     return unsubscribe;

@@ -2,6 +2,8 @@ import { ApplicationConfig, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { TranslatedPaginatorIntl } from './core/i18n/paginator-intl';
 
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -27,6 +29,8 @@ export const appConfig: ApplicationConfig = {
 
     // mat-datepicker's date formatting/parsing (Products, Sales History filters).
     provideNativeDateAdapter(),
+
+    { provide: MatPaginatorIntl, useClass: TranslatedPaginatorIntl },
 
     provideTranslateService({
       fallbackLang: 'en', 

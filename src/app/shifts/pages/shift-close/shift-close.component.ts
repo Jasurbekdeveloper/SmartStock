@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { ShiftService, computeShiftTotals } from '../../../core/services/shift.service';
 import { SalesService } from '../../../core/services/sales.service';
 import { CashMovementService } from '../../../core/services/cash-movement.service';
@@ -31,7 +32,8 @@ import { NumericInputDirective } from '../../../shared/directives/numeric-input.
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatIconModule
   ],
   templateUrl: './shift-close.component.html',
   styleUrl: './shift-close.component.css'
@@ -67,12 +69,21 @@ export class ShiftCloseComponent {
 
   variance = computed(() => roundMoney((this.countedCash() ?? 0) - this.expectedCash()));
 
+  notes = signal('');
+  /** Less cash than expected: the cashier has to say why. */
+  shortage = computed(() => this.countedCash() !== null && this.variance() < -0.005);
+  canClose = computed(() => !this.submitting() && this.countedCash() !== null && (!this.shortage() || this.notes().trim().length > 0));
+
+  print() {
+    window.print();
+  }
+
   confirmClose() {
     const counted = this.countedCash();
-    if (counted === null || counted < 0 || !this.shiftId) return;
+    if (counted === null || counted < 0 || !this.shiftId || !this.canClose()) return;
 
     this.submitting.set(true);
-    this.shiftService.closeShift(this.shiftId, counted).subscribe({
+    this.shiftService.closeShift(this.shiftId, counted, this.notes()).subscribe({
       next: () => {
         this.submitting.set(false);
         this.toast.success(this.translation.translate('shifts.shiftClosed'));

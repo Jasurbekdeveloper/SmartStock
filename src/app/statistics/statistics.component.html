@@ -160,7 +160,7 @@
             <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.id }}</td>
               <td class="px-4 py-2 font-semibold text-gray-900 dark:text-white">{{ sale.total | currencyDisplay }}</td>
-              <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'short' }}</td>
+              <td class="px-4 py-2 text-gray-900 dark:text-white">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
             </tr>
             }
           </tbody>

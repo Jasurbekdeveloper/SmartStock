@@ -1,7 +1,8 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ToastService } from '../../../core/services/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
@@ -37,7 +38,8 @@ import { ProductPickerComponent } from '../../../shared/components/product-picke
 export class StockAdjustmentComponent {
   private stockService = inject(StockService);
   private productService = inject(ProductService);
-  private router = inject(Router);
+  private toast = inject(ToastService);
+  private translation = inject(TranslationService);
 
   products = toSignal(this.productService.getProducts(), { initialValue: [] });
 
@@ -73,6 +75,7 @@ export class StockAdjustmentComponent {
       return;
     }
 
+    if (this.submitting()) return;
     this.submitting.set(true);
     this.errorKey.set(null);
 
@@ -81,11 +84,18 @@ export class StockAdjustmentComponent {
         productId: product.id,
         countedQuantity: this.countedQuantity,
         currentQuantity: product.quantity,
-        notes: this.notes || undefined
+        notes: this.notes || undefined,
+        unitCost: product.cost
       })
       .subscribe({
+        // Next product of the count: confirm and clear the form.
         next: () => {
-          this.router.navigate(['/stock/history']);
+          this.toast.success(`${product.name}: ${this.translation.translate('stock.adjustmentSaved')}`);
+          this.productId.set('');
+          this.countedQuantity = null;
+          this.notes = '';
+          this.errorKey.set(null);
+          this.submitting.set(false);
         },
         error: (err) => {
           console.error('Stock adjustment error:', err);

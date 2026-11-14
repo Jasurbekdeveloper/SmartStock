@@ -140,7 +140,8 @@
 
         <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
           <mat-label>{{ 'products.sku' | translate }}</mat-label>
-          <input matInput [(ngModel)]="product.sku" [errorStateMatcher]="fields.matcher('sku')" name="sku" required />
+          <input matInput [(ngModel)]="product.sku" [errorStateMatcher]="fields.matcher('sku')" name="sku" />
+          <mat-hint>{{ 'products.skuAutoHint' | translate }}</mat-hint>
           <mat-error>{{ fields.message('sku') | translate }}</mat-error>
         </mat-form-field>
 

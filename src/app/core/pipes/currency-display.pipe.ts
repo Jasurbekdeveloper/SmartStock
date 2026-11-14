@@ -24,7 +24,8 @@ import { SettingsService } from '../services/settings.service';
 export class CurrencyDisplayPipe implements PipeTransform {
   private settingsService = inject(SettingsService);
 
-  transform(value: number | null | undefined, decimals = 2): string {
+  /** Whole so'm by default: tiyin only clutter amounts ("11 384,62"); pass decimals where they matter. */
+  transform(value: number | null | undefined, decimals = 0): string {
     return `${formatNumber(value, decimals)} ${this.settingsService.currencySymbol()}`;
   }
 }

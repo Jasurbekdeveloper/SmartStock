@@ -21,6 +21,9 @@ export interface ParsedProductRow {
   /** Package code of the MXIK code; looked up from the catalogue when left empty. */
   packageCode?: string;
   price: number;
+  /** Wholesale price and the quantity it starts from. */
+  wholesalePrice?: number;
+  wholesaleMinQty?: number;
   cost: number;
   quantity: number;
   unit: string;
@@ -49,6 +52,8 @@ export const PRODUCT_IMPORT_HEADERS = {
   familyId: 'Variant guruhi',
   imageUrl: 'Rasm URL',
   price: 'Narx',
+  wholesalePrice: 'Ulgurji narx',
+  wholesaleMinQty: 'Ulgurji min. miqdor',
   cost: 'Tannarx',
   quantity: 'Miqdor',
   unit: 'Birlik',
@@ -160,6 +165,8 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           const imageUrl = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.imageUrl)) || undefined;
           const price = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.price));
           const cost = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.cost));
+          const wholesalePrice = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.wholesalePrice));
+          const wholesaleMinQty = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.wholesaleMinQty));
           const quantity = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.quantity));
           const unit = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.unit));
           const minQuantity = toNumber(findValue(rawRow, PRODUCT_IMPORT_HEADERS.minQuantity));
@@ -217,6 +224,8 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
             mxikCode: mxik.code,
             packageCode: packageCode ?? undefined,
             price: price as number,
+            wholesalePrice: wholesalePrice && wholesalePrice > 0 ? wholesalePrice : undefined,
+            wholesaleMinQty: wholesaleMinQty && wholesaleMinQty > 0 ? wholesaleMinQty : undefined,
             cost: cost ?? 0,
             quantity: quantity as number,
             unit,
@@ -254,6 +263,8 @@ export function generateProductImportTemplate(): void {
     [PRODUCT_IMPORT_HEADERS.familyId]: 'CEM-M400',
     [PRODUCT_IMPORT_HEADERS.imageUrl]: '',
     [PRODUCT_IMPORT_HEADERS.price]: 45000,
+    [PRODUCT_IMPORT_HEADERS.wholesalePrice]: 43000,
+    [PRODUCT_IMPORT_HEADERS.wholesaleMinQty]: 20,
     [PRODUCT_IMPORT_HEADERS.cost]: 38000,
     [PRODUCT_IMPORT_HEADERS.quantity]: 100,
     [PRODUCT_IMPORT_HEADERS.unit]: 'dona',

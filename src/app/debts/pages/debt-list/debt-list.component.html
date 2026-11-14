@@ -35,12 +35,12 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.customerPhone }}</p>
             }
           </td>
-          <td class="px-4 py-3 font-semibold" [class.text-red-600]="summary.totalRemaining > 0" [class.dark:text-red-400]="summary.totalRemaining > 0" [class.text-green-600]="summary.totalRemaining === 0" [class.dark:text-green-400]="summary.totalRemaining === 0">
+          <td class="px-4 py-3 font-semibold" [class.text-debt]="summary.totalRemaining > 0" [class.text-green-600]="summary.totalRemaining === 0" [class.dark:text-green-400]="summary.totalRemaining === 0">
             {{ summary.totalRemaining | currencyDisplay }}
           </td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">
             <p>{{ summary.lastDebtAmount | currencyDisplay }}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.lastDebtDate | date: 'short' }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.lastDebtDate | date: 'dd.MM.yyyy HH:mm' }}</p>
           </td>
         </tr>
         }

@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Customer, DebtService } from '../../core/services/debt.service';
 import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 import { formatNumber } from '../../core/utils/format-number';
+import { normalizeForSearch } from '../../core/utils/uzbek-transliteration';
 import {
   CheckoutLineInput,
   DiscountMode,
@@ -142,6 +143,19 @@ export class PosPaymentDialogComponent {
   hasDebtPortion = computed(() => this.split().debt > 0);
 
   selectedCustomer = computed(() => this.data.customers.find((c) => c.id === this.selectedCustomerId()));
+
+  /** Customer search by name (Latin or Cyrillic) or phone digits. */
+  customerQuery = signal('');
+  customerMatches = computed(() => {
+    const q = normalizeForSearch(this.customerQuery().trim());
+    const digits = this.customerQuery().replace(/\D/g, '');
+    const list = !q
+      ? this.data.customers
+      : this.data.customers.filter(
+          (c) => normalizeForSearch(c.name).includes(q) || (digits.length >= 3 && (c.phone ?? '').replace(/\D/g, '').includes(digits))
+        );
+    return list.slice(0, 30);
+  });
 
   private selectedCustomerDebts = toSignal(
     toObservable(this.selectedCustomerId).pipe(

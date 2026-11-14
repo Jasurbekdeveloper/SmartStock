@@ -104,9 +104,18 @@
     </div>
     }
 
-    <div class="flex gap-4">
-      <button mat-flat-button color="primary" [disabled]="submitting() || countedCash() === null" (click)="confirmClose()">
+    <mat-form-field appearance="outline" class="w-full no-print">
+      <mat-label>{{ (shortage() ? 'shifts.shortageNote' : 'shifts.notes') | translate }}{{ shortage() ? ' *' : '' }}</mat-label>
+      <textarea matInput rows="2" [ngModel]="notes()" (ngModelChange)="notes.set($event)" name="notes"></textarea>
+      @if (shortage()) { <mat-hint>{{ 'shifts.shortageNoteHint' | translate }}</mat-hint> }
+    </mat-form-field>
+
+    <div class="flex flex-wrap gap-4 no-print">
+      <button mat-flat-button color="primary" [disabled]="!canClose()" (click)="confirmClose()">
         {{ 'shifts.confirmClose' | translate }}
+      </button>
+      <button mat-stroked-button type="button" (click)="print()">
+        <mat-icon>print</mat-icon>{{ 'shifts.printZ' | translate }}
       </button>
       <a mat-button routerLink="/pos">
         {{ 'common.cancel' | translate }}

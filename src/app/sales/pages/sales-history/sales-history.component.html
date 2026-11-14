@@ -34,6 +34,7 @@
         <mat-button-toggle value="cash">{{ 'pos.cash' | translate }}</mat-button-toggle>
         <mat-button-toggle value="card">{{ 'pos.card' | translate }}</mat-button-toggle>
         <mat-button-toggle value="mixed">{{ 'pos.mixed' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="debt">{{ 'pos.debit' | translate }}</mat-button-toggle>
       </mat-button-toggle-group>
 
       <button mat-button (click)="clearFilters()">
@@ -51,6 +52,7 @@
           <th>{{ 'sales.receiptNo' | translate }}</th>
           <th>{{ 'table.items' | translate }}</th>
           <th>{{ 'sales.paymentMethod' | translate }}</th>
+          <th>{{ 'debts.customer' | translate }}</th>
           <th>{{ 'sales.cashier' | translate }}</th>
           <th class="text-right">{{ 'table.total' | translate }}</th>
           <th class="text-right">{{ 'table.date' | translate }}</th>
@@ -62,14 +64,15 @@
           <td class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
           <td [title]="itemNames(sale)"><div class="max-w-xs truncate">{{ itemNames(sale) }}</div></td>
           <td class="whitespace-nowrap">
-            <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
+            <span class="badge" [class]="'pay-' + sale.paymentMethod">{{ 'pos.' + sale.paymentMethod | translate }}</span>
             @if (sale.debtAmount && sale.debtAmount > 0) {
-            <span class="badge badge--amber ml-1">{{ 'pos.debit' | translate }}</span>
+            <span class="badge pay-debt ml-1">{{ 'pos.debit' | translate }}</span>
             }
             @if (sale.refundedAmount) {
-            <span class="badge badge--red ml-1">{{ 'returns.short' | translate }}</span>
+            <span class="badge pay-refund ml-1">{{ 'returns.short' | translate }}</span>
             }
           </td>
+          <td class="whitespace-nowrap">{{ customerName(sale) || '—' }}</td>
           <td class="text-gray-500 dark:text-gray-400">{{ sale.cashierName || '—' }}</td>
           <td class="text-right font-bold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
           <td class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>

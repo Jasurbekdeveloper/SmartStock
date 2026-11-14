@@ -3,7 +3,7 @@
     <div>
       <h1 class="page-title">{{ 'suppliers.title' | translate }}</h1>
       @if (totalPayable() > 0) {
-      <p class="text-sm text-muted">{{ 'suppliers.totalPayable' | translate }}: <b class="money text-loss">{{ totalPayable() | currencyDisplay:0 }}</b></p>
+      <p class="text-sm text-muted">{{ 'suppliers.totalPayable' | translate }}: <b class="money text-debt">{{ totalPayable() | currencyDisplay:0 }}</b></p>
       }
     </div>
     <a mat-flat-button color="primary" routerLink="/suppliers/create">
@@ -46,7 +46,7 @@
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.phone }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.contactPerson }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.address }}</td>
-          <td class="px-4 py-3 text-right money font-semibold" [class.text-loss]="(supplier.balance ?? 0) > 0">{{ (supplier.balance ?? 0) | currencyDisplay:0 }}</td>
+          <td class="px-4 py-3 text-right money font-semibold" [class.text-debt]="(supplier.balance ?? 0) > 0">{{ (supplier.balance ?? 0) | currencyDisplay:0 }}</td>
           <td class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editSupplier(supplier.id)">
               <mat-icon>edit</mat-icon>

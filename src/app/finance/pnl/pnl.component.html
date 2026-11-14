@@ -3,7 +3,7 @@
     <div>
       <p class="page-head__eyebrow">{{ 'navigation.groupFinance' | translate }}</p>
       <h1 class="page-title">{{ 'navigation.pnl' | translate }}</h1>
-      <p class="page-subtitle">{{ range().from | date: 'd MMM' }} — {{ range().to | date: 'd MMM yyyy' }} · {{ 'finance.pnlSubtitle' | translate }}</p>
+      <p class="page-subtitle">{{ range().from | date: 'dd.MM.yyyy' }} — {{ range().to | date: 'dd.MM.yyyy' }} · {{ 'finance.pnlSubtitle' | translate }}</p>
     </div>
     <div class="page-actions">
       <button mat-stroked-button type="button" (click)="export()" [disabled]="loading()"><mat-icon>download</mat-icon>Excel</button>

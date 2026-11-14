@@ -11,10 +11,9 @@ export class ThemeService {
 
   constructor() {
     const savedTheme = this.getSavedTheme();
+    // Light is the default for a till in a bright shop; dark only when chosen.
     if (savedTheme) {
       this.setTheme(savedTheme);
-    } else if (this.prefersDarkMode()) {
-      this.setTheme('dark');
     }
   }
 
@@ -42,10 +41,6 @@ export class ThemeService {
     return null;
   }
 
-  private prefersDarkMode(): boolean {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
 
   private applyTheme(theme: Theme) {
     if (typeof document === 'undefined') return;

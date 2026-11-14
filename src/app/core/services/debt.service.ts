@@ -311,7 +311,8 @@ export class DebtService {
 
   addCustomer(customer: Omit<Customer, 'id'>): Observable<string> {
     return from(
-      addDoc(collection(this.firestore, 'customers'), withTenant({ ...customer, createdAt: serverTimestamp() }, requireTenantId(this.authService)))
+      // stripUndefined: an empty address arrives as undefined, which addDoc rejects.
+      addDoc(collection(this.firestore, 'customers'), withTenant(stripUndefined({ ...customer, createdAt: serverTimestamp() }), requireTenantId(this.authService)))
     ).pipe(map((ref) => ref.id));
   }
 }

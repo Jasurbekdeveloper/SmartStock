@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { catchError, of, switchMap } from 'rxjs';
+import { DebtService } from '../../../core/services/debt.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -20,7 +21,7 @@ import { createPagination } from '../../../core/utils/pagination';
 import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
 import { DEFAULT_RANGE_DAYS, daysAgo, endOfDay, startOfDay } from '../../../core/utils/date-range';
 
-type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed';
+type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed' | 'debt';
 
 @Component({
   selector: 'app-sales-history',
@@ -46,6 +47,13 @@ type PaymentFilter = 'all' | 'cash' | 'card' | 'mixed';
 })
 export class SalesHistoryComponent {
   private salesService = inject(SalesService);
+  private customers = toSignal(inject(DebtService).getCustomers().pipe(catchError(() => of([]))), { initialValue: [] });
+  private customerNames = computed(() => new Map(this.customers().map((c) => [c.id, c.name])));
+
+  /** Who bought on credit, for the customer column (empty for walk-in sales). */
+  customerName(sale: Sale): string {
+    return sale.customerId ? this.customerNames().get(sale.customerId) ?? '' : '';
+  }
 
   searchQuery = signal('');
   paymentFilter = signal<PaymentFilter>('all');
@@ -75,7 +83,7 @@ export class SalesHistoryComponent {
     const end = this.endDate();
 
     return this.sales().filter((sale) => {
-      if (method !== 'all' && sale.paymentMethod !== method) return false;
+      if (method === 'debt' ? !((sale.debtAmount ?? 0) > 0) : method !== 'all' && sale.paymentMethod !== method) return false;
 
       const saleDate = new Date(sale.createdAt);
       if (start && saleDate < start) return false;
@@ -91,7 +99,8 @@ export class SalesHistoryComponent {
         const matchesName = normalizeForSearch(this.itemNames(sale)).includes(normalizeForSearch(query));
         const matchesAmount = sale.total.toString().includes(query);
         const matchesReceipt = (sale.receiptNo ?? sale.id).toLowerCase().includes(query);
-        if (!matchesName && !matchesAmount && !matchesReceipt) return false;
+        const matchesCustomer = normalizeForSearch(this.customerName(sale)).includes(normalizeForSearch(query));
+        if (!matchesName && !matchesAmount && !matchesReceipt && !matchesCustomer) return false;
       }
 
       return true;

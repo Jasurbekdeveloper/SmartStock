@@ -41,7 +41,20 @@ export interface GeneralSettings {
   fiscalPolicy?: Partial<FiscalPolicy>;
   /** Statistics and low-stock reports sent by the MarketHisob bot. */
   telegramReports?: Partial<TelegramReportSettings>;
+  /** Till rules: stock, expired goods, discount limit. */
+  posPolicy?: Partial<PosPolicy>;
 }
+
+export interface PosPolicy {
+  /** Sell more than the stock shows (goods arrived but not yet entered). Off by default. */
+  allowNegativeStock: boolean;
+  /** Expired goods can't be sold by a cashier; a manager confirms each line. */
+  blockExpired: boolean;
+  /** Largest discount (% of the ticket) a role without price override may give. */
+  cashierMaxDiscountPercent: number;
+}
+
+export const DEFAULT_POS_POLICY: PosPolicy = { allowNegativeStock: false, blockExpired: true, cashierMaxDiscountPercent: 10 };
 
 export interface FiscalPolicy {
   /** Send receipts to the tax office at all. */
@@ -137,4 +150,6 @@ export class SettingsService {
   fiscalPolicy = computed<FiscalPolicy>(() => ({ ...DEFAULT_FISCAL_POLICY, ...(this.generalSettings()?.fiscalPolicy ?? {}) }));
 
   telegramReports = computed<TelegramReportSettings>(() => ({ ...DEFAULT_TELEGRAM_REPORTS, ...(this.generalSettings()?.telegramReports ?? {}) }));
+
+  posPolicy = computed<PosPolicy>(() => ({ ...DEFAULT_POS_POLICY, ...(this.generalSettings()?.posPolicy ?? {}) }));
 }

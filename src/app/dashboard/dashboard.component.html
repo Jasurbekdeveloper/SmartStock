@@ -140,9 +140,9 @@
             <td class="money text-xs text-muted">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
             <td class="max-w-xs truncate">{{ itemNames(sale) }}</td>
             <td class="whitespace-nowrap">
-              <span class="badge badge--gray">{{ 'pos.' + sale.paymentMethod | translate }}</span>
-              @if (sale.debtAmount) { <span class="badge badge--amber ml-1">{{ 'pos.debit' | translate }}</span> }
-              @if (sale.refundedAmount) { <span class="badge badge--red ml-1">{{ 'returns.short' | translate }}</span> }
+              <span class="badge" [class]="'pay-' + sale.paymentMethod">{{ 'pos.' + sale.paymentMethod | translate }}</span>
+              @if (sale.debtAmount) { <span class="badge pay-debt ml-1">{{ 'pos.debit' | translate }}</span> }
+              @if (sale.refundedAmount) { <span class="badge pay-refund ml-1">{{ 'returns.short' | translate }}</span> }
             </td>
             <td class="text-right font-semibold money">{{ sale.total | currencyDisplay:0 }}</td>
             <td class="text-right text-muted whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>

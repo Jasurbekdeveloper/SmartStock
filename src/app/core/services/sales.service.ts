@@ -229,6 +229,13 @@ export class SalesService {
     return fromCollectionQuery<SaleReturn>(tenantQuery(this.firestore, 'returns', requireTenantId(this.authService), where('saleId', '==', saleId)));
   }
 
+  /** Returns since a date, newest first (stock movement journal). */
+  getReturnsSince(from: Date): Observable<SaleReturn[]> {
+    return fromCollectionQuery<SaleReturn>(
+      tenantQuery(this.firestore, 'returns', requireTenantId(this.authService), orderBy('createdAt', 'desc'), endAt(Timestamp.fromDate(from)))
+    );
+  }
+
   getReturnsForShift(shiftId: string): Observable<SaleReturn[]> {
     return fromCollectionQuery<SaleReturn>(tenantQuery(this.firestore, 'returns', requireTenantId(this.authService), where('shiftId', '==', shiftId)));
   }

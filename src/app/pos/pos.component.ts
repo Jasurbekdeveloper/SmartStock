@@ -54,15 +54,9 @@ import { Language } from '../core/services/translation.service';
 export type NumpadMode = 'qty' | 'price' | 'discount' | 'percent';
 const NUMPAD_STORAGE_KEY = 'markethisob_pos_numpad';
 const OSK_STORAGE_KEY = 'markethisob_pos_osk';
-/** Category tile colours (background, text) — products without a photo get one. */
-const TILE_TONES: [string, string][] = [
-  ['var(--brand-soft)', 'var(--brand-strong)'],
-  ['var(--info-soft)', 'var(--info)'],
-  ['var(--warning-soft)', 'var(--warning)'],
-  ['color-mix(in srgb, #8b5cf6 14%, var(--surface))', '#7c3aed'],
-  ['color-mix(in srgb, #ec4899 13%, var(--surface))', '#db2777'],
-  ['var(--success-soft)', 'var(--success)']
-];
+/** Tile colours (background, text) of products without a photo. One neutral tone:
+ *  random hues carried no meaning and drowned the "out of stock" / "expired" badges. */
+const TILE_TONES: [string, string][] = [['var(--surface-3)', 'var(--text-muted)']];
 
 function readFlag(key: string, fallback: boolean): boolean {
   try {
@@ -363,6 +357,24 @@ export class PosComponent implements OnInit {
     return roleCan(this.currentUser()?.role, 'pos.priceOverride');
   });
 
+  /** Store's till rules (Settings → General). */
+  posPolicy = this.settingsService.posPolicy;
+
+  /** Largest discount this user may give, as % of the ticket: unlimited for roles that
+   *  may change prices, the store's limit for everyone else. */
+  maxDiscountPercent = computed(() => (this.canEditPrice() ? 100 : Math.max(0, Math.min(100, this.posPolicy().cashierMaxDiscountPercent))));
+
+  /** Every open shift of this cashier (newest first); more than one means one was left open. */
+  openShiftCount = signal(0);
+
+  /** The open shift started on an earlier day, or older shifts are still open. */
+  staleShift = computed(() => {
+    const shift = this.activeShift();
+    if (!shift) return false;
+    const opened = shift.openedAt instanceof Date ? shift.openedAt : null;
+    return this.openShiftCount() > 1 || (!!opened && opened.toDateString() !== new Date().toDateString());
+  });
+
   /** Soft enforcement only — checkout is never blocked by a missing shift. */
   activeShift = signal<Shift | undefined>(undefined);
   startingCashInput = signal(0);
@@ -418,9 +430,12 @@ export class PosComponent implements OnInit {
     return this.batchSummaries().get(product.id)?.state ?? expiryState(product.expiryDate);
   }
 
-  /** Only expired stock is left — a cashier may not sell it. */
+  /** Only expired stock is left — a cashier may not sell it. A product still dated the
+   *  old way (one date on the product, no batches) counts too. */
   private blockedExpired(product: Product): boolean {
-    return isBlockedExpired(product.quantity, this.batchSummaries().get(product.id));
+    const summary = this.batchSummaries().get(product.id);
+    if (summary) return isBlockedExpired(product.quantity, summary);
+    return expiryState(product.expiryDate) === 'expired';
   }
 
   initials(name: string): string {
@@ -496,8 +511,11 @@ export class PosComponent implements OnInit {
     this.productService.getProducts().subscribe((products) => this.products.set(products));
 
     this.authService.currentUser$
-      .pipe(switchMap((user) => (user ? this.shiftService.getOpenShiftForUser(user.uid) : of(undefined))))
-      .subscribe((shift) => this.activeShift.set(shift));
+      .pipe(switchMap((user) => (user ? this.shiftService.getOpenShiftsForUser(user.uid).pipe(catchError(() => of([]))) : of([]))))
+      .subscribe((shifts) => {
+        this.activeShift.set(shifts[0]);
+        this.openShiftCount.set(shifts.length);
+      });
   }
 
   openShiftInline() {
@@ -513,7 +531,7 @@ export class PosComponent implements OnInit {
       error: (err) => {
         console.error('Open shift error:', err);
         this.openingShift.set(false);
-        this.toast.error(this.translation.translate('shifts.shiftOpenError'));
+        this.toast.error(this.translation.translate((err as Error)?.message === 'SHIFT_ALREADY_OPEN' ? 'shifts.alreadyOpen' : 'shifts.shiftOpenError'));
       }
     });
   }
@@ -540,6 +558,18 @@ export class PosComponent implements OnInit {
   });
 
   private productById = computed(() => new Map(this.products().map((p) => [p.id, p])));
+
+  /** Names used by more than one product: their tiles also show the SKU / barcode. */
+  sameName = computed(() => {
+    const seen = new Set<string>();
+    const dup = new Set<string>();
+    for (const p of this.products()) {
+      const key = p.name.trim().toLowerCase();
+      if (seen.has(key)) dup.add(key);
+      else seen.add(key);
+    }
+    return dup;
+  });
 
   /** Normalised search text per product, built once per catalogue change instead of on
    *  every keystroke (transliterating thousands of names per key made typing lag). */
@@ -585,7 +615,12 @@ export class PosComponent implements OnInit {
 
   addToCart(product: Product, allowExpired = false) {
     const existing = this.cart().find((item) => item.productId === product.id);
-    if (!existing && !allowExpired && this.blockedExpired(product)) {
+    // Nothing on stock: not sold unless the store allows selling into minus.
+    if (!existing && product.quantity <= 0 && !this.posPolicy().allowNegativeStock) {
+      this.toast.error(`${product.name}: ${this.translation.translate('pos.outOfStock')}`);
+      return;
+    }
+    if (!existing && !allowExpired && this.posPolicy().blockExpired && this.blockedExpired(product)) {
       if (!this.canEditPrice()) {
         this.toast.error(`${product.name}: ${this.translation.translate('pos.expiredBlocked')}`);
         return;
@@ -748,7 +783,19 @@ export class PosComponent implements OnInit {
   updateLineDiscount(productId: string, discount: number) {
     const item = this.cart().find((i) => i.productId === productId);
     if (!item) return;
-    this.patchLine(productId, { discount: Math.max(0, Math.min(discount || 0, item.quantity * item.price)) });
+    const gross = item.quantity * item.price;
+    const limit = roundMoney((gross * this.maxDiscountPercent()) / 100);
+    if ((discount || 0) > limit + 0.005) {
+      this.toast.error(`${this.translation.translate('pos.discountLimit')}: ${this.maxDiscountPercent()}%`);
+    }
+    this.patchLine(productId, { discount: Math.max(0, Math.min(discount || 0, gross, limit)) });
+  }
+
+  /** The ticket's discounts (lines + whole ticket) stay within the user's limit. */
+  private discountWithinLimit(cartDiscount: number): boolean {
+    const gross = this.cart().reduce((s, i) => s + i.quantity * i.price, 0);
+    const given = this.cart().reduce((s, i) => s + (i.discount ?? 0), 0) + (cartDiscount || 0);
+    return given <= roundMoney((gross * this.maxDiscountPercent()) / 100) + 0.005;
   }
 
   // ---------------------------------------------------------------- totals
@@ -784,6 +831,15 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    if (!this.posPolicy().allowNegativeStock) {
+      const short = this.cart().find((item) => this.isOverStock(item));
+      if (short) {
+        this.selectedLineId.set(short.productId);
+        this.toast.error(`${short.productName}: ${this.translation.translate('pos.notEnoughStock')} (${this.stockOf(short.productId)})`);
+        return;
+      }
+    }
+
     const unmarked = this.cart().find((item) => this.missingMarkingCodes(item) > 0);
     if (unmarked) {
       this.selectedLineId.set(unmarked.productId);
@@ -813,6 +869,10 @@ export class PosComponent implements OnInit {
   /** Never leaves the till locked: whatever goes wrong while building or saving the
    *  sale, `submitting` is reset and the cart stays so the cashier can retry. */
   private completeSale(payment: PosPaymentDialogResult) {
+    if (!this.discountWithinLimit(payment.discount)) {
+      this.toast.error(`${this.translation.translate('pos.discountLimit')}: ${this.maxDiscountPercent()}%`);
+      return;
+    }
     this.submitting.set(true);
     try {
       this.saveSale(payment);
@@ -1001,12 +1061,19 @@ export class PosComponent implements OnInit {
   onGlobalKeydown(event: KeyboardEvent) {
     if (this.dialogOpen()) return;
 
+    const inSearch = document.activeElement === this.searchInputRef?.nativeElement;
     const code = this.scannerGun.handleKey(event);
-    if (this.scannerGun.wasPartOfBurst()) {
+    // In the search box fast typing is still typing: its keys are never swallowed (that
+    // left only the first letter of "sement"). Elsewhere a scan must not leak into fields.
+    if (this.scannerGun.wasPartOfBurst() && !inSearch) {
       event.preventDefault();
     }
-    if (code) {
-      this.cleanupLeakedCharacter(code);
+    // A burst typed into the search box is a scan only if it is a known code.
+    const isScan = !!code && (!inSearch || !!parseMarkingCode(code) || this.products().some((p) => p.barcode === code || p.sku === code));
+    if (code && isScan) {
+      event.preventDefault();
+      if (inSearch) this.searchQuery.set('');
+      else this.cleanupLeakedCharacter(code);
       // The scan's first digit may have reached the keypad before the burst was detected.
       this.numpadFresh.set(true);
       this.numpadText.set('');
@@ -1121,7 +1188,7 @@ export class PosComponent implements OnInit {
 
     this.dialogOpen.set(true);
     this.dialog
-      .open(ConfirmDialogComponent, { data: { titleKey: 'pos.clearCart', messageKey: 'pos.clearCartConfirm' } })
+      .open(ConfirmDialogComponent, { data: { titleKey: 'pos.clearCart', messageKey: 'pos.clearCartConfirm', confirmKey: 'pos.clearCartButton' } })
       .afterClosed()
       .subscribe((confirmed) => {
         this.dialogOpen.set(false);
@@ -1160,7 +1227,7 @@ export class PosComponent implements OnInit {
       this.addMarkedUnit(marking.gtin, marking.code);
       return;
     }
-    const product = this.products().find((p) => p.barcode === barcode);
+    const product = this.products().find((p) => p.barcode === barcode) ?? this.products().find((p) => p.sku === barcode);
     if (product) {
       this.addToCart(product);
       this.searchQuery.set('');
@@ -1211,6 +1278,8 @@ export class PosComponent implements OnInit {
   clearCart() {
     this.cart.set([]);
     this.selectedLineId.set(null);
+    // A "%" or price mode left from the last ticket would turn the next typed quantity into a discount.
+    this.numpadMode.set('qty');
     this.searchQuery.set('');
     this.priceTier.set('retail');
   }

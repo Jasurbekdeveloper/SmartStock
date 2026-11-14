@@ -60,7 +60,7 @@
 }
 
 .rc-dates td {
-  background: var(--warning-soft);
+  background: var(--brand-soft);
   padding-top: 0.5rem;
   padding-bottom: 0.6rem;
 }

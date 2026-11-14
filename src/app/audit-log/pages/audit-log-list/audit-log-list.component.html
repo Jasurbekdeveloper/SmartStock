@@ -59,7 +59,7 @@
       <tbody>
         @for (entry of pagination.paged(); track entry.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" (click)="toggleExpanded(entry.id)">
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'short' }}</td>
+          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ entry.userName || entry.userId }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">{{ actionLabelKey(entry.action) | translate }}</td>
           <td class="px-4 py-3 text-gray-900 dark:text-white">

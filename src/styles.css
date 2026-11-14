@@ -67,7 +67,12 @@
   --warning: #b45309;
   --warning-soft: #fff6e5;
   --danger: #dc2626;
-  --danger-soft: #fdecec;
+  --danger-soft: #fde2e2;
+  /* Text on --danger-soft (expired, stop): 7.6:1 contrast. */
+  --danger-strong: #991b1b;
+  /* Debts / credit: amber, so a customer's debt never reads like an error. */
+  --debt: #d97706;
+  --debt-soft: #fef3e2;
   --info: #2563eb;
   --info-soft: #eaf1fe;
 
@@ -86,11 +91,12 @@
 
 html.dark {
   color-scheme: dark;
-  --app-bg: #070b10;
-  --surface: #0f1620;
-  --surface-2: #0b1119;
-  --surface-3: #16202c;
-  --border: #1e2a37;
+  /* A softer dark (was #070b10): easier on the eyes in a bright shop. */
+  --app-bg: #0e141b;
+  --surface: #141c26;
+  --surface-2: #111821;
+  --surface-3: #1b2532;
+  --border: #243140;
   --border-strong: #2b3a4a;
   --text: #e6ebef;
   --text-muted: #96a3af;
@@ -107,7 +113,10 @@ html.dark {
   --warning: #fbbf24;
   --warning-soft: rgba(251, 191, 36, 0.12);
   --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --danger-strong: #fca5a5;
+  --debt: #f59e0b;
+  --debt-soft: rgba(245, 158, 11, 0.14);
   --info: #60a5fa;
   --info-soft: rgba(96, 165, 250, 0.12);
 
@@ -367,6 +376,14 @@ html.dark table {
 
 .text-profit { color: var(--success); }
 .text-loss { color: var(--danger); }
+.text-debt { color: var(--debt); }
+
+/* Payment types: the same colour everywhere (POS, sales history, Z-report). */
+.pay-cash { background: var(--success-soft); color: var(--success); }
+.pay-card { background: var(--info-soft); color: var(--info); }
+.pay-mixed { background: var(--brand-soft); color: var(--brand); }
+.pay-debt { background: var(--debt-soft); color: var(--debt); }
+.pay-refund { background: var(--danger-soft); color: var(--danger-strong); }
 .text-muted { color: var(--text-muted); }
 
 /* ---------- Badges & chips ---------- */
@@ -374,7 +391,8 @@ html.dark table {
   @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold;
 }
 
-.badge--red { background: var(--danger-soft); color: var(--danger); }
+.badge--red { background: var(--danger-soft); color: var(--danger-strong); }
+.badge--debt { background: var(--debt-soft); color: var(--debt); }
 .badge--amber { background: var(--warning-soft); color: var(--warning); }
 .badge--green { background: var(--success-soft); color: var(--success); }
 .badge--blue { background: var(--info-soft); color: var(--info); }
@@ -566,7 +584,9 @@ html.dark table {
 @media print {
   app-header,
   app-sidebar,
-  app-toast-container {
+  app-subscription-banner,
+  app-toast-container,
+  .no-print {
     display: none !important;
   }
 }

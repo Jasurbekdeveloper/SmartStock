@@ -55,6 +55,9 @@ const activeBatches: StockBatch[] = [
   // Milk: only expired stock left.
   { id: 'b-milk', productId: 'p4', quantity: 5, initialQuantity: 5, expiryDate: inDays(-2) }
 ];
+/** Till rules for the general tests: the stock / discount rules have their own tests below. */
+const posPolicy = signal({ allowNegativeStock: true, blockExpired: true, cashierMaxDiscountPercent: 100 });
+
 const cashier = { uid: 'u1', email: 'k@x.uz', displayName: 'Kassir', role: 'cashier' as const, tenantId: 't1', active: true };
 
 /** The cashier's full flow through the real POS template and real Material dialogs:
@@ -79,17 +82,57 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: CashMovementService, useValue: { getForShift: () => of([]), add: vi.fn(() => of('m1')) } },
         { provide: DebtService, useValue: { getCustomers: () => of([]), getCustomerDebts: () => of([]) } },
         { provide: AuthService, useValue: { currentUser$: of(cashier), getCurrentUser: () => cashier, can: () => true } },
-        { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }), getShiftSales: () => of([]) } },
+        { provide: ShiftService, useValue: { getOpenShiftForUser: () => of({ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open' }), getOpenShiftsForUser: () => of([{ id: 'sh1', cashierId: 'u1', startingCash: 0, status: 'open', openedAt: new Date() }]), getShiftSales: () => of([]) } },
         { provide: TranslationService, useValue: { translate: (k: string) => k, getLanguage: () => 'uz', setLanguage: () => undefined } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
         { provide: FiscalService, useValue: fiscal },
-        { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm"), fiscalPolicy: signal({ send: true, sendDebt: true }) } }
+        { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm"), fiscalPolicy: signal({ send: true, sendDebt: true }), posPolicy: posPolicy } }
       ]
     }).compileComponents();
   });
 
   afterEach(() => {
     document.body.querySelectorAll('.cdk-overlay-container').forEach((el) => (el.innerHTML = ''));
+    posPolicy.set({ allowNegativeStock: true, blockExpired: true, cashierMaxDiscountPercent: 100 });
+  });
+
+  describe('till rules', () => {
+    it('does not sell more than the stock unless the store allows it', async () => {
+      posPolicy.set({ allowNegativeStock: false, blockExpired: true, cashierMaxDiscountPercent: 100 });
+      const t = await setup();
+      const pos = t.fixture.componentInstance;
+      const toast = TestBed.inject(ToastService) as unknown as { error: ReturnType<typeof vi.fn> };
+
+      pos.addToCart({ ...cement, id: 'p9', quantity: 0 });
+      expect(pos.cart().length).toBe(0);
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('pos.outOfStock'));
+
+      t.tile('Mix').click();
+      pos.updateQuantity('p2', 501);
+      t.payButton().click();
+      await t.settle();
+      expect(t.dialogs()).toBe(0);
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('pos.notEnoughStock'));
+    });
+
+    it('keeps a cashier discount within the store limit', async () => {
+      posPolicy.set({ allowNegativeStock: true, blockExpired: true, cashierMaxDiscountPercent: 10 });
+      const t = await setup();
+      const pos = t.fixture.componentInstance;
+      t.tile('Sement').click();
+      await t.settle();
+      pos.updateLineDiscount('p1', 50000);
+      expect(pos.cart()[0].discount).toBe(5000);
+    });
+
+    it('starts every new ticket with the keypad on quantity', async () => {
+      const t = await setup();
+      const pos = t.fixture.componentInstance;
+      t.tile('Sement').click();
+      pos.setNumpadMode('percent');
+      pos.clearCart();
+      expect(pos.numpadMode()).toBe('qty');
+    });
   });
 
   async function setup() {

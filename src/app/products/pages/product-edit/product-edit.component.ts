@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -149,6 +149,7 @@ export class ProductEditComponent implements OnInit, OnDestroy {
   keywordList = computed(() => parseKeywordsInput(this.searchKeywordsInput()));
 
   readonly mxikInvalid = (code: string) => !!code.trim() && !isValidMxikCode(code);
+  private cdr = inject(ChangeDetectorRef);
 
   pickMxik(p: Product) {
     this.dialog
@@ -163,6 +164,8 @@ export class ProductEditComponent implements OnInit, OnDestroy {
         p.mxikName = sel.mxikName;
         p.packageCode = sel.packageCode;
         p.packageName = sel.packageName;
+        // Fields set after a dialog: zoneless Angular has to be told to redraw.
+        this.cdr.markForCheck();
       });
   }
   generating = signal(false);

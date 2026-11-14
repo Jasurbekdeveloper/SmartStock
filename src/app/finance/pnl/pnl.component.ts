@@ -14,7 +14,9 @@ import { CurrencyDisplayPipe } from '../../core/pipes/currency-display.pipe';
 import { Sale, SalesService } from '../../core/services/sales.service';
 import { Expense, ExpenseService } from '../../core/services/expense.service';
 import { TranslationService } from '../../core/services/translation.service';
-import { EXPENSE_CATEGORY_ICONS, PnlDay, PnlReport, computePnl, percentChange, pnlByDay } from '../../core/utils/finance';
+import { EXPENSE_CATEGORY_ICONS, ExpenseLike, PnlDay, PnlReport, computePnl, percentChange, pnlByDay, stockLossExpenses } from '../../core/utils/finance';
+import { StockEntry, StockService } from '../../core/services/stock.service';
+import { Product, ProductService } from '../../core/services/product.service';
 import { DateRange, PeriodKey, periodRange, previousRange } from '../../core/utils/period';
 import { formatNumber } from '../../core/utils/format-number';
 import { exportReportsToExcel } from '../../core/utils/excel-export';
@@ -22,7 +24,8 @@ import { PeriodPickerComponent } from '../../shared/components/period-picker/per
 
 interface PeriodData {
   sales: Sale[];
-  expenses: Expense[];
+  /** Expenses plus goods written off / missing at counts (category writeOff). */
+  expenses: ExpenseLike[];
   loading: boolean;
 }
 
@@ -40,6 +43,8 @@ const EMPTY: PeriodData = { sales: [], expenses: [], loading: true };
 export class PnlComponent {
   private salesService = inject(SalesService);
   private expenseService = inject(ExpenseService);
+  private stockService = inject(StockService);
+  private productService = inject(ProductService);
   private translation = inject(TranslationService);
 
   readonly icons = EXPENSE_CATEGORY_ICONS;
@@ -49,14 +54,19 @@ export class PnlComponent {
   private load(range: DateRange) {
     return combineLatest([
       this.salesService.getSalesInRange(range.from, range.to).pipe(catchError(() => of([] as Sale[]))),
-      this.expenseService.getExpenses(range.from, range.to).pipe(catchError(() => of([] as Expense[])))
+      this.expenseService.getExpenses(range.from, range.to).pipe(catchError(() => of([] as Expense[]))),
+      this.stockService.getStockEntriesInRange(range.from, range.to).pipe(catchError(() => of([] as StockEntry[]))),
+      this.productService.getProducts().pipe(catchError(() => of([] as Product[])))
     ]).pipe(
       // The sales query is a cursor window; trim to the exact range (offline pending sales included).
-      map(([sales, expenses]) => ({
-        sales: sales.filter((s) => !s.createdAt || new Date(s.createdAt) <= range.to),
-        expenses,
-        loading: false
-      }))
+      map(([sales, expenses, entries, products]) => {
+        const cost = new Map(products.map((p) => [p.id, p.cost]));
+        return {
+          sales: sales.filter((s) => !s.createdAt || new Date(s.createdAt) <= range.to),
+          expenses: [...expenses, ...stockLossExpenses(entries, (id) => cost.get(id) ?? 0)],
+          loading: false
+        };
+      })
     );
   }
 

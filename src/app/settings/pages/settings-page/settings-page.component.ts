@@ -17,6 +17,7 @@ import {
   DEFAULT_STORE_NAME,
   DEFAULT_VAT_RATE,
   FiscalPolicy,
+  PosPolicy,
   ReceiptPaperWidth,
   SettingsService,
   TelegramReportSettings
@@ -86,6 +87,22 @@ export class SettingsPageComponent implements OnInit {
       next: () => this.toast.success(this.translation.translate('messages.saved')),
       error: () => this.toast.error(this.translation.translate('messages.error'))
     });
+  }
+
+  // ---------------------------------------------------------------- till rules (admin)
+  posPolicy = this.settingsService.posPolicy;
+
+  setPosPolicy(patch: Partial<PosPolicy>) {
+    this.settingsService.updateGeneralSettings({ posPolicy: { ...this.posPolicy(), ...patch } }).subscribe({
+      next: () => this.toast.success(this.translation.translate('messages.saved')),
+      error: () => this.toast.error(this.translation.translate('messages.error'))
+    });
+  }
+
+  setMaxDiscount(value: string) {
+    const percent = Math.round(Number(value));
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) return;
+    this.setPosPolicy({ cashierMaxDiscountPercent: percent });
   }
 
   // ---------------------------------------------------------------- Telegram reports (MarketHisob bot)

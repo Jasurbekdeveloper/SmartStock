@@ -15,8 +15,7 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'debts.totalOwed' | translate }}</p>
         <p
           class="text-2xl font-bold"
-          [class.text-red-600]="totalRemaining() > 0"
-          [class.dark:text-red-400]="totalRemaining() > 0"
+          [class.text-debt]="totalRemaining() > 0"
           [class.text-green-600]="totalRemaining() === 0"
           [class.dark:text-green-400]="totalRemaining() === 0"
         >
@@ -39,7 +38,7 @@
     <mat-card class="!p-4">
       <div class="flex justify-between items-center flex-wrap gap-2">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ debt.createdAt | date: 'medium' }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ debt.createdAt | date: 'dd.MM.yyyy HH:mm' }}</p>
           <p class="text-gray-900 dark:text-white">
             {{ 'debts.totalAmount' | translate }}: <span class="font-semibold">{{ debt.totalAmount | currencyDisplay }}</span>
             · {{ 'debts.paidAmount' | translate }}: <span class="font-semibold">{{ debt.paidAmount | currencyDisplay }}</span>
@@ -54,7 +53,7 @@
           }
           @if (debt.dueDate) {
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ 'debts.dueDate' | translate }}: {{ debt.dueDate | date }}
+            {{ 'debts.dueDate' | translate }}: {{ debt.dueDate | date: 'dd.MM.yyyy' }}
           </p>
           }
         </div>
@@ -62,8 +61,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'debts.remainingAmount' | translate }}</p>
           <p
             class="text-lg font-bold"
-            [class.text-red-600]="debt.remainingAmount > 0"
-            [class.dark:text-red-400]="debt.remainingAmount > 0"
+            [class.text-debt]="debt.remainingAmount > 0"
             [class.text-green-600]="debt.remainingAmount === 0"
             [class.dark:text-green-400]="debt.remainingAmount === 0"
           >

@@ -1,7 +1,8 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ToastService } from '../../../core/services/toast.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
@@ -15,7 +16,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 import { ProductPickerComponent } from '../../../shared/components/product-picker/product-picker.component';
 
-export type StockOutReason = 'damaged' | 'lost' | 'returned' | 'other';
+export type StockOutReason = 'damaged' | 'expired' | 'lost' | 'supplierReturn' | 'returned' | 'other';
 
 @Component({
   selector: 'app-stock-out',
@@ -37,11 +38,12 @@ export type StockOutReason = 'damaged' | 'lost' | 'returned' | 'other';
 export class StockOutComponent {
   private stockService = inject(StockService);
   private productService = inject(ProductService);
-  private router = inject(Router);
+  private toast = inject(ToastService);
+  private translation = inject(TranslationService);
 
   products = toSignal(this.productService.getProducts(), { initialValue: [] });
 
-  readonly reasons: StockOutReason[] = ['damaged', 'lost', 'returned', 'other'];
+  readonly reasons: StockOutReason[] = ['damaged', 'expired', 'lost', 'supplierReturn', 'returned', 'other'];
 
   /** Signal, not a field: the picker sets it from an event and the page is zoneless. */
   productId = signal('');
@@ -79,6 +81,7 @@ export class StockOutComponent {
       return;
     }
 
+    if (this.submitting()) return;
     this.submitting.set(true);
     this.errorKey.set(null);
 
@@ -88,11 +91,18 @@ export class StockOutComponent {
         quantity: this.quantity,
         currentQuantity: product.quantity,
         reason: this.reason,
-        notes: this.notes || undefined
+        notes: this.notes || undefined,
+        unitCost: product.cost
       })
       .subscribe({
+        // Stay on the form for the next item: confirm, and clear it so it can't be sent twice.
         next: () => {
-          this.router.navigate(['/stock/history']);
+          this.toast.success(`${product.name}: ${this.translation.translate('stock.stockOutSaved')}`);
+          this.productId.set('');
+          this.quantity = null;
+          this.notes = '';
+          this.errorKey.set(null);
+          this.submitting.set(false);
         },
         error: (err) => {
           console.error('Stock out error:', err);

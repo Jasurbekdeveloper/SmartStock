@@ -1,4 +1,4 @@
-import { Sale, saleNetProfit, saleNetTotal } from '../services/sales.service';
+import { Sale, saleHasReturns, saleNetProfit, saleNetTotal } from '../services/sales.service';
 import { roundMoney } from './pos-math';
 import { startOfDay } from './date-range';
 
@@ -79,7 +79,7 @@ const ratio = (a: number, b: number) => (b > 0 ? a / b : 0);
 /** VAT of a sale scaled down by its refunded share, like saleNetProfit does for profit. */
 function saleNetVat(sale: Sale): number {
   const tax = sale.tax ?? 0;
-  if (!sale.refundedAmount || sale.total <= 0) return tax;
+  if (!saleHasReturns(sale) || sale.total <= 0) return tax;
   return tax * (saleNetTotal(sale) / sale.total);
 }
 

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, of } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -23,7 +23,9 @@ import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { CurrencyDisplayPipe } from '../../../core/pipes/currency-display.pipe';
 import { fromDateInput, toDateInput } from '../../../core/utils/product-extras';
 import { expiryFromShelfLife } from '../../../core/utils/batches';
-import { normalizeForSearch } from '../../../core/utils/uzbek-transliteration';
+import { findByCode, searchProducts } from '../../../core/utils/product-search';
+import { nextBatchNo, shelfLifeFromBatches } from '../../../core/utils/batch-number';
+import { BatchService } from '../../../core/services/batch.service';
 import { roundMoney } from '../../../core/utils/pos-math';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 import { MatDialog } from '@angular/material/dialog';
@@ -83,6 +85,7 @@ export class StockInComponent {
   private router = inject(Router);
   private auth = inject(AuthService);
   private dialog = inject(MatDialog);
+  private batchService = inject(BatchService);
 
   readonly manualSupplierOption = MANUAL_SUPPLIER_OPTION;
   readonly maxLines = MAX_RECEIVE_LINES;
@@ -111,19 +114,7 @@ export class StockInComponent {
   selectedSupplier = computed(() => this.suppliers().find((s) => s.id === this.supplierId()));
   hasShift = computed(() => !!this.openShift());
 
-  matches = computed(() => {
-    const q = normalizeForSearch(this.query().trim());
-    if (!q) return [];
-    return this.products()
-      .filter(
-        (p) =>
-          p.barcode === this.query().trim() ||
-          p.sku === this.query().trim() ||
-          normalizeForSearch(p.name).includes(q) ||
-          (p.searchKeywords ?? []).some((k) => normalizeForSearch(k).includes(q))
-      )
-      .slice(0, 8);
-  });
+  matches = computed(() => searchProducts(this.products(), this.query()));
 
   total = computed(() => roundMoney(this.rows().reduce((s, r) => s + (Number(r.quantity) || 0) * (Number(r.costPrice) || 0), 0)));
   paidNow = computed(() => {
@@ -142,10 +133,23 @@ export class StockInComponent {
 
   /** Enter in the search box: an exact barcode adds at once, else the first match. */
   addFromSearch() {
-    const code = this.query().trim();
-    const exact = this.products().find((p) => p.barcode === code || p.sku === code);
-    const pick = exact ?? this.matches()[0];
+    const pick = findByCode(this.products(), this.query()) ?? this.matches()[0];
     if (pick) this.addProduct(pick);
+  }
+
+  /** Reads a barcode with the camera (phone / tablet without a scanner gun). */
+  async scan() {
+    const { BarcodeScannerDialogComponent } = await import(
+      '../../../shared/components/barcode-scanner-dialog/barcode-scanner-dialog.component'
+    );
+    this.dialog
+      .open(BarcodeScannerDialogComponent, { width: '420px' })
+      .afterClosed()
+      .subscribe((code: string | undefined) => {
+        if (!code) return;
+        this.query.set(code);
+        this.addFromSearch();
+      });
   }
 
   addProduct(product: Product) {
@@ -173,6 +177,38 @@ export class StockInComponent {
         expiryTouched: false
       }
     ]);
+    if (product.trackExpiry) void this.prefillBatch(product);
+  }
+
+  /**
+   * Dated goods: manufacture date today, best-before from the shelf life (the product's,
+   * else the latest delivery's), batch number = arrival day + name ("151126-QURT",
+   * "-2" for a second delivery the same day). Everything stays editable.
+   */
+  private async prefillBatch(product: Product) {
+    const today = new Date();
+    const batches = await this.loadBatches(product.id);
+    const row = this.rows().find((r) => r.product.id === product.id);
+    if (!row) return;
+    const otherRows = this.rows().filter((r) => r !== row).map((r) => r.batchNo);
+    const shelf = product.shelfLifeDays || shelfLifeFromBatches(batches);
+    const changes: Partial<ReceiveRow> = {};
+    if (!row.batchNo) changes.batchNo = nextBatchNo(product.name, today, [...batches.map((b) => b.batchNo), ...otherRows]);
+    if (!row.manufactureDate) {
+      changes.manufactureDate = toDateInput(today);
+      const exp = !row.expiryDate ? expiryFromShelfLife(today, shelf) : null;
+      if (exp) changes.expiryDate = toDateInput(exp);
+    }
+    this.patch(product.id, changes);
+  }
+
+  private async loadBatches(productId: string) {
+    try {
+      return await firstValueFrom(this.batchService.getBatchesForProduct(productId));
+    } catch (err) {
+      console.error('Stock in: batches not loaded', err);
+      return [];
+    }
   }
 
   remove(productId: string) {

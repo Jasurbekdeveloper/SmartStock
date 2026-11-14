@@ -89,12 +89,22 @@
           </label>
           <label class="qe-field">
             <span>{{ 'products.manufactureDate' | translate }}</span>
-            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="manufactureDate.set($event)" name="mfg" />
+            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="setManufactureDate($event)" name="mfg" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.shelfLifeDays' | translate }}</span>
+            <input class="qe-input money" type="number" min="1" step="1" [ngModel]="shelfLifeDays()" (ngModelChange)="setShelfLife($event)" name="shelf" />
           </label>
           <label class="qe-field">
             <span>{{ 'products.expiryDate' | translate }}{{ newTracked() ? ' *' : '' }}</span>
-            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="expiryDate.set($event)" name="expiry" />
+            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="setExpiryDate($event)" name="expiry" />
           </label>
+          @if (newTracked()) {
+          <label class="qe-field">
+            <span>{{ 'products.batchNo' | translate }}</span>
+            <input class="qe-input" type="text" [ngModel]="batchNo()" (ngModelChange)="setBatchNo($event)" name="batchNo" />
+          </label>
+          }
         </div>
         @if (canSeeCost() && margin(); as m) {
         <p class="text-sm" [class.text-loss]="m.belowCost" [class.text-profit]="!m.belowCost">
@@ -139,16 +149,28 @@
           </label>
         </div>
         @if (p.trackExpiry) {
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label class="qe-field">
             <span>{{ 'products.manufactureDate' | translate }}</span>
-            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="manufactureDate.set($event)" name="mfg" />
+            <input class="qe-input" type="date" [ngModel]="manufactureDate()" (ngModelChange)="setManufactureDate($event)" name="mfg" />
+          </label>
+          <label class="qe-field">
+            <span>{{ 'products.shelfLifeDays' | translate }}</span>
+            <input class="qe-input money" type="number" min="1" step="1" [ngModel]="shelfLifeDays()" (ngModelChange)="setShelfLife($event)" name="shelf" />
+            @if (shelfSource(); as src) {
+            <small class="text-xs text-muted">{{ (src === 'batch' ? 'quick.shelfFromBatch' : 'quick.shelfFromProduct') | translate }}</small>
+            }
           </label>
           <label class="qe-field">
             <span>{{ 'products.expiryDate' | translate }} *</span>
-            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="expiryDate.set($event)" name="expiry" />
+            <input class="qe-input" type="date" [ngModel]="expiryDate()" (ngModelChange)="setExpiryDate($event)" name="expiry" />
           </label>
         </div>
+        <label class="qe-field">
+          <span>{{ 'products.batchNo' | translate }}</span>
+          <input class="qe-input" type="text" [ngModel]="batchNo()" (ngModelChange)="setBatchNo($event)" name="batchNo" />
+          <small class="text-xs text-muted">{{ 'quick.batchNoHint' | translate }}</small>
+        </label>
         }
         @if (+(quantity() ?? 0) > 0) {
         <p class="text-sm text-muted">{{ 'quick.after' | translate }}: <b class="money">{{ p.quantity + +(quantity() ?? 0) | sum:2 }} {{ unitLabel(p.unit) }}</b></p>

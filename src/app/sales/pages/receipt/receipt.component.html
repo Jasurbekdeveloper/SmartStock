@@ -1,5 +1,12 @@
 <div class="receipt" [class.receipt--58]="paperWidth() === '58'">
   @if (sale(); as sale) {
+  <!-- Only the register's paper receipt is fiscal. This one says so, so a buyer
+       doesn't take it for the tax receipt (no QR / fiscal sign of its own). -->
+  @if (!sale.fiscal) {
+  <div class="receipt__badge">{{ 'sales.nonFiscalReceipt' | translate }}</div>
+  } @else if (!fiscalQr()) {
+  <div class="receipt__badge">{{ 'sales.receiptCopy' | translate }}</div>
+  }
   <div class="receipt__store">{{ storeName() }}</div>
   @if (settings()?.storeAddress) {
   <div class="receipt__meta">{{ settings()!.storeAddress }}</div>

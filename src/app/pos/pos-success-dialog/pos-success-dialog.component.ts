@@ -11,6 +11,8 @@ export interface PosSuccessDialogData {
   total: number;
   change: number;
   debt: number;
+  /** The register (VCR) already printed the fiscal receipt — ours would be a second one. */
+  fiscal?: boolean;
 }
 
 /** Shown after every sale: the change to hand back, big, plus a one-key receipt print. */
@@ -38,10 +40,17 @@ export interface PosSuccessDialogData {
       </div>
       }
 
+      @if (data.fiscal) {
+      <p class="mt-4 text-sm text-muted flex items-center justify-center gap-1">
+        <mat-icon class="!w-5 !h-5 !text-xl">receipt_long</mat-icon>
+        {{ 'fiscal.printedByRegister' | translate }}
+      </p>
+      }
+
       <div class="mt-6 grid grid-cols-2 gap-3">
         <button mat-stroked-button class="!h-12" (click)="dialogRef.close('print')">
           <mat-icon>print</mat-icon>
-          {{ 'sales.printReceipt' | translate }}
+          {{ (data.fiscal ? 'sales.printCopy' : 'sales.printReceipt') | translate }}
         </button>
         <button mat-flat-button color="primary" class="!h-12" cdkFocusInitial (click)="dialogRef.close()">
           {{ 'pos.newSale' | translate }}

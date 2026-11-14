@@ -97,6 +97,8 @@ export interface Sale {
   fiscalSkipped?: string;
   /** Sum already refunded through returns (denormalized for lists). */
   refundedAmount?: number;
+  /** Value of returned goods that came off this sale's debt instead of going back as money. */
+  debtReturned?: number;
 }
 
 export interface SaleDebtInput {
@@ -133,6 +135,9 @@ export interface SaleReturn {
   cashierName?: string;
   /** Fiscal refund receipt from the virtual cash register. */
   fiscal?: FiscalReceipt;
+  /** Debt of this sale that the returned goods paid off (no money changed hands for it). */
+  debtId?: string;
+  debtReduction?: number;
   createdAt: Date;
 }
 
@@ -147,15 +152,20 @@ export function saleCardIn(sale: Sale): number {
   return sale.paymentMethod === 'card' ? Math.max(0, Math.min(sale.paidAmount, sale.total)) : 0;
 }
 
-/** Revenue net of any returns. */
+/** Revenue net of any returns — refunded in money or taken off the debt. */
 export function saleNetTotal(sale: Sale): number {
-  return roundMoney(sale.total - (sale.refundedAmount ?? 0));
+  return roundMoney(sale.total - (sale.refundedAmount ?? 0) - (sale.debtReturned ?? 0));
+}
+
+/** True when part of the sale came back through a return. */
+export function saleHasReturns(sale: Sale): boolean {
+  return !!sale.refundedAmount || !!sale.debtReturned;
 }
 
 /** Net profit scaled down by the refunded share — returns give back the margin too. */
 export function saleNetProfit(sale: Sale): number {
   const profit = sale.totalNetProfit ?? 0;
-  if (!sale.refundedAmount || sale.total <= 0) return profit;
+  if (!saleHasReturns(sale) || sale.total <= 0) return profit;
   return roundMoney(profit * (saleNetTotal(sale) / sale.total));
 }
 
@@ -289,14 +299,28 @@ export class SalesService {
    * Records a (partial) return: puts the goods back on stock, logs the refund
    * against the cashier's current shift (so the Z-report nets it out of cash),
    * and bumps the sale's denormalized `refundedAmount` — all in one batch.
+   * On a debt sale the goods first come off the debt (`debtReduction`): the debt's
+   * total and remaining amounts drop by it, and the sale's `debtReturned` grows.
    */
   createReturn(ret: Omit<SaleReturn, 'id' | 'createdAt'>): Observable<string> {
     const batch = writeBatch(this.firestore);
     const returnRef = doc(collection(this.firestore, 'returns'));
     const tenantId = requireTenantId(this.authService);
+    const debtReduction = ret.debtId && ret.debtReduction && ret.debtReduction > 0 ? ret.debtReduction : 0;
+    const record = debtReduction ? ret : { ...ret, debtId: undefined, debtReduction: undefined };
 
-    batch.set(returnRef, stripUndefined({ ...ret, tenantId, createdAt: serverTimestamp() }));
-    batch.update(doc(this.firestore, 'sales', ret.saleId), { refundedAmount: increment(ret.refundAmount) });
+    batch.set(returnRef, stripUndefined({ ...record, tenantId, createdAt: serverTimestamp() }));
+    batch.update(doc(this.firestore, 'sales', ret.saleId), {
+      ...(ret.refundAmount > 0 ? { refundedAmount: increment(ret.refundAmount) } : {}),
+      ...(debtReduction ? { debtReturned: increment(debtReduction) } : {})
+    });
+    if (debtReduction) {
+      batch.update(doc(this.firestore, 'debts', ret.debtId!), {
+        totalAmount: increment(-debtReduction),
+        remainingAmount: increment(-debtReduction),
+        lastReturnId: returnRef.id
+      });
+    }
     this.adjustStockInBatch(
       batch,
       ret.items.map((item) => ({ productId: item.productId, delta: item.quantity }))

@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { isValidMxikCode } from './product-identifiers';
 
 /** One row parsed from an uploaded product-import Excel file, mapped from the
  *  documented column headers (see `PRODUCT_IMPORT_HEADERS`) to Product-ish fields.
@@ -15,6 +16,10 @@ export interface ParsedProductRow {
   size?: string;
   familyId?: string;
   imageUrl?: string;
+  /** MXIK (IKPU) code for the fiscal receipt, 17 digits. */
+  mxikCode?: string;
+  /** Package code of the MXIK code; looked up from the catalogue when left empty. */
+  packageCode?: string;
   price: number;
   cost: number;
   quantity: number;
@@ -49,6 +54,8 @@ export const PRODUCT_IMPORT_HEADERS = {
   unit: 'Birlik',
   minQuantity: 'Min. miqdor',
   category: 'Kategoriya',
+  mxikCode: 'MXIK',
+  packageCode: 'Qadoq kodi',
   altUnits: 'Muqobil birliklar',
   searchKeywords: "Kalit so'zlar",
   description: 'Tavsif',
@@ -91,6 +98,27 @@ export function toImportDate(value: unknown): Date | undefined {
 function validDate(y: number, mo: number, d: number): Date | undefined {
   const date = new Date(y, mo - 1, d);
   return date.getFullYear() === y && date.getMonth() === mo - 1 && date.getDate() === d ? date : undefined;
+}
+
+/**
+ * MXIK has 17 digits: more than Excel keeps in a number (15) and more than a JS number
+ * holds exactly, so a numeric cell has already lost its last digits. Only text cells
+ * are accepted; spaces inside the code are ignored.
+ */
+export function readMxikCell(value: unknown): { code?: string; error?: 'number' | 'format' } {
+  if (value === undefined || value === null || value === '') return {};
+  if (typeof value === 'number') return { error: 'number' };
+  const code = String(value).replace(/\s+/g, '').replace(/^'/, '');
+  if (!code) return {};
+  return isValidMxikCode(code) ? { code } : { error: 'format' };
+}
+
+/** Package codes are short numbers, so a numeric cell is fine. Empty → undefined, not digits → null. */
+export function readPackageCodeCell(value: unknown): string | null | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const code = (typeof value === 'number' ? String(Math.trunc(value)) : String(value)).replace(/\s+/g, '');
+  if (!code) return undefined;
+  return /^\d+$/.test(code) ? code : null;
 }
 
 function toText(value: unknown): string {
@@ -139,6 +167,8 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           const altUnitsRaw = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.altUnits)) || undefined;
           const searchKeywordsRaw = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.searchKeywords)) || undefined;
           const description = toText(findValue(rawRow, PRODUCT_IMPORT_HEADERS.description)) || undefined;
+          const mxik = readMxikCell(findValue(rawRow, PRODUCT_IMPORT_HEADERS.mxikCode));
+          const packageCode = readPackageCodeCell(findValue(rawRow, PRODUCT_IMPORT_HEADERS.packageCode));
 
           const manufactureRaw = findValue(rawRow, PRODUCT_IMPORT_HEADERS.manufactureDate);
           const expiryRaw = findValue(rawRow, PRODUCT_IMPORT_HEADERS.expiryDate);
@@ -157,6 +187,10 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
           if (quantity === undefined)
             rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.quantity} is missing or invalid`);
           if (!unit) rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.unit} is missing`);
+          if (mxik.error === 'number')
+            rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.mxikCode} must be a text cell (Excel cuts 17-digit numbers)`);
+          if (mxik.error === 'format') rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.mxikCode} must be 17 digits`);
+          if (packageCode === null) rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.packageCode} must be digits`);
           if (toText(manufactureRaw) && !manufactureDate)
             rowErrors.push(`Row ${rowNumber}: ${PRODUCT_IMPORT_HEADERS.manufactureDate} is invalid`);
           if (toText(expiryRaw) && !expiryDate)
@@ -180,6 +214,8 @@ export function parseProductExcelFile(file: File): Promise<{ rows: ParsedProduct
             size,
             familyId,
             imageUrl,
+            mxikCode: mxik.code,
+            packageCode: packageCode ?? undefined,
             price: price as number,
             cost: cost ?? 0,
             quantity: quantity as number,
@@ -223,6 +259,8 @@ export function generateProductImportTemplate(): void {
     [PRODUCT_IMPORT_HEADERS.unit]: 'dona',
     [PRODUCT_IMPORT_HEADERS.minQuantity]: 10,
     [PRODUCT_IMPORT_HEADERS.category]: 'Qurilish materiallari',
+    [PRODUCT_IMPORT_HEADERS.mxikCode]: '',
+    [PRODUCT_IMPORT_HEADERS.packageCode]: '',
     [PRODUCT_IMPORT_HEADERS.altUnits]: 'quti:20,karobka:100',
     [PRODUCT_IMPORT_HEADERS.searchKeywords]: 'sement, tsement',
     [PRODUCT_IMPORT_HEADERS.description]: 'M400 markali sement, 50 kg qop',
@@ -243,7 +281,17 @@ export function generateProductImportTemplate(): void {
     [PRODUCT_IMPORT_HEADERS.category]: 'Qurilish materiallari'
   };
 
-  const worksheet = XLSX.utils.json_to_sheet([exampleRow, plainRow], { header: Object.values(PRODUCT_IMPORT_HEADERS) });
+  const headers = Object.values(PRODUCT_IMPORT_HEADERS);
+  const worksheet = XLSX.utils.json_to_sheet([exampleRow, plainRow], { header: headers });
+  // The MXIK column is formatted as text for the first rows, so a typed or pasted
+  // 17-digit code keeps all its digits instead of turning into 1.23E+16.
+  const mxikCol = headers.indexOf(PRODUCT_IMPORT_HEADERS.mxikCode);
+  const textRows = 1000;
+  for (let r = 1; r <= textRows; r++) {
+    const addr = XLSX.utils.encode_cell({ r, c: mxikCol });
+    worksheet[addr] = { ...(worksheet[addr] ?? { t: 's', v: '' }), z: '@' };
+  }
+  worksheet['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: textRows, c: headers.length - 1 } });
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Mahsulotlar');
   XLSX.writeFile(workbook, 'mahsulotlar_shablon.xlsx');

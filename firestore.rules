@@ -320,11 +320,13 @@ service cloud.firestore {
       allow create: if canWrite(request.resource.data.tenantId)
         && request.resource.data.cashierId == request.auth.uid;
       // A return (permission sales.refund, own sales unless the role sees all) only
-      // bumps refundedAmount.
+      // bumps refundedAmount (money given back) and debtReturned (goods taken off the
+      // sale's debt), together never past the sale total.
       allow update: if canRefundSale(resource.data.tenantId, resource.data.get('cashierId', ''))
         && request.resource.data.tenantId == resource.data.tenantId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundedAmount'])
-        && request.resource.data.refundedAmount <= resource.data.total + 1;
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundedAmount', 'debtReturned'])
+        && request.resource.data.get('refundedAmount', 0) + request.resource.data.get('debtReturned', 0)
+             <= resource.data.total + 1;
       allow delete: if false;
     }
 
@@ -336,7 +338,11 @@ service cloud.firestore {
             request.resource.data.tenantId,
             get(/databases/$(database)/documents/sales/$(request.resource.data.saleId)).data.get('cashierId', ''))
         && get(/databases/$(database)/documents/sales/$(request.resource.data.saleId)).data.tenantId == request.resource.data.tenantId
-        && request.resource.data.cashierId == request.auth.uid;
+        && request.resource.data.cashierId == request.auth.uid
+        // Goods taken off a debt: only the debt this very sale opened.
+        && (!('debtId' in request.resource.data) || (
+             request.resource.data.debtReduction is number && request.resource.data.debtReduction > 0
+             && get(/databases/$(database)/documents/debts/$(request.resource.data.debtId)).data.get('saleId', '') == request.resource.data.saleId));
       allow update, delete: if false;
     }
 
@@ -362,15 +368,27 @@ service cloud.firestore {
       // atomic write, for exactly the amount paid.
       allow update: if canWrite(resource.data.tenantId)
         && request.resource.data.tenantId == resource.data.tenantId
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate', 'lastPaymentId'])
-        && (canPerm(resource.data.tenantId, 'debts.manage') || (
-             request.resource.data.lastPaymentId is string
-             && existsAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId))
-             && getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.debtId == id
-             && request.resource.data.paidAmount
-                  == resource.data.paidAmount + getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.amount
-             && request.resource.data.remainingAmount >= -0.01));
+        && ((request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['paidAmount', 'remainingAmount', 'lastPaymentDate', 'lastPaymentId'])
+             && (canPerm(resource.data.tenantId, 'debts.manage') || (
+                  request.resource.data.lastPaymentId is string
+                  && existsAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId))
+                  && getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.debtId == id
+                  && request.resource.data.paidAmount
+                       == resource.data.paidAmount + getAfter(/databases/$(database)/documents/debtPayments/$(request.resource.data.lastPaymentId)).data.amount
+                  && request.resource.data.remainingAmount >= -0.01)))
+          // A return of goods bought on this debt: total and remaining drop by exactly
+          // the return's debtReduction, written in the same atomic batch.
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['totalAmount', 'remainingAmount', 'lastReturnId'])
+              && request.resource.data.lastReturnId is string
+              && existsAfter(/databases/$(database)/documents/returns/$(request.resource.data.lastReturnId))
+              && getAfter(/databases/$(database)/documents/returns/$(request.resource.data.lastReturnId)).data.get('debtId', '') == id
+              && request.resource.data.totalAmount
+                   == resource.data.totalAmount - getAfter(/databases/$(database)/documents/returns/$(request.resource.data.lastReturnId)).data.debtReduction
+              && request.resource.data.remainingAmount
+                   == resource.data.remainingAmount - getAfter(/databases/$(database)/documents/returns/$(request.resource.data.lastReturnId)).data.debtReduction
+              && request.resource.data.remainingAmount >= -0.01));
       allow delete: if canPerm(resource.data.tenantId, 'debts.manage');
     }
 

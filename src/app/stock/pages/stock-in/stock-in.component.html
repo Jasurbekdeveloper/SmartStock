@@ -49,6 +49,9 @@
           [placeholder]="'stock.addLinePlaceholder' | translate"
           autocomplete="off"
         />
+        <button mat-icon-button type="button" class="!-mr-2" (click)="scan()" [matTooltip]="'productPicker.camera' | translate">
+          <mat-icon>photo_camera</mat-icon>
+        </button>
       </label>
       @if (matches().length > 0) {
       <div class="rc-suggest">

@@ -47,3 +47,42 @@ describe('ReturnDialogComponent fiscal QR', () => {
     expect(close.mock.calls[0][0]).not.toHaveProperty('originalQrCodeUrl');
   });
 });
+
+describe('ReturnDialogComponent debt sale', () => {
+  const debtSale = {
+    id: 's2',
+    total: 1_800_000,
+    debtAmount: 1_800_000,
+    customerId: 'c1',
+    items: [{ productId: 'p1', productName: 'Areston', quantity: 1, price: 1_800_000, total: 1_800_000, finalTotal: 1_800_000 }]
+  } as unknown as Sale;
+
+  function open(remainingAmount: number) {
+    const close = vi.fn();
+    const data: ReturnDialogData = { sale: debtSale, previousReturns: [], debt: { id: 'd1', remainingAmount } };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MAT_DIALOG_DATA, useValue: data },
+        { provide: MatDialogRef, useValue: { close } }
+      ]
+    });
+    const component = TestBed.runInInjectionContext(() => new ReturnDialogComponent());
+    component.setQty(0, 1);
+    return { component, close };
+  }
+
+  it('takes an unpaid sale off the debt instead of blocking the return', () => {
+    const { component, close } = open(1_800_000);
+    expect(component.split()).toEqual({ goods: 1_800_000, debtReduction: 1_800_000, refund: 0 });
+    expect(component.canSubmit()).toBe(true);
+    component.submit();
+    expect(close.mock.calls[0][0]).toMatchObject({ refundAmount: 0, debtId: 'd1', debtReduction: 1_800_000 });
+  });
+
+  it('gives back what was repaid after clearing the rest of the debt', () => {
+    const { component } = open(1_300_000);
+    expect(component.paidLeft).toBe(500_000);
+    expect(component.split()).toEqual({ goods: 1_800_000, debtReduction: 1_300_000, refund: 500_000 });
+  });
+});

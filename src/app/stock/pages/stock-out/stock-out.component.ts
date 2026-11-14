@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,20 +12,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { Product, ProductService } from '../../../core/services/product.service';
 import { StockService } from '../../../core/services/stock.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { SumPipe } from '../../../core/pipes/sum.pipe';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
+import { ProductPickerComponent } from '../../../shared/components/product-picker/product-picker.component';
 
 export type StockOutReason = 'damaged' | 'lost' | 'returned' | 'other';
 
 @Component({
   selector: 'app-stock-out',
   standalone: true,
-  imports: [NumericInputDirective, 
+  imports: [NumericInputDirective, ProductPickerComponent, 
     CommonModule,
     FormsModule,
     TranslatePipe,
     TranslateModule,
-    SumPipe,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -44,7 +43,9 @@ export class StockOutComponent {
 
   readonly reasons: StockOutReason[] = ['damaged', 'lost', 'returned', 'other'];
 
-  productId = '';
+  /** Signal, not a field: the picker sets it from an event and the page is zoneless. */
+  productId = signal('');
+  private qtyInput = viewChild<ElementRef<HTMLInputElement>>('qtyInput');
   quantity: number | null = null;
   reason: StockOutReason = 'damaged';
   notes = '';
@@ -53,7 +54,13 @@ export class StockOutComponent {
   errorKey = signal<string | null>(null);
 
   selectedProduct(): Product | undefined {
-    return this.products().find((p) => p.id === this.productId);
+    return this.products().find((p) => p.id === this.productId());
+  }
+
+  onPick(product: Product | null) {
+    this.productId.set(product?.id ?? '');
+    this.errorKey.set(null);
+    if (product) setTimeout(() => this.qtyInput()?.nativeElement.focus());
   }
 
   reasonLabelKey(reason: StockOutReason): string {

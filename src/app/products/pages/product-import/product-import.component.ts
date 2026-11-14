@@ -18,6 +18,8 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { parseAltUnitsInput } from '../../../core/utils/alt-units-parser.util';
 import { expiryFromShelfLife } from '../../../core/utils/batches';
 import { BatchService, NewBatchInput } from '../../../core/services/batch.service';
+import { MxikPackage, MxikService } from '../../../core/services/mxik.service';
+import { pickPackageForUnit } from '../../../core/utils/fiscal-receipt';
 import {
   ParsedProductRow,
   PRODUCT_IMPORT_HEADERS,
@@ -67,6 +69,7 @@ interface ImportResult {
 export class ProductImportComponent {
   private productService = inject(ProductService);
   private batchService = inject(BatchService);
+  private mxikService = inject(MxikService);
   private categoryService = inject(CategoryService);
   private auditLogService = inject(AuditLogService);
   private toastService = inject(ToastService);
@@ -176,6 +179,14 @@ export class ProductImportComponent {
     const creates: { row: PreviewRow; data: Omit<Product, 'id'>; batch?: NewBatchInput }[] = [];
     const trackedCategories = new Set(this.categories().filter((c) => c.trackExpiry).map((c) => c.id));
 
+    // One catalogue lookup per distinct MXIK code: its name, and the package to use when
+    // the row leaves "Qadoq kodi" empty. Offline or unknown codes still import, just
+    // without the names (and without a package if none was given).
+    const mxikCodes = [...new Set(rows.map((r) => r.parsed.mxikCode).filter((c): c is string => !!c))];
+    const mxikCards = new Map<string, { name: string; packages: MxikPackage[] } | null>(
+      await Promise.all(mxikCodes.map(async (code) => [code, await this.mxikService.card(code)] as const))
+    );
+
     for (const row of rows) {
       const parsed = row.parsed;
       const altUnits = parsed.altUnitsRaw ? parseAltUnitsInput(parsed.altUnitsRaw) : [];
@@ -206,6 +217,20 @@ export class ProductImportComponent {
       if (parsed.size !== undefined) optionalFields.size = parsed.size;
       if (parsed.familyId !== undefined) optionalFields.familyId = parsed.familyId;
       if (parsed.imageUrl !== undefined) optionalFields.imageUrl = parsed.imageUrl;
+      if (parsed.mxikCode) {
+        const card = mxikCards.get(parsed.mxikCode) ?? null;
+        const pkg = parsed.packageCode
+          ? card?.packages.find((p) => p.code === parsed.packageCode)
+          : pickPackageForUnit(card?.packages ?? [], parsed.unit);
+        optionalFields.mxikCode = parsed.mxikCode;
+        optionalFields.mxikName = card?.name || null;
+        optionalFields.packageCode = parsed.packageCode ?? pkg?.code ?? null;
+        optionalFields.packageName = pkg?.name || null;
+      } else if (parsed.packageCode) {
+        // The stored package name belonged to the old code; the product page shows it.
+        optionalFields.packageCode = parsed.packageCode;
+        optionalFields.packageName = null;
+      }
       if (altUnits.length > 0) optionalFields.altUnits = altUnits;
       if (searchKeywords.length > 0) optionalFields.searchKeywords = searchKeywords;
       if (row.categoryId !== undefined) optionalFields.categoryId = row.categoryId;

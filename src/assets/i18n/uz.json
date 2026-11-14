@@ -125,7 +125,9 @@
       "updatedCount": "Yangilandi",
       "failedCount": "Xato",
       "failedRows": "Xato qatorlar",
-      "expiryColumns": "Yaroqlilik muddati ustunlari (ixtiyoriy)"
+      "expiryColumns": "Yaroqlilik muddati ustunlari (ixtiyoriy)",
+      "fiscalColumns": "Soliq (fiskal) ustunlari (ixtiyoriy)",
+      "mxikHint": "MXIK — 17 xonali kod. Excel uzun sonni buzadi, shuning uchun shablondagi MXIK ustuniga yozing (u matn formatida) yoki kod oldiga ' belgisini qo'ying. Qadoq kodi bo'sh qolsa, tizim uni MXIK katalogidan mahsulot birligiga qarab o'zi tanlaydi."
     },
     "costPrice": "Tannarx (qanchadan tushgan)",
     "sellingPrice": "Sotish narxi",
@@ -413,7 +415,10 @@
     "noResults": "Filtrga mos sotuvlar topilmadi",
     "receiptNo": "Chek №",
     "cashier": "Kassir",
-    "receiptThanks": "Xaridingiz uchun rahmat!"
+    "receiptThanks": "Xaridingiz uchun rahmat!",
+    "nonFiscalReceipt": "Savdo cheki · fiskal chek emas",
+    "receiptCopy": "Nusxa · fiskal chek emas",
+    "printCopy": "Nusxasini chop etish"
   },
   "shifts": {
     "title": "Smena boshqaruvi",
@@ -592,7 +597,7 @@
     "totalSales": "Jami sotuvlar",
     "totalProducts": "Jami mahsulotlar",
     "totalDebts": "Jami qarzlar",
-    "todayRevenue": "Bugun daromad",
+    "todayRevenue": "Bugungi sotuv",
     "receiptsToday": "Bugungi cheklar soni",
     "avgReceiptValue": "O'rtacha chek summasi",
     "todayNetProfit": "Bugungi sof foyda",
@@ -769,7 +774,18 @@
     "confirm": "Qaytarishni tasdiqlash",
     "saved": "Qaytarish saqlandi, tovar omborga qo'shildi",
     "cashRefunds": "Naqd qaytarilgan",
-    "debtSaleHint": "Bu sotuvning bir qismi nasiyada — faqat to'langan qismigacha pul qaytariladi."
+    "debtSaleHint": "Bu sotuvning bir qismi nasiyada — faqat to'langan qismigacha pul qaytariladi.",
+    "debtSaleTitle": "Bu sotuv qarzga bo'lgan",
+    "debtSaleExplain": "Qaytarilgan tovar summasi avval mijozning shu sotuv bo'yicha qarzidan ayriladi. Qarzdan ortib qolgani mijozga pul qilib qaytariladi.",
+    "saleTotal": "Sotuv summasi",
+    "paidSoFar": "Mijoz to'lagan",
+    "debtLeft": "Qolgan qarz",
+    "chooseQty": "Qaytariladigan miqdorni kiriting:",
+    "unitPrice": "Narxi",
+    "all": "Hammasi",
+    "goodsValue": "Qaytarilayotgan tovar summasi",
+    "offDebt": "Qarzdan ayriladi",
+    "noMoneyBack": "Mijozga pul berilmaydi: tovar summasi to'liq qarzidan ayriladi."
   },
   "telegram": {
     "or": "yoki",
@@ -1358,7 +1374,10 @@
     "restockedCount": "Kirim qilingan",
     "valueAtCost": "Tannarx bo'yicha qiymat",
     "session": "Shu seans",
-    "sessionEmpty": "Hali hech narsa kiritilmadi"
+    "sessionEmpty": "Hali hech narsa kiritilmadi",
+    "shelfFromBatch": "Oldingi partiyadan olindi",
+    "shelfFromProduct": "Mahsulot kartasidan olindi",
+    "batchNoHint": "Avtomatik: kelgan kun + nomi. Bir kunda yana kelsa -2, -3 qo'shiladi"
   },
   "mxik": {
     "title": "MXIK kodini tanlash",
@@ -1431,7 +1450,8 @@
     "policyDebt": "Qarzga sotuvlarni ham yuborish",
     "policyDebtHint": "Qarzga sotilgan mol sotuv paytida chekka tushadi (markirovka kodlari ham yopiladi), mijoz qarzini to'laganda esa to'lov cheki chiqadi.",
     "deviceTitle": "Shu kompyuterdagi virtual kassa",
-    "notConfigured": "Fiskal agent hali sozlanmagan. Unga virtual kassa manzili, logini va parolini kiriting."
+    "notConfigured": "Fiskal agent hali sozlanmagan. Unga virtual kassa manzili, logini va parolini kiriting.",
+    "printedByRegister": "Fiskal chek kassa printeridan chiqdi"
   },
   "payments": {
     "viaSystem": "To'lov tizimi orqali (to'liq summa):",
@@ -1464,5 +1484,11 @@
     "schedule": "Jadval (Toshkent vaqti): kunlik — har kuni 21:00; haftalik — dushanba 09:00; oylik — oyning 1-kuni 09:00; kam qolganlar va muddati o'tgan qarzlar — har kuni 09:00 (bo'lsa).",
     "ownBotTitle": "O'z botingiz (ixtiyoriy, eski usul)",
     "debtDue": "Muddati o'tgan qarzlar"
+  },
+  "productPicker": {
+    "placeholder": "Nomi yoki shtrix-kodini yozing, skanerlang…",
+    "camera": "Kamera bilan skanerlash",
+    "change": "Boshqa mahsulot tanlash",
+    "notFound": "Bunday mahsulot topilmadi"
   }
 }

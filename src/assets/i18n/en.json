@@ -125,7 +125,9 @@
       "updatedCount": "Updated",
       "failedCount": "Failed",
       "failedRows": "Failed rows",
-      "expiryColumns": "Expiry columns (optional)"
+      "expiryColumns": "Expiry columns (optional)",
+      "fiscalColumns": "Tax (fiscal) columns (optional)",
+      "mxikHint": "MXIK is a 17-digit code. Excel corrupts long numbers, so type it into the template's MXIK column (it is formatted as text) or put ' before the code. If \"Qadoq kodi\" is empty, the package is picked from the MXIK catalogue by the product's unit."
     },
     "costPrice": "Cost price (what you paid)",
     "sellingPrice": "Selling price",
@@ -413,7 +415,10 @@
     "noResults": "No sales match the filters",
     "receiptNo": "Receipt #",
     "cashier": "Cashier",
-    "receiptThanks": "Thank you for your purchase!"
+    "receiptThanks": "Thank you for your purchase!",
+    "nonFiscalReceipt": "Sales receipt · not a fiscal receipt",
+    "receiptCopy": "Copy · not a fiscal receipt",
+    "printCopy": "Print copy"
   },
   "shifts": {
     "title": "Shift Management",
@@ -592,7 +597,7 @@
     "totalSales": "Total Sales",
     "totalProducts": "Total Products",
     "totalDebts": "Total Debts",
-    "todayRevenue": "Today Revenue",
+    "todayRevenue": "Today's sales",
     "receiptsToday": "Receipts Today",
     "avgReceiptValue": "Average Receipt Value",
     "todayNetProfit": "Today's Net Profit",
@@ -769,7 +774,18 @@
     "confirm": "Confirm return",
     "saved": "Return saved, items put back in stock",
     "cashRefunds": "Cash refunded",
-    "debtSaleHint": "Part of this sale is on credit — only the paid part can be refunded."
+    "debtSaleHint": "Part of this sale is on credit — only the paid part can be refunded.",
+    "debtSaleTitle": "This sale was on credit",
+    "debtSaleExplain": "The value of returned goods first comes off what the customer owes for this sale. Only what exceeds the debt is given back as money.",
+    "saleTotal": "Sale total",
+    "paidSoFar": "Paid by customer",
+    "debtLeft": "Debt left",
+    "chooseQty": "Enter the quantity to return:",
+    "unitPrice": "Price",
+    "all": "All",
+    "goodsValue": "Value of returned goods",
+    "offDebt": "Taken off the debt",
+    "noMoneyBack": "No money goes back: the full value comes off the debt."
   },
   "telegram": {
     "or": "or",
@@ -1358,7 +1374,10 @@
     "restockedCount": "Restocked",
     "valueAtCost": "Value at cost",
     "session": "This session",
-    "sessionEmpty": "Nothing entered yet"
+    "sessionEmpty": "Nothing entered yet",
+    "shelfFromBatch": "Taken from the previous batch",
+    "shelfFromProduct": "Taken from the product card",
+    "batchNoHint": "Automatic: arrival day + name. Another delivery the same day gets -2, -3"
   },
   "mxik": {
     "title": "Choose the MXIK (IKPU) code",
@@ -1431,7 +1450,8 @@
     "policyDebt": "Also send sales on debt",
     "policyDebtHint": "Goods sold on debt go on a receipt at the sale (marking codes are closed); each repayment gets a credit receipt.",
     "deviceTitle": "Virtual register on this computer",
-    "notConfigured": "The fiscal agent isn't set up yet. Enter the virtual cash register's address, login and password in it."
+    "notConfigured": "The fiscal agent isn't set up yet. Enter the virtual cash register's address, login and password in it.",
+    "printedByRegister": "The fiscal receipt was printed by the register"
   },
   "payments": {
     "viaSystem": "Through a payment system (full amount):",
@@ -1464,5 +1484,11 @@
     "schedule": "Schedule (Tashkent time): daily — 21:00; weekly — Monday 09:00; monthly — 1st at 09:00; low stock and overdue debts — daily 09:00 (if any).",
     "ownBotTitle": "Your own bot (optional, legacy)",
     "debtDue": "Overdue debts"
+  },
+  "productPicker": {
+    "placeholder": "Type a name or barcode, or scan…",
+    "camera": "Scan with the camera",
+    "change": "Choose another product",
+    "notFound": "No such product"
   }
 }

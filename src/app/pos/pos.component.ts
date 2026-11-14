@@ -901,7 +901,7 @@ export class PosComponent implements OnInit {
             this.pendingFiscal = null;
             this.submitting.set(false);
             this.clearCart();
-            this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt });
+            this.showSuccess({ saleId, receiptNo, total: checkout.total, change: split.change, debt: split.debt, fiscal: !!fiscal });
           },
           error: (err) => this.saleFailed(err)
         });

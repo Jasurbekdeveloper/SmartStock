@@ -87,14 +87,27 @@ export class SaleDetailComponent {
     window.open(`/sales/${sale.id}/receipt`, '_blank');
   }
 
-  openReturnDialog() {
+  async openReturnDialog() {
     const sale = this.sale();
     if (!sale) return;
+
+    // A debt sale: returned goods come off what the customer still owes for it.
+    let debt: ReturnDialogData['debt'] = null;
+    if ((sale.debtAmount ?? 0) > 0) {
+      try {
+        const found = await firstValueFrom(this.debtService.getDebtForSale(sale.id).pipe(take(1)));
+        if (found) debt = { id: found.id, remainingAmount: found.remainingAmount };
+      } catch (err) {
+        console.error('Return: debt lookup failed', err);
+      }
+    }
 
     const data: ReturnDialogData = {
       sale,
       previousReturns: this.returns(),
-      needsFiscalQr: this.fiscal.enabled() && !!sale.fiscal && !isFiscalQrUrl(sale.fiscal.qrCodeUrl)
+      needsFiscalQr: this.fiscal.enabled() && !!sale.fiscal && !isFiscalQrUrl(sale.fiscal.qrCodeUrl),
+      debt,
+      customerName: sale.customerId ? this.customerName(sale.customerId) : undefined
     };
     this.dialog
       .open(ReturnDialogComponent, { width: '560px', maxWidth: '96vw', data })
@@ -111,7 +124,8 @@ export class SaleDetailComponent {
    * its paper receipt, unless the provider gave us the link at the time of sale.
    */
   private async fiscalRefund(sale: Sale, result: ReturnDialogResult): Promise<FiscalReceipt | undefined> {
-    if (!this.fiscal.enabled() || !sale.fiscal) return undefined;
+    // Goods that only came off the debt move no money, so there is nothing to refund on the register.
+    if (!this.fiscal.enabled() || !sale.fiscal || result.refundAmount <= 0) return undefined;
     const products = new Map((await firstValueFrom(this.productService.getProducts())).map((p) => [p.id, p]));
     const usedCodes = new Set(this.returns().flatMap((r) => r.items.flatMap((i) => i.markingCodes ?? [])));
     const lines: FiscalLineInput[] = result.items.map((item) => {
@@ -155,7 +169,7 @@ export class SaleDetailComponent {
     let shift: Shift | undefined;
     try {
       shift = user ? await firstValueFrom(this.shiftService.getOpenShiftForUser(user.uid).pipe(take(1))) : undefined;
-      if (shift && result.refundMethod === 'cash') await this.shiftService.ensureCash(shift.id, result.refundAmount);
+      if (shift && result.refundMethod === 'cash' && result.refundAmount > 0) await this.shiftService.ensureCash(shift.id, result.refundAmount);
     } catch (err) {
       console.error('Return cash check error:', err);
       this.toast.error(insufficientCashMessage(err, (k) => this.translation.translate(k)) ?? this.translation.translate('messages.error'));
@@ -180,7 +194,8 @@ export class SaleDetailComponent {
         ...(result.reason ? { reason: result.reason } : {}),
         ...(shift ? { shiftId: shift.id } : {}),
         ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {}),
-        ...(fiscal ? { fiscal } : {})
+        ...(fiscal ? { fiscal } : {}),
+        ...(result.debtId && result.debtReduction ? { debtId: result.debtId, debtReduction: result.debtReduction } : {})
       })
       .subscribe({
         next: () => this.toast.success(this.translation.translate('returns.saved')),

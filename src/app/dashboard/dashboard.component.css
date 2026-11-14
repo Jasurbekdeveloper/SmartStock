@@ -18,14 +18,20 @@
 .db-hero .db-up { color: #86efac; }
 .db-hero .db-down { color: #fca5a5; }
 
+/* Every day gets the brand colour (lighter), today the full one, so each bar is
+   visible on both themes; a day with no sales keeps a thin grey line. */
 .db-bar {
   width: 100%;
+  min-height: 4px;
   border-radius: 10px 10px 4px 4px;
-  background: var(--surface-3);
-  transition: height 0.4s ease;
+  background: color-mix(in srgb, var(--brand) 45%, transparent);
+  transition: height 0.4s ease, background 0.15s;
 }
 
-.db-bar--today { background: var(--brand); }
+.db-bar:hover { background: color-mix(in srgb, var(--brand) 70%, transparent); }
+
+.db-bar--today,
+.db-bar--today:hover { background: var(--brand); }
 
 .db-attn {
   display: flex;

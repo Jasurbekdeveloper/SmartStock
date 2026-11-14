@@ -1,0 +1,51 @@
+@if (selected(); as p) {
+<div class="pp-selected">
+  <span class="pp-avatar">
+    @if (p.imageUrl) { <img [src]="p.imageUrl" alt="" /> } @else { <mat-icon>inventory_2</mat-icon> }
+  </span>
+  <span class="min-w-0 flex-1">
+    <span class="block font-semibold truncate">{{ p.name }}</span>
+    <span class="block text-xs text-muted money">
+      {{ p.barcode }} · {{ 'stock.currentQuantity' | translate }}: <b>{{ p.quantity | sum: 2 }} {{ unitLabel(p.unit) }}</b>
+    </span>
+  </span>
+  <button mat-icon-button type="button" (click)="clear()" [matTooltip]="'productPicker.change' | translate">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+} @else {
+<div class="pp-box">
+  <label class="search-box !min-w-0">
+    <mat-icon>qr_code_scanner</mat-icon>
+    <input
+      #searchInput
+      type="search"
+      autocomplete="off"
+      [value]="query()"
+      (input)="onInput($any($event.target).value)"
+      (keydown.enter)="onEnter(); $event.preventDefault()"
+      (keydown.arrowdown)="move(1); $event.preventDefault()"
+      (keydown.arrowup)="move(-1); $event.preventDefault()"
+      [placeholder]="'productPicker.placeholder' | translate"
+    />
+    <button mat-icon-button type="button" class="!-mr-2" (click)="scan()" [matTooltip]="'productPicker.camera' | translate">
+      <mat-icon>photo_camera</mat-icon>
+    </button>
+  </label>
+  @if (matches().length > 0) {
+  <div class="pp-suggest">
+    @for (p of matches(); track p.id; let i = $index) {
+    <button type="button" class="pp-row" [class.pp-row--active]="i === active()" (click)="choose(p)" (mouseenter)="active.set(i)">
+      <span class="min-w-0 flex-1 text-left">
+        <span class="block font-semibold truncate">{{ p.name }}</span>
+        <span class="block text-xs text-muted money">{{ p.barcode }} · {{ 'stock.currentQuantity' | translate }}: {{ p.quantity | sum: 2 }} {{ unitLabel(p.unit) }}</span>
+      </span>
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    }
+  </div>
+  } @else if (notFound()) {
+  <p class="mt-2 text-sm text-loss">{{ 'productPicker.notFound' | translate }}</p>
+  }
+</div>
+}

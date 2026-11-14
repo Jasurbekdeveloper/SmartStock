@@ -21,7 +21,10 @@ import { PRODUCT_UNITS } from '../../../core/constants/units';
 import { generateStoreBarcode } from '../../../core/utils/product-identifiers';
 import { suggestSearchKeywords } from '../../../core/utils/search-keywords';
 import { priceMargin } from '../../../core/utils/price-margin';
-import { fromDateInput } from '../../../core/utils/product-extras';
+import { fromDateInput, toDateInput } from '../../../core/utils/product-extras';
+import { StockBatch, expiryFromShelfLife } from '../../../core/utils/batches';
+import { daysBetween, nextBatchNo, shelfLifeFromBatches } from '../../../core/utils/batch-number';
+import { BatchService } from '../../../core/services/batch.service';
 import { roundMoney } from '../../../core/utils/pos-math';
 import { NumericInputDirective } from '../../../shared/directives/numeric-input.directive';
 
@@ -52,6 +55,7 @@ const STICKY_KEY = 'markethisob_quick_entry';
 export class ProductQuickComponent {
   private productService = inject(ProductService);
   private stockService = inject(StockService);
+  private batchService = inject(BatchService);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
   private translation = inject(TranslationService);
@@ -79,6 +83,22 @@ export class ProductQuickComponent {
   quantity = signal<number | null>(null);
   expiryDate = signal('');
   manufactureDate = signal('');
+  /** Shelf life in days: fills the best-before date from the manufacture date. */
+  shelfLifeDays = signal<number | null>(null);
+  /** Where the shelf life came from, shown as a hint under the field. */
+  shelfSource = signal<'product' | 'batch' | null>(null);
+
+  /** Batch numbers the product already has — today's next delivery gets "-2", "-3"… */
+  private existingBatchNos = signal<string[]>([]);
+  /** A batch number typed by hand; null = use the generated one. */
+  batchNoOverride = signal<string | null>(null);
+  /** Arrival day + product name, e.g. "151126-QURT". */
+  autoBatchNo = computed(() => {
+    const m = this.match();
+    const name = m ? m.name : this.name().trim();
+    return name ? nextBatchNo(name, new Date(), this.existingBatchNos()) : '';
+  });
+  batchNo = computed(() => this.batchNoOverride() ?? this.autoBatchNo());
 
   /** New product: dated when the category tracks expiry or a date was typed. */
   newTracked = computed(() => !!this.categories().find((c) => c.id === this.categoryId())?.trackExpiry || !!this.expiryDate());
@@ -120,21 +140,83 @@ export class ProductQuickComponent {
     const found = this.products().find((p) => p.barcode === code || p.sku === code) ?? null;
     this.match.set(found);
     this.quantity.set(null);
+    this.resetDates(found?.shelfLifeDays ?? null);
     if (found) {
       this.cost.set(found.cost || null);
       this.price.set(found.price || null);
-      this.expiryDate.set('');
-      this.manufactureDate.set('');
+      if (found.trackExpiry) void this.loadBatchInfo(found);
       setTimeout(() => this.qtyInput()?.nativeElement.focus());
     } else {
       this.name.set('');
       this.cost.set(null);
       this.price.set(null);
       this.wholesalePrice.set(null);
-      this.expiryDate.set('');
-      this.manufactureDate.set('');
       setTimeout(() => this.nameInput()?.nativeElement.focus());
     }
+  }
+
+  /** Manufacture date defaults to today; with a known shelf life the expiry follows. */
+  private resetDates(shelfLife: number | null) {
+    this.existingBatchNos.set([]);
+    this.batchNoOverride.set(null);
+    this.manufactureDate.set(toDateInput(new Date()));
+    this.expiryDate.set('');
+    this.shelfLifeDays.set(shelfLife && shelfLife > 0 ? shelfLife : null);
+    this.shelfSource.set(this.shelfLifeDays() ? 'product' : null);
+    this.applyShelfLife();
+  }
+
+  /** Earlier batches: their numbers (for today's suffix) and, if the product has no
+   *  shelf life of its own, the one the latest delivery had. */
+  private async loadBatchInfo(p: Product) {
+    let batches: StockBatch[] = [];
+    try {
+      batches = await firstValueFrom(this.batchService.getBatchesForProduct(p.id));
+    } catch (err) {
+      console.error('Quick entry batches error:', err);
+    }
+    if (this.match()?.id !== p.id) return;
+    this.existingBatchNos.set(batches.map((b) => b.batchNo ?? '').filter(Boolean));
+    if (!this.shelfLifeDays()) {
+      const days = shelfLifeFromBatches(batches);
+      if (days) {
+        this.shelfLifeDays.set(days);
+        this.shelfSource.set('batch');
+        this.applyShelfLife();
+      }
+    }
+  }
+
+  setManufactureDate(value: string) {
+    this.manufactureDate.set(value);
+    this.applyShelfLife();
+  }
+
+  setShelfLife(value: number | string | null) {
+    const days = Math.round(Number(value));
+    this.shelfLifeDays.set(days > 0 ? days : null);
+    this.shelfSource.set(null);
+    this.applyShelfLife();
+  }
+
+  /** A typed best-before date updates the shelf life, so the next delivery reuses it. */
+  setExpiryDate(value: string) {
+    this.expiryDate.set(value);
+    const mfg = fromDateInput(this.manufactureDate());
+    const exp = fromDateInput(value);
+    if (mfg && exp && daysBetween(mfg, exp) > 0) {
+      this.shelfLifeDays.set(daysBetween(mfg, exp));
+      this.shelfSource.set(null);
+    }
+  }
+
+  setBatchNo(value: string) {
+    this.batchNoOverride.set(value.trim() ? value : null);
+  }
+
+  private applyShelfLife() {
+    const expiry = expiryFromShelfLife(fromDateInput(this.manufactureDate()), this.shelfLifeDays());
+    if (expiry) this.expiryDate.set(toDateInput(expiry));
   }
 
   async generate() {
@@ -207,10 +289,23 @@ export class ProductQuickComponent {
         currentCost: p.cost,
         sellingPrice: price,
         batch: p.trackExpiry
-          ? { expiryDate: fromDateInput(this.expiryDate())!, manufactureDate: fromDateInput(this.manufactureDate()) }
+          ? {
+              expiryDate: fromDateInput(this.expiryDate())!,
+              manufactureDate: fromDateInput(this.manufactureDate()),
+              batchNo: this.batchNo().trim() || null
+            }
           : undefined
       })
     );
+    // Remember the shelf life on the product, so the next delivery is pre-filled.
+    const shelf = this.shelfLifeDays();
+    if (p.trackExpiry && shelf && shelf !== p.shelfLifeDays) {
+      try {
+        await firstValueFrom(this.productService.updateProduct(p.id, { shelfLifeDays: shelf }));
+      } catch (err) {
+        console.warn('Quick entry: shelf life not saved on the product', err);
+      }
+    }
     this.pushLog({ kind: 'restock', name: p.name, quantity, unit: p.unit, cost, price });
   }
 
@@ -234,12 +329,19 @@ export class ProductQuickComponent {
       wholesalePrice: wholesale > 0 ? wholesale : null,
       trackExpiry: this.newTracked(),
       expiryDate: null,
-      mxikCode: null
+      mxikCode: null,
+      ...(this.newTracked() && this.shelfLifeDays() ? { shelfLifeDays: this.shelfLifeDays() } : {})
     };
     const expiry = fromDateInput(this.expiryDate());
     const batch =
       expiry && quantity > 0
-        ? { quantity, expiryDate: expiry, manufactureDate: fromDateInput(this.manufactureDate()), costPrice: product.cost || undefined }
+        ? {
+            quantity,
+            expiryDate: expiry,
+            manufactureDate: fromDateInput(this.manufactureDate()),
+            batchNo: this.batchNo().trim() || null,
+            costPrice: product.cost || undefined
+          }
         : undefined;
     await firstValueFrom(this.productService.addProducts([product], [batch]));
     try {

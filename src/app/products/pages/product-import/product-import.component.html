@@ -18,6 +18,11 @@
       <b>{{ 'products.import.expiryColumns' | translate }}:</b>
       {{ headers.manufactureDate }}, {{ headers.expiryDate }}, {{ headers.batchNo }}, {{ headers.shelfLifeDays }}
     </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <b>{{ 'products.import.fiscalColumns' | translate }}:</b>
+      {{ headers.mxikCode }}, {{ headers.packageCode }}.
+      {{ 'products.import.mxikHint' | translate }}
+    </p>
 
     <div class="flex flex-wrap items-center gap-3">
       <button mat-stroked-button type="button" (click)="downloadTemplate()">

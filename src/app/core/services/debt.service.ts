@@ -149,6 +149,13 @@ export class DebtService {
     return fromCollectionQuery<Debt>(debtsQuery);
   }
 
+  /** The debt a POS sale opened for its unpaid part, if any. */
+  getDebtForSale(saleId: string): Observable<Debt | undefined> {
+    return fromCollectionQuery<Debt>(
+      tenantQuery(this.firestore, 'debts', requireTenantId(this.authService), where('saleId', '==', saleId))
+    ).pipe(map((list) => list[0]));
+  }
+
   createDebt(debt: {
     customerId: string;
     totalAmount: number;

@@ -13,8 +13,7 @@
           type="number"
           min="0"
           step="1000"
-          [ngModel]="startingCashInput() || null"
-          (ngModelChange)="startingCashInput.set(+$event)"
+          (input)="startingCashInput.set(+$any($event.target).value || 0)"
           [placeholder]="'shifts.startingCash' | translate"
           class="pos-input w-36"
         />
@@ -314,7 +313,8 @@
             @if (item.altUnits && item.altUnits.length > 0) {
             <select class="pos-unit" [value]="cartLineUnitLabel(item)" (click)="$event.stopPropagation()" (change)="setCartLineUnit(item.productId, $any($event.target).value)">
               @for (opt of cartLineUnitOptions(item); track opt.unit) {
-              <option [value]="opt.unit">× {{ unitDisplayLabel(opt.unit) }}</option>
+              <!-- [selected]: the select's [value] is set before its options exist. -->
+              <option [value]="opt.unit" [selected]="opt.unit === cartLineUnitLabel(item)">× {{ unitDisplayLabel(opt.unit) }}</option>
               }
             </select>
             } @else {

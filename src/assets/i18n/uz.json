@@ -23,7 +23,8 @@
     "off": "o'chirilgan",
     "back": "Orqaga",
     "select": "Tanlash",
-    "confirmAction": "Tasdiqlash"
+    "confirmAction": "Tasdiqlash",
+    "all": "Hammasi"
   },
   "tenant": {
     "backToHome": "Bosh sahifaga qaytish",

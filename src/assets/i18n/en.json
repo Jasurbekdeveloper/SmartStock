@@ -23,7 +23,8 @@
     "off": "off",
     "back": "Back",
     "select": "Select",
-    "confirmAction": "Confirm"
+    "confirmAction": "Confirm",
+    "all": "All"
   },
   "tenant": {
     "backToHome": "Back to home",

@@ -23,7 +23,8 @@
     "off": "выкл.",
     "back": "Назад",
     "select": "Выбрать",
-    "confirmAction": "Подтвердить"
+    "confirmAction": "Подтвердить",
+    "all": "Все"
   },
   "tenant": {
     "backToHome": "На главную",

@@ -130,6 +130,9 @@
           <span>{{ r.createdAt | date: 'dd.MM.yyyy HH:mm' }} · {{ 'pos.' + r.refundMethod | translate }}</span>
           <span>−{{ r.refundAmount | currencyDisplay }}</span>
         </div>
+        @if (r.debtReduction) {
+        <p class="text-amber-700 dark:text-amber-300">{{ 'returns.offDebt' | translate }}: −{{ r.debtReduction | currencyDisplay }}</p>
+        }
         <p class="text-gray-700 dark:text-gray-300">
           @for (item of r.items; track $index) {
           {{ item.productName }} × {{ item.quantity | sum: 3 }}@if (!$last) {, }

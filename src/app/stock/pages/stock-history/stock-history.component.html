@@ -10,7 +10,7 @@
       <input type="search" [value]="query()" (input)="setQuery($any($event.target).value)" [placeholder]="'stock.product' | translate" autocomplete="off" />
     </label>
     <mat-button-toggle-group [value]="kind()" (change)="setKind($event.value)">
-      <mat-button-toggle value="all">{{ 'sales.allPaymentMethods' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="all">{{ 'common.all' | translate }}</mat-button-toggle>
       <mat-button-toggle value="in">{{ 'stock.typeIn' | translate }}</mat-button-toggle>
       <mat-button-toggle value="out">{{ 'stock.typeOut' | translate }}</mat-button-toggle>
       <mat-button-toggle value="sale">{{ 'stock.typeSale' | translate }}</mat-button-toggle>

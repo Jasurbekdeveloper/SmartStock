@@ -23,7 +23,8 @@
     "off": "ўчирилган",
     "back": "Орқага",
     "select": "Танлаш",
-    "confirmAction": "Тасдиқлаш"
+    "confirmAction": "Тасдиқлаш",
+    "all": "Ҳаммаси"
   },
   "tenant": {
     "backToHome": "Бош саҳифага қайтиш",

@@ -828,7 +828,11 @@ export class PosComponent implements OnInit {
   /** Fixed units are translated; free-text alt units (e.g. "karobka") are shown as typed. */
   unitDisplayLabel(unit: string | undefined): string {
     if (!unit) return '';
-    return (PRODUCT_UNITS as readonly string[]).includes(unit) ? this.translation.translate('units.' + unit) : unit;
+    // Fixed units and known codes (e.g. "pcs" from an import) are translated; free-text
+    // alt units ("karobka") have no translation and are shown as typed.
+    const key = 'units.' + unit;
+    const label = this.translation.translate(key);
+    return (PRODUCT_UNITS as readonly string[]).includes(unit) || label !== key ? label : unit;
   }
 
   setCartLineUnit(productId: string, unit: string) {
@@ -1156,7 +1160,9 @@ export class PosComponent implements OnInit {
 
     if (event.key === 'Escape') {
       event.preventDefault();
-      this.searchQuery.set('');
+      // Phone / portrait tablet: Esc first closes the open cart sheet.
+      if (this.cartOpen()) this.cartOpen.set(false);
+      else this.searchQuery.set('');
       return;
     }
 

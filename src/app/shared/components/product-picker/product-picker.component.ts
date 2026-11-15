@@ -64,6 +64,10 @@ export class ProductPickerComponent {
 
   choose(p: Product) {
     this.query.set('');
+    // A scanner types the code and Enter faster than Angular redraws, so the [value]
+    // binding never sees a change to clear: empty the box directly.
+    const el = this.searchInput()?.nativeElement;
+    if (el) el.value = '';
     this.notFound.set(false);
     this.picked.emit(p);
   }

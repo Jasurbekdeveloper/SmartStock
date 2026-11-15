@@ -42,10 +42,11 @@
       <label class="search-box !min-w-0">
         <mat-icon>qr_code_scanner</mat-icon>
         <input
+          #searchBox
           type="search"
           [value]="query()"
           (input)="query.set($any($event.target).value)"
-          (keydown.enter)="addFromSearch(); $event.preventDefault()"
+          (keydown.enter)="addFromSearch(); searchBox.value = ''; $event.preventDefault()"
           [placeholder]="'stock.addLinePlaceholder' | translate"
           autocomplete="off"
         />

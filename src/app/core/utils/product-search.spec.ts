@@ -30,3 +30,10 @@ describe('product search', () => {
     expect(searchProducts(products, '  ')).toEqual([]);
   });
 });
+
+describe('package barcodes', () => {
+  it('finds the product of a box barcode', () => {
+    const list = [{ id: 'p1', name: 'Cola 0.5', barcode: '111', altUnits: [{ unit: 'quti', factor: 12, barcode: '999' }] }];
+    expect(findByCode(list, '999')?.id).toBe('p1');
+  });
+});

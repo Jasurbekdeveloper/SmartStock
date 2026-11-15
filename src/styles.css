@@ -621,3 +621,44 @@ button, a, [role='button'] { touch-action: manipulation; }
   .mat-mdc-button-base:hover > .mat-mdc-button-persistent-ripple::before,
   .mat-mdc-button-base:hover .mat-mdc-button-persistent-ripple::before { opacity: 0 !important; }
 }
+
+/* ---------- phones: list tables as cards ----------
+   Tables marked .mobile-cards (and the stock documents' tables) turn every row into a
+   card on narrow screens; each cell shows its column name from data-label, so numbers
+   are never cut off ("629 520 27…"). */
+@media (max-width: 640px) {
+  table.mobile-cards,
+  table.mobile-cards tbody,
+  table.mobile-cards tr,
+  table.mobile-cards td { display: block; width: 100%; }
+  table.mobile-cards thead { display: none; }
+  table.mobile-cards tr {
+    margin: 0 0 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  table.mobile-cards td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.3rem 0 !important;
+    border: none !important;
+    text-align: right !important;
+    white-space: normal !important;
+  }
+  table.mobile-cards td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    max-width: 45%;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  table.mobile-cards td[data-label=''] { display: block; text-align: left !important; }
+  table.mobile-cards td[data-label='']::before { content: none; }
+  table.mobile-cards td:empty { display: none; }
+}

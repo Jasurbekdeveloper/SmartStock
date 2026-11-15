@@ -65,7 +65,7 @@
     </div>
     } @else {
     <div class="overflow-x-auto">
-      <table class="data-table">
+      <table class="mobile-cards data-table">
         <thead>
           <tr>
             <th>{{ 'table.name' | translate }}</th>
@@ -79,17 +79,17 @@
         <tbody>
           @for (row of rows(); track row.batch.id) {
           <tr [class.row-expired]="row.state === 'expired'">
-            <td>
+            <td [attr.data-label]="'table.name' | translate">
               <p class="font-medium">{{ row.product.name }}</p>
               <p class="text-xs text-muted money">{{ row.product.barcode }}</p>
             </td>
-            <td class="text-muted">
+            <td [attr.data-label]="'products.batchNo' | translate" class="text-muted">
               {{ row.batch.batchNo || '—' }}
               @if (row.batch.manufactureDate) {
               <p class="text-xs">{{ 'products.manufactureDate' | translate }}: {{ row.batch.manufactureDate | date: 'dd.MM.yyyy' }}</p>
               }
             </td>
-            <td class="whitespace-nowrap">
+            <td [attr.data-label]="'products.expiryDate' | translate" class="whitespace-nowrap">
               {{ row.batch.expiryDate | date: 'dd.MM.yyyy' }}
               @switch (row.state) {
               @case ('expired') { <span class="badge badge--red ml-1">{{ -row.days }} {{ 'expiry.daysAgo' | translate }}</span> }
@@ -97,8 +97,8 @@
               @default { <span class="badge badge--green ml-1">{{ row.days }} {{ 'expiry.daysLeft' | translate }}</span> }
               }
             </td>
-            <td class="text-right money">{{ row.batch.quantity | sum:2 }} {{ unitLabel(row.product.unit) }}</td>
-            @if (canSeeCost()) { <td class="text-right money">{{ row.value | currencyDisplay:0 }}</td> }
+            <td [attr.data-label]="'products.quantity' | translate" class="text-right money">{{ row.batch.quantity | sum:2 }} {{ unitLabel(row.product.unit) }}</td>
+            @if (canSeeCost()) { <td [attr.data-label]="'expiry.valueAtCost' | translate" class="text-right money">{{ row.value | currencyDisplay:0 }}</td> }
             <td class="whitespace-nowrap text-right">
               @if (canWriteOff()) {
               <button mat-icon-button type="button" [disabled]="busy().has(row.batch.id)" (click)="changeDate(row)" [matTooltip]="'expiry.changeDate' | translate">

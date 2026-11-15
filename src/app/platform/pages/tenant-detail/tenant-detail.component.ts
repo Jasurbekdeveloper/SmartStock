@@ -1,3 +1,4 @@
+import { STORE_TYPES, StoreType } from '../../../core/models/store-type';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -179,6 +180,13 @@ export class TenantDetailComponent {
       'platform.detail.infoSaved',
       () => this.editingInfo.set(false)
     );
+  }
+
+  readonly storeTypes = STORE_TYPES;
+
+  setStoreType(tenant: Tenant, type: StoreType) {
+    if ((tenant.storeType ?? 'mixed') === type) return;
+    this.run(this.platform.setStoreType(tenant, type), 'messages.saved');
   }
 
   makeOwner(tenant: Tenant, user: AppUser) {

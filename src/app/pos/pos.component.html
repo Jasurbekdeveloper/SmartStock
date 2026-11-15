@@ -1,4 +1,4 @@
-<div class="pos">
+<div class="pos" [class.pos--sheet-open]="cartOpen()">
   <!-- ============ LEFT: catalog ============ -->
   <section class="pos__catalog">
     <div class="pos-top">
@@ -228,6 +228,10 @@
         <p class="text-xs text-muted">{{ itemCount() }} {{ 'pos.positions' | translate }} · {{ totalUnits() | sum:2 }} {{ 'pos.units' | translate }}</p>
       </div>
       <div class="flex items-center">
+        <!-- Phone / portrait tablet: the ticket is a bottom sheet; this closes it. -->
+        <button mat-icon-button type="button" class="pos-sheet-close" (click)="cartOpen.set(false)" [attr.aria-label]="'common.close' | translate">
+          <mat-icon>expand_more</mat-icon>
+        </button>
         <button mat-icon-button type="button" (click)="toggleNumpad()" [class.text-brand]="showNumpad()" [matTooltip]="'pos.keypad' | translate" [attr.aria-label]="'pos.keypad' | translate">
           <mat-icon>dialpad</mat-icon>
         </button>
@@ -305,7 +309,7 @@
           <p class="pos-line__name">{{ item.productName }}</p>
           <p class="pos-line__meta">
             <button type="button" class="pos-line__price money" (click)="selectLine(item.productId, 'price'); $event.stopPropagation()" [disabled]="!canEditPrice()">
-              {{ item.price | currencyDisplay:0 }}
+              {{ shownLinePrice(item) | currencyDisplay:0 }}
             </button>
             @if (item.altUnits && item.altUnits.length > 0) {
             <select class="pos-unit" [value]="cartLineUnitLabel(item)" (click)="$event.stopPropagation()" (change)="setCartLineUnit(item.productId, $any($event.target).value)">
@@ -412,4 +416,13 @@
       </div>
     </footer>
   </section>
+
+  <!-- Phone / portrait tablet: catalog uses the whole screen, the ticket opens from this bar. -->
+  @let bar = summary();
+  <div class="pos-sheet-backdrop" (click)="cartOpen.set(false)"></div>
+  <button type="button" class="pos-cartbar" (click)="cartOpen.set(true)">
+    <mat-icon>shopping_cart</mat-icon>
+    <span class="flex-1 text-left">{{ itemCount() }} {{ 'pos.positionsShort' | translate }} · <b class="money">{{ bar.total | currencyDisplay:0 }}</b></span>
+    <span class="pos-cartbar__go">{{ 'pos.cart' | translate }}<mat-icon>expand_less</mat-icon></span>
+  </button>
 </div>

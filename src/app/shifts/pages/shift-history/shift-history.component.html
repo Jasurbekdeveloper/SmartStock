@@ -3,7 +3,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
+    <table class="mobile-cards w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'shifts.cashier' | translate }}</th>
@@ -20,13 +20,13 @@
       <tbody>
         @for (shift of pagination.paged(); track shift.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ shift.cashierName }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.openedAt | date: 'dd.MM.yyyy HH:mm' }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.closedAt ? (shift.closedAt | date: 'dd.MM.yyyy HH:mm') : '—' }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.startingCash | currencyDisplay }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.expectedCash !== undefined ? (shift.expectedCash | currencyDisplay) : '—' }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.countedCash !== undefined ? (shift.countedCash | currencyDisplay) : '—' }}</td>
-          <td
+          <td [attr.data-label]="'shifts.cashier' | translate" class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ shift.cashierName }}</td>
+          <td [attr.data-label]="'shifts.openedAt' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.openedAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td [attr.data-label]="'shifts.closedAt' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.closedAt ? (shift.closedAt | date: 'dd.MM.yyyy HH:mm') : '—' }}</td>
+          <td [attr.data-label]="'shifts.startingCash' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.startingCash | currencyDisplay }}</td>
+          <td [attr.data-label]="'shifts.expectedCash' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.expectedCash !== undefined ? (shift.expectedCash | currencyDisplay) : '—' }}</td>
+          <td [attr.data-label]="'shifts.countedCash' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ shift.countedCash !== undefined ? (shift.countedCash | currencyDisplay) : '—' }}</td>
+          <td [attr.data-label]="'shifts.variance' | translate"
             class="px-4 py-3 font-semibold"
             [class.text-green-600]="(shift.variance ?? 0) >= 0"
             [class.dark:text-green-400]="(shift.variance ?? 0) >= 0"
@@ -35,7 +35,7 @@
           >
             {{ shift.variance !== undefined ? (shift.variance | currencyDisplay) : '—' }}
           </td>
-          <td class="px-4 py-3">
+          <td [attr.data-label]="'table.status' | translate" class="px-4 py-3">
             <span
               class="px-2 py-1 text-xs rounded-full"
               [class.bg-green-100]="shift.status === 'open'"
@@ -50,7 +50,7 @@
               {{ (shift.status === 'open' ? 'shifts.statusOpen' : 'shifts.statusClosed') | translate }}
             </span>
           </td>
-          <td class="px-4 py-3">
+          <td [attr.data-label]="'table.action' | translate" class="px-4 py-3">
             @if (canCloseOwnShift(shift.cashierId, shift.status)) {
             <a mat-button color="primary" [routerLink]="['/shifts/close', shift.id]">{{ 'shifts.closeShift' | translate }}</a>
             }

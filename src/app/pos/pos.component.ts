@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { combineLatest, defer, from, of } from 'rxjs';
+import { combineLatest, defer, firstValueFrom, from, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,9 @@ import { PaymentMethod, Sale, SaleDebtInput, SaleItem, SalesService } from '../c
 import { DebtService } from '../core/services/debt.service';
 import { AuthService } from '../core/services/auth.service';
 import { roleCan } from '../core/auth/permissions';
+import { AltUnit, altUnitUnitPrice } from '../core/utils/alt-units-parser.util';
+import { Approver } from '../core/services/approval-pin.service';
+import { PinDialogComponent } from '../shared/components/pin-dialog/pin-dialog.component';
 import { Shift, ShiftService, computeShiftTotals, insufficientCashMessage } from '../core/services/shift.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
 import { CashMovementDialogComponent, CashMovementDialogData } from '../shared/components/cash-movement-dialog/cash-movement-dialog.component';
@@ -362,7 +365,34 @@ export class PosComponent implements OnInit {
 
   /** Largest discount this user may give, as % of the ticket: unlimited for roles that
    *  may change prices, the store's limit for everyone else. */
-  maxDiscountPercent = computed(() => (this.canEditPrice() ? 100 : Math.max(0, Math.min(100, this.posPolicy().cashierMaxDiscountPercent))));
+  maxDiscountPercent = computed(() =>
+    this.canEditPrice() || this.discountApprover() ? 100 : Math.max(0, Math.min(100, this.posPolicy().cashierMaxDiscountPercent))
+  );
+
+  /** Manager who approved a bigger discount on this ticket with their PIN. */
+  discountApprover = signal<Approver | null>(null);
+
+  /** Asks a manager's PIN; on success the limit is lifted for the rest of the ticket. */
+  private async requestDiscountApproval(): Promise<boolean> {
+    this.dialogOpen.set(true);
+    const result = await firstValueFrom(
+      this.dialog
+        .open(PinDialogComponent, {
+          width: '380px',
+          data: { mode: 'verify', reason: `${this.translation.translate('pin.discountReason')}: ${this.posPolicy().cashierMaxDiscountPercent}%` }
+        })
+        .afterClosed()
+    );
+    this.dialogOpen.set(false);
+    if (result && result !== true) {
+      this.discountApprover.set(result);
+      return true;
+    }
+    return false;
+  }
+
+  /** Phone / portrait tablet: the ticket is shown as a bottom sheet. */
+  cartOpen = signal(false);
 
   /** Every open shift of this cashier (newest first); more than one means one was left open. */
   openShiftCount = signal(0);
@@ -479,7 +509,41 @@ export class PosComponent implements OnInit {
       wholesaleMinQty: item.wholesaleMinQty
     };
     const tier = resolveTier(product, item.quantity, this.priceTier());
-    return { ...item, tier, price: tierPrice(product, tier) };
+    // Sold in a package with its own price (1 quti = 380 000): that price per unit.
+    const packPrice = altUnitUnitPrice(item.altUnits?.find((a) => a.unit === item.selectedUnit));
+    return { ...item, tier, price: packPrice ?? tierPrice(product, tier) };
+  }
+
+  /** Line price in the unit the line is shown in (a package's price for "quti"). */
+  shownLinePrice(item: CartItem): number {
+    return roundMoney(item.price * this.unitFactor(item, item.selectedUnit));
+  }
+
+  /** Product and package of a barcode printed on a package (quti / blok). */
+  private findPackage(code: string): { product: Product; alt: AltUnit } | null {
+    for (const product of this.products()) {
+      const alt = product.altUnits?.find((a) => a.barcode && a.barcode === code);
+      if (alt) return { product, alt };
+    }
+    return null;
+  }
+
+  /** A package scan adds one whole package, at the package's price. */
+  private addPackage(product: Product, alt: AltUnit) {
+    const existing = this.cart().find((i) => i.productId === product.id);
+    if (!existing) {
+      this.addToCart(product);
+      if (!this.cart().some((i) => i.productId === product.id)) return;
+      this.cart.update((cart) =>
+        cart.map((i) => (i.productId === product.id ? this.repriced({ ...i, quantity: alt.factor, selectedUnit: alt.unit }) : i))
+      );
+    } else {
+      this.cart.update((cart) =>
+        cart.map((i) => (i.productId === product.id ? this.repriced({ ...i, quantity: i.quantity + alt.factor, selectedUnit: alt.unit }) : i))
+      );
+    }
+    this.selectedLineId.set(product.id);
+    this.warnIfOverStock(product.id);
   }
 
   openCashDialog() {
@@ -768,7 +832,7 @@ export class PosComponent implements OnInit {
   }
 
   setCartLineUnit(productId: string, unit: string) {
-    this.patchLine(productId, { selectedUnit: unit });
+    this.cart.update((cart) => cart.map((i) => (i.productId === productId ? this.repriced({ ...i, selectedUnit: unit }) : i)));
   }
 
   updatePrice(productId: string, price: number) {
@@ -786,7 +850,11 @@ export class PosComponent implements OnInit {
     const gross = item.quantity * item.price;
     const limit = roundMoney((gross * this.maxDiscountPercent()) / 100);
     if ((discount || 0) > limit + 0.005) {
+      // Over the cashier's limit: a manager's PIN lets it through, otherwise it is capped.
       this.toast.error(`${this.translation.translate('pos.discountLimit')}: ${this.maxDiscountPercent()}%`);
+      void this.requestDiscountApproval().then((ok) => {
+        if (ok) this.patchLine(productId, { discount: Math.max(0, Math.min(discount || 0, gross)) });
+      });
     }
     this.patchLine(productId, { discount: Math.max(0, Math.min(discount || 0, gross, limit)) });
   }
@@ -870,7 +938,10 @@ export class PosComponent implements OnInit {
    *  sale, `submitting` is reset and the cart stays so the cashier can retry. */
   private completeSale(payment: PosPaymentDialogResult) {
     if (!this.discountWithinLimit(payment.discount)) {
-      this.toast.error(`${this.translation.translate('pos.discountLimit')}: ${this.maxDiscountPercent()}%`);
+      void this.requestDiscountApproval().then((ok) => {
+        if (ok) this.completeSale(payment);
+        else this.toast.error(`${this.translation.translate('pos.discountLimit')}: ${this.maxDiscountPercent()}%`);
+      });
       return;
     }
     this.submitting.set(true);
@@ -940,6 +1011,7 @@ export class PosComponent implements OnInit {
       ...(checkout.cartDiscount > 0 ? { discount: checkout.cartDiscount } : {}),
       ...(shift ? { shiftId: shift.id } : {}),
       ...(user ? { cashierId: user.uid, cashierName: user.displayName } : {}),
+      ...(this.discountApprover() ? { discountApprovedBy: this.discountApprover()! } : {}),
       totalNetProfit: checkout.profit
     };
 
@@ -1069,7 +1141,8 @@ export class PosComponent implements OnInit {
       event.preventDefault();
     }
     // A burst typed into the search box is a scan only if it is a known code.
-    const isScan = !!code && (!inSearch || !!parseMarkingCode(code) || this.products().some((p) => p.barcode === code || p.sku === code));
+    const isScan =
+      !!code && (!inSearch || !!parseMarkingCode(code) || this.products().some((p) => p.barcode === code || p.sku === code) || !!this.findPackage(code));
     if (code && isScan) {
       event.preventDefault();
       if (inSearch) this.searchQuery.set('');
@@ -1128,6 +1201,13 @@ export class PosComponent implements OnInit {
         const results = this.displayedProducts();
         const exact = results.find((p) => p.barcode === this.searchQuery().trim());
         const pick = exact ?? (results.length === 1 ? results[0] : undefined);
+        const pack = pick ? null : this.findPackage(this.searchQuery().trim());
+        if (pack) {
+          event.preventDefault();
+          this.addPackage(pack.product, pack.alt);
+          this.searchQuery.set('');
+          return;
+        }
         if (pick) {
           event.preventDefault();
           this.addToCart(pick);
@@ -1228,8 +1308,12 @@ export class PosComponent implements OnInit {
       return;
     }
     const product = this.products().find((p) => p.barcode === barcode) ?? this.products().find((p) => p.sku === barcode);
+    const pack = product ? null : this.findPackage(barcode);
     if (product) {
       this.addToCart(product);
+      this.searchQuery.set('');
+    } else if (pack) {
+      this.addPackage(pack.product, pack.alt);
       this.searchQuery.set('');
     } else {
       this.toast.error(this.translation.translate('pos.scanNotFound'));
@@ -1280,6 +1364,8 @@ export class PosComponent implements OnInit {
     this.selectedLineId.set(null);
     // A "%" or price mode left from the last ticket would turn the next typed quantity into a discount.
     this.numpadMode.set('qty');
+    this.cartOpen.set(false);
+    this.discountApprover.set(null);
     this.searchQuery.set('');
     this.priceTier.set('retail');
   }
@@ -1374,7 +1460,7 @@ interface CartItem {
   /** Per-line discount, absolute currency. */
   discount?: number;
   unit?: string;
-  altUnits?: { unit: string; factor: number }[];
+  altUnits?: AltUnit[];
   /** Display-only: which unit the quantity input currently shows. */
   selectedUnit?: string;
   /** A manager confirmed selling expired stock on this line. */

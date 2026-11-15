@@ -28,7 +28,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
+    <table class="mobile-cards w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'suppliers.name' | translate }}</th>
@@ -42,12 +42,12 @@
       <tbody>
         @for (supplier of pagination.paged(); track supplier.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" (click)="viewSupplier(supplier.id)">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ supplier.name }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.phone }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.contactPerson }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.address }}</td>
-          <td class="px-4 py-3 text-right money font-semibold" [class.text-debt]="(supplier.balance ?? 0) > 0">{{ (supplier.balance ?? 0) | currencyDisplay:0 }}</td>
-          <td class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
+          <td [attr.data-label]="'suppliers.name' | translate" class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ supplier.name }}</td>
+          <td [attr.data-label]="'suppliers.phone' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.phone }}</td>
+          <td [attr.data-label]="'suppliers.contactPerson' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.contactPerson }}</td>
+          <td [attr.data-label]="'suppliers.address' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ supplier.address }}</td>
+          <td [attr.data-label]="'suppliers.balance' | translate" class="px-4 py-3 text-right money font-semibold" [class.text-debt]="(supplier.balance ?? 0) > 0">{{ (supplier.balance ?? 0) | currencyDisplay:0 }}</td>
+          <td [attr.data-label]="'table.action' | translate" class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editSupplier(supplier.id)">
               <mat-icon>edit</mat-icon>
             </button>

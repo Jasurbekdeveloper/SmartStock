@@ -5,13 +5,15 @@ export interface SearchableProduct {
   barcode?: string | null;
   sku?: string | null;
   searchKeywords?: string[];
+  altUnits?: { barcode?: string | null }[];
 }
 
 /** Product whose barcode or SKU is exactly the code (what a scanner types). */
 export function findByCode<T extends SearchableProduct>(products: T[], code: string): T | undefined {
   const c = code.trim();
   if (!c) return undefined;
-  return products.find((p) => p.barcode === c || p.sku === c);
+  // A package barcode (quti / blok) also finds its product.
+  return products.find((p) => p.barcode === c || p.sku === c) ?? products.find((p) => p.altUnits?.some((a) => a.barcode === c));
 }
 
 /**

@@ -21,7 +21,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="data-table">
+    <table class="mobile-cards data-table">
       <thead>
         <tr>
           <th>{{ 'stock.type' | translate }}</th>
@@ -35,23 +35,23 @@
       <tbody>
         @for (row of pagination.paged(); track row.id) {
         <tr>
-          <td>
+          <td [attr.data-label]="'stock.type' | translate">
             <span class="badge" [class.badge--green]="row.change > 0" [class.badge--amber]="row.change < 0 && row.kind !== 'sale'" [class.badge--gray]="row.kind === 'sale' || row.change === 0">
               {{ kindLabelKey(row.kind) | translate }}
             </span>
           </td>
-          <td class="font-medium">{{ productName(row.productId) }}</td>
-          <td class="text-right font-semibold money" [class.text-profit]="row.change > 0" [class.text-loss]="row.change < 0">
+          <td [attr.data-label]="'stock.product' | translate" class="font-medium">{{ productName(row.productId) }}</td>
+          <td [attr.data-label]="'stock.change' | translate" class="text-right font-semibold money" [class.text-profit]="row.change > 0" [class.text-loss]="row.change < 0">
             {{ row.change > 0 ? '+' : '' }}{{ row.change | sum: 3 }}
           </td>
-          <td class="money text-muted">
+          <td [attr.data-label]="'stock.previousNew' | translate" class="money text-muted">
             @if (row.previous !== undefined) { {{ row.previous | sum: 3 }} → {{ row.next | sum: 3 }} } @else { — }
           </td>
-          <td>
+          <td [attr.data-label]="'stock.detail' | translate">
             @if (row.reasonKey) { {{ row.reasonKey | translate }}@if (row.detail) { — } }
             @if (row.saleId) { <a class="text-[var(--brand)]" [routerLink]="['/sales', row.saleId]">{{ row.detail }}</a> } @else { {{ row.detail }} }
           </td>
-          <td class="text-right text-muted whitespace-nowrap">{{ row.date | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td [attr.data-label]="'table.date' | translate" class="text-right text-muted whitespace-nowrap">{{ row.date | date: 'dd.MM.yyyy HH:mm' }}</td>
         </tr>
         }
       </tbody>

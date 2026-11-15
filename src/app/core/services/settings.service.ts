@@ -6,6 +6,8 @@ import { FIRESTORE } from '../firebase/firebase.providers';
 import { fromDocRef } from '../firebase/firestore.utils';
 import { AuthService } from './auth.service';
 import { requireTenantId } from './tenant-data';
+import { TenantService } from './tenant.service';
+import { StoreFeatures, storeFeatures } from '../models/store-type';
 
 /** Supported thermal-printer roll widths, in millimeters. Mirrors receipt.component.ts. */
 import type { LabelSettings } from '../utils/labels';
@@ -151,5 +153,15 @@ export class SettingsService {
 
   telegramReports = computed<TelegramReportSettings>(() => ({ ...DEFAULT_TELEGRAM_REPORTS, ...(this.generalSettings()?.telegramReports ?? {}) }));
 
-  posPolicy = computed<PosPolicy>(() => ({ ...DEFAULT_POS_POLICY, ...(this.generalSettings()?.posPolicy ?? {}) }));
+  private tenantService = inject(TenantService);
+
+  /** What the store's type switches on (super admin sets the type). */
+  features = computed<StoreFeatures>(() => storeFeatures(this.tenantService.tenant()?.storeType));
+
+  /** Defaults ← the store type's defaults ← what the store saved. */
+  posPolicy = computed<PosPolicy>(() => ({
+    ...DEFAULT_POS_POLICY,
+    blockExpired: this.features().blockExpired,
+    ...(this.generalSettings()?.posPolicy ?? {})
+  }));
 }

@@ -1,3 +1,4 @@
+import type { StoreType } from './store-type';
 import { LocalizedText } from './site-content';
 
 export type TenantStatus = 'trial' | 'active' | 'suspended' | 'cancelled';
@@ -21,6 +22,8 @@ export interface Tenant {
   maxProducts?: number;
   /** false until the owner finishes the first-login setup. Missing = already set up. */
   onboarded?: boolean;
+  /** Kind of shop (grocery / building / mixed), set by the super admin. Missing = mixed. */
+  storeType?: StoreType;
   createdAt?: Date;
   createdBy?: string;
 }

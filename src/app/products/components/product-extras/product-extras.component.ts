@@ -65,6 +65,11 @@ import { NumericInputDirective } from '../../../shared/directives/numeric-input.
           <mat-icon>close</mat-icon>
         </button>
       </div>
+      <!-- Optional: the package's own price and barcode (scanning it sells a whole package). -->
+      <div class="xu-sub">
+        <input class="xu-input xu-input--num money" type="number" min="0" step="any" [(ngModel)]="row.price" [ngModelOptions]="{ standalone: true }" [placeholder]="'products.packPrice' | translate" />
+        <input class="xu-input money" [(ngModel)]="row.barcode" [ngModelOptions]="{ standalone: true }" [placeholder]="'products.packBarcode' | translate" />
+      </div>
       }
       <datalist id="xu-presets">
         <option value="quti"></option><option value="karobka"></option><option value="blok"></option>
@@ -144,6 +149,7 @@ import { NumericInputDirective } from '../../../shared/directives/numeric-input.
       align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.4rem 0.8rem;
       border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2);
     }
+    .xu-sub { display: grid; grid-template-columns: 1fr 1.4fr; gap: 0.5rem; padding: 0 0.4rem 0.3rem 2rem; }
     .xu-input {
       width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--border-strong); border-radius: 9px;
       background: var(--surface); color: var(--text); outline: none; font-size: 0.9rem;

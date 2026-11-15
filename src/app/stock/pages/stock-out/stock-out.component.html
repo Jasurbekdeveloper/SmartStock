@@ -1,43 +1,76 @@
-<div class="max-w-2xl mx-auto">
-  <h1 class="page-title mb-6">{{ 'stock.stockOut' | translate }}</h1>
-
-  <mat-card class="!p-6">
-    <form (ngSubmit)="removeStock()" class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="md:col-span-2">
-        <p class="text-sm font-medium mb-2 text-muted">{{ 'stock.product' | translate }}</p>
-        <app-product-picker [products]="products()" [selected]="selectedProduct()" (picked)="onPick($event)" />
-      </div>
-
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.quantity' | translate }}</mat-label>
-        <input #qtyInput matInput type="number" [(ngModel)]="quantity" name="quantity" min="0.01" step="0.01" [max]="selectedProduct()?.quantity ?? null" placeholder="0" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.reason' | translate }}</mat-label>
-        <mat-select [(ngModel)]="reason" name="reason">
-          @for (r of reasons; track r) {
-          <mat-option [value]="r">{{ reasonLabelKey(r) | translate }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+<div class="page">
+  <div class="page-head">
+    <div>
+      <p class="page-head__eyebrow">{{ 'navigation.stock' | translate }}</p>
+      <h1 class="page-title">{{ 'stock.stockOut' | translate }}</h1>
+      <p class="page-subtitle">{{ 'stock.docHint' | translate }}</p>
     </div>
+  </div>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>{{ 'stock.notes' | translate }}</mat-label>
-      <textarea matInput [(ngModel)]="notes" name="notes" rows="3"></textarea>
-    </mat-form-field>
+  <section class="card p-4 space-y-3">
+    <app-product-picker [products]="products()" (picked)="add($event)" />
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <span class="text-muted">{{ 'stock.reasonForNew' | translate }}:</span>
+      <select class="doc-select" [value]="docReason()" (change)="docReason.set($any($event.target).value)">
+        @for (r of reasons; track r) { <option [value]="r">{{ reasonLabelKey(r) | translate }}</option> }
+      </select>
+    </div>
+  </section>
 
-    @if (errorKey(); as key) {
-    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-      {{ key | translate }}
+  <section class="card overflow-hidden">
+    @if (rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>remove_shopping_cart</mat-icon>
+      <p class="empty-state__title">{{ 'stock.addLines' | translate }}</p>
+      <p class="text-sm max-w-md">{{ 'stock.docLinesHint' | translate }}</p>
+    </div>
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="mobile-cards data-table">
+        <thead>
+          <tr>
+            <th>{{ 'stock.product' | translate }}</th>
+            <th class="w-32">{{ 'stock.quantity' | translate }}</th>
+            <th class="w-48">{{ 'stock.reason' | translate }}</th>
+            <th class="w-12"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.product.id) {
+          @let p = current(r);
+          <tr>
+            <td data-label="">
+              <p class="font-semibold">{{ p.name }}</p>
+              <p class="text-xs" [class.text-loss]="tooMuch(r)" [class.text-muted]="!tooMuch(r)">
+                {{ 'stock.currentQuantity' | translate }}: {{ p.quantity | sum: 2 }} {{ unitLabel(p.unit) }}
+              </p>
+            </td>
+            <td [attr.data-label]="'stock.quantity' | translate">
+              <input class="doc-input money" [class.doc-input--bad]="tooMuch(r)" type="number" min="0" step="any" [value]="r.quantity" (input)="patch(p.id, { quantity: +$any($event.target).value })" />
+            </td>
+            <td [attr.data-label]="'stock.reason' | translate">
+              <select class="doc-select w-full" [value]="r.reason" (change)="patch(p.id, { reason: $any($event.target).value })">
+                @for (reason of reasons; track reason) { <option [value]="reason">{{ reasonLabelKey(reason) | translate }}</option> }
+              </select>
+            </td>
+            <td>
+              <button mat-icon-button type="button" (click)="remove(p.id)" [attr.aria-label]="'common.delete' | translate"><mat-icon>close</mat-icon></button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
     }
+  </section>
 
-    <button mat-flat-button color="warn" type="submit" [disabled]="submitting()" class="w-full !py-3">
-      {{ 'stock.stockOut' | translate }}
-    </button>
-    </form>
-  </mat-card>
+  <section class="card p-4 space-y-3">
+    <textarea class="doc-input !h-auto py-2" rows="2" [value]="notes()" (input)="notes.set($any($event.target).value)" [placeholder]="'stock.notes' | translate"></textarea>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm">{{ 'stock.lossValue' | translate }}: <b class="money text-loss">{{ lossTotal() | currencyDisplay }}</b></p>
+      <button mat-flat-button color="warn" class="!h-11" [disabled]="!canSave()" (click)="save()">
+        <mat-icon>outbox</mat-icon>{{ 'stock.stockOut' | translate }} ({{ rows().length }})
+      </button>
+    </div>
+  </section>
 </div>

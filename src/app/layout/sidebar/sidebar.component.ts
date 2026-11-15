@@ -9,6 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { homePath, Permission, roleCan } from '../../core/auth/permissions';
 import { SidebarStateService } from './sidebar-state.service';
 import { SettingsService } from '../../core/services/settings.service';
+import type { StoreFeatures } from '../../core/models/store-type';
 
 interface MenuItem {
   label: string;
@@ -20,6 +21,8 @@ interface MenuItem {
   exact?: boolean;
   /** Marks a recently added section with a small "new" pill. */
   badge?: boolean;
+  /** Shown only when the store type uses this feature (core/models/store-type.ts). */
+  feature?: keyof StoreFeatures;
   children?: MenuItem[];
 }
 
@@ -40,7 +43,8 @@ export class SidebarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   sidebarState = inject(SidebarStateService);
-  storeName = inject(SettingsService).storeName;
+  private settings = inject(SettingsService);
+  storeName = this.settings.storeName;
   storeInitial = computed(() => (this.storeName() || 'M').trim().charAt(0).toUpperCase());
 
   /** Connection indicator — the POS keeps working offline (Firestore cache), this
@@ -103,7 +107,7 @@ export class SidebarComponent {
             { label: 'buttons.history', path: '/stock/history' }
           ]
         },
-        { label: 'navigation.expiry', path: '/stock/expiry', icon: 'event_busy', permission: 'stock.manage', badge: true },
+        { label: 'navigation.expiry', path: '/stock/expiry', icon: 'event_busy', permission: 'stock.manage', badge: true, feature: 'expiry' },
         { label: 'navigation.suppliers', path: '/suppliers/list', icon: 'local_shipping', permission: 'suppliers.manage' }
       ]
     },
@@ -129,7 +133,8 @@ export class SidebarComponent {
 
   visibleGroups = computed(() => {
     const role = this.currentUser()?.role;
-    const canSee = (item: MenuItem) => !item.permission || roleCan(role, item.permission);
+    const features = this.settings.features();
+    const canSee = (item: MenuItem) => (!item.permission || roleCan(role, item.permission)) && (!item.feature || features[item.feature]);
     return this.groups
       .map((group) => ({
         ...group,

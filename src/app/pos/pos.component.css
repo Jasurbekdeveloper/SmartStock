@@ -772,3 +772,25 @@
   font-size: 0.8rem;
   font-weight: 800;
 }
+
+/* ---------- phone / portrait tablet (< 900px): catalog full screen, ticket as a bottom sheet ---------- */
+.pos-sheet-close, .pos-cartbar, .pos-sheet-backdrop { display: none; }
+
+@media (max-width: 899px) {
+  .pos { grid-template-rows: minmax(0, 1fr); padding-bottom: 4.2rem; }
+  .pos__ticket {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    max-height: 88vh; border-radius: 20px 20px 0 0;
+    transform: translateY(105%); transition: transform 0.25s ease;
+  }
+  .pos--sheet-open .pos__ticket { transform: none; }
+  .pos-sheet-close { display: inline-flex; }
+  .pos-sheet-backdrop { position: fixed; inset: 0; z-index: 39; background: rgba(0, 0, 0, 0.35); }
+  .pos--sheet-open .pos-sheet-backdrop { display: block; }
+  .pos-cartbar {
+    position: fixed; left: 0.6rem; right: 0.6rem; bottom: 0.6rem; z-index: 30;
+    display: flex; align-items: center; gap: 0.6rem; min-height: 3.4rem; padding: 0 0.9rem;
+    border-radius: 16px; background: var(--brand); color: var(--brand-contrast); box-shadow: var(--shadow-lg);
+  }
+  .pos-cartbar__go { display: inline-flex; align-items: center; font-weight: 700; }
+}

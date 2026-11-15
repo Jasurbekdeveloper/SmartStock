@@ -15,7 +15,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
+    <table class="mobile-cards w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'debts.customer' | translate }}</th>
@@ -29,16 +29,16 @@
           [routerLink]="['/debts', summary.customerId]"
           class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
         >
-          <td class="px-4 py-3 text-gray-900 dark:text-white">
+          <td [attr.data-label]="'debts.customer' | translate" class="px-4 py-3 text-gray-900 dark:text-white">
             <p class="font-medium">{{ summary.customerName }}</p>
             @if (summary.customerPhone) {
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.customerPhone }}</p>
             }
           </td>
-          <td class="px-4 py-3 font-semibold" [class.text-debt]="summary.totalRemaining > 0" [class.text-green-600]="summary.totalRemaining === 0" [class.dark:text-green-400]="summary.totalRemaining === 0">
+          <td [attr.data-label]="'debts.totalOwed' | translate" class="px-4 py-3 font-semibold" [class.text-debt]="summary.totalRemaining > 0" [class.text-green-600]="summary.totalRemaining === 0" [class.dark:text-green-400]="summary.totalRemaining === 0">
             {{ summary.totalRemaining | currencyDisplay }}
           </td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">
+          <td [attr.data-label]="'debts.lastDebt' | translate" class="px-4 py-3 text-gray-900 dark:text-white">
             <p>{{ summary.lastDebtAmount | currencyDisplay }}</p>
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ summary.lastDebtDate | date: 'dd.MM.yyyy HH:mm' }}</p>
           </td>

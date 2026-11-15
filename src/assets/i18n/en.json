@@ -216,7 +216,9 @@
     "quantityEditHint": "A change is booked in stock history as a correction",
     "mxikPick": "Pick from the catalogue",
     "mxikPackage": "Package",
-    "skuAutoHint": "Left empty, the barcode is used"
+    "skuAutoHint": "Left empty, the barcode is used",
+    "packPrice": "Package price (optional)",
+    "packBarcode": "Package barcode (optional)"
   },
   "units": {
     "dona": "pcs",
@@ -330,7 +332,8 @@
     "cashierMenu": "Cashier menu",
     "logoutHoldsCart": "The cart is kept as a held cart, then you are signed out.",
     "discountLimit": "Discount over the limit, allowed",
-    "clearCartButton": "Clear"
+    "clearCartButton": "Clear",
+    "positionsShort": "items"
   },
   "stock": {
     "title": "Stock Management",
@@ -404,7 +407,14 @@
     "stockOutSaved": "written off",
     "adjustmentSaved": "count saved",
     "journalHint": "Deliveries, write-offs, counts, sales and returns. Sales and returns of the last days, days",
-    "reasonSupplierReturn": "Returned to supplier"
+    "reasonSupplierReturn": "Returned to supplier",
+    "docHint": "Write off several products at once: scan or search",
+    "reasonForNew": "Reason for new lines",
+    "docLinesHint": "Scan a product or type its name. Scanning it again adds one.",
+    "lossValue": "Loss (at cost)",
+    "countHint": "Scan the goods on the shelf: every scan adds 1. Only listed products change.",
+    "countLinesHint": "Scan the counted goods or type the number.",
+    "countValue": "Difference (at cost)"
   },
   "sales": {
     "title": "Sales",
@@ -581,7 +591,8 @@
     "blockExpired": "Block expired goods",
     "blockExpiredHint": "A cashier can't sell expired goods; a manager confirms each time",
     "cashierMaxDiscount": "Largest discount a cashier may give",
-    "cashierMaxDiscountHint": "Doesn't apply to roles that may change prices (manager, admin)"
+    "cashierMaxDiscountHint": "Doesn't apply to roles that may change prices (manager, admin)",
+    "storeTypeHint": "set by the super admin"
   },
   "statistics": {
     "title": "Statistics",
@@ -982,7 +993,8 @@
       "ownerHint": "To change the owner's email: add an admin with the new email, then make them owner with the crown button.",
       "voidPayment": "Cancel payment",
       "confirmVoidPayment": "The payment is marked as cancelled and the paid period goes back to what it was. The record stays in the history. Continue?",
-      "paymentVoided": "Payment cancelled, period restored"
+      "paymentVoided": "Payment cancelled, period restored",
+      "storeType": "Store type"
     },
     "payments": {
       "none": "No payments yet",
@@ -1521,5 +1533,25 @@
     "previous": "Previous",
     "first": "First",
     "last": "Last"
+  },
+  "storeType": {
+    "grocery": "Grocery",
+    "building": "Building / hardware",
+    "mixed": "Mixed"
+  },
+  "pin": {
+    "setTitle": "Approval PIN",
+    "verifyTitle": "Manager approval",
+    "setHint": "With this PIN you let a cashier give a discount over their limit. 4–8 digits.",
+    "verifyHint": "A manager or admin enters their PIN",
+    "placeholder": "PIN",
+    "repeat": "Repeat the PIN",
+    "remove": "Remove PIN",
+    "invalid": "The PIN is 4 to 8 digits",
+    "mismatch": "The PINs don't match",
+    "wrong": "Wrong PIN",
+    "menuItem": "Approval PIN",
+    "discountReason": "Discount over the cashier's limit",
+    "approvedBy": "Discount approved by"
   }
 }

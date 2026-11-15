@@ -5,6 +5,15 @@
 export interface AltUnit {
   unit: string;
   factor: number;
+  /** Own price of the whole package (1 quti = 380 000), when it differs from factor × unit price. */
+  price?: number | null;
+  /** Barcode printed on the package: scanning it sells one whole package. */
+  barcode?: string | null;
+}
+
+/** Price of one primary unit when sold in this package, or null to use the normal price. */
+export function altUnitUnitPrice(alt: AltUnit | undefined): number | null {
+  return alt && alt.price && alt.price > 0 && alt.factor > 0 ? alt.price / alt.factor : null;
 }
 
 /**
@@ -17,26 +26,30 @@ export interface AltUnit {
 export function parseAltUnitsInput(text: string): AltUnit[] {
   if (!text) return [];
 
-  const result = new Map<string, number>();
+  const result = new Map<string, AltUnit>();
 
+  // unit:factor, optionally :price and :barcode — "quti:20:380000:4780001112223".
   for (const rawSegment of text.split(',')) {
     const segment = rawSegment.trim();
     if (!segment) continue;
 
-    const separatorIndex = segment.indexOf(':');
-    if (separatorIndex === -1) continue;
-
-    const unit = segment.slice(0, separatorIndex).trim();
-    const factorText = segment.slice(separatorIndex + 1).trim();
+    const [unitText, factorText, priceText, barcodeText] = segment.split(':').map((s) => s.trim());
+    const unit = unitText ?? '';
     if (!unit || !factorText) continue;
 
     const factor = Number(factorText);
     if (!Number.isFinite(factor) || factor <= 0) continue;
 
-    result.set(unit, factor);
+    const price = Number(priceText);
+    result.set(unit, {
+      unit,
+      factor,
+      ...(priceText && Number.isFinite(price) && price > 0 ? { price } : {}),
+      ...(barcodeText ? { barcode: barcodeText } : {})
+    });
   }
 
-  return Array.from(result, ([unit, factor]) => ({ unit, factor }));
+  return Array.from(result.values());
 }
 
 /**
@@ -45,5 +58,12 @@ export function parseAltUnitsInput(text: string): AltUnit[] {
  */
 export function formatAltUnitsForInput(altUnits: AltUnit[] | undefined): string {
   if (!altUnits || altUnits.length === 0) return '';
-  return altUnits.map((a) => `${a.unit}:${a.factor}`).join(',');
+  return altUnits
+    .map((a) => {
+      const parts = [a.unit, String(a.factor)];
+      if (a.price || a.barcode) parts.push(a.price ? String(a.price) : '');
+      if (a.barcode) parts.push(a.barcode);
+      return parts.join(':');
+    })
+    .join(',');
 }

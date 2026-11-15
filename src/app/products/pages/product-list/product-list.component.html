@@ -74,7 +74,7 @@
     </div>
 
     <div class="overflow-x-auto" style="border-top: 1px solid var(--border)">
-      <table class="data-table">
+      <table class="mobile-cards data-table">
         <thead>
           <tr>
             <th>{{ 'table.name' | translate }}</th>
@@ -89,7 +89,7 @@
         <tbody>
           @for (product of pagination.paged(); track product.id) {
           <tr>
-            <td>
+            <td [attr.data-label]="'table.name' | translate">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="pl-avatar">
                   @if (product.imageUrl) { <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" /> } @else { {{ initials(product.name) }} }
@@ -105,18 +105,18 @@
                 </div>
               </div>
             </td>
-            <td class="money text-muted">{{ product.barcode }}</td>
-            <td class="text-right font-semibold money">{{ product.price | currencyDisplay:0 }}</td>
-            @if (canSeeCost()) { <td class="text-right money text-muted">{{ product.cost | currencyDisplay:0 }}</td> }
-            <td class="text-right whitespace-nowrap">
+            <td [attr.data-label]="'form.barcode' | translate" class="money text-muted">{{ product.barcode }}</td>
+            <td [attr.data-label]="'products.sellingPrice' | translate" class="text-right font-semibold money">{{ product.price | currencyDisplay:0 }}</td>
+            @if (canSeeCost()) { <td [attr.data-label]="'form.cost' | translate" class="text-right money text-muted">{{ product.cost | currencyDisplay:0 }}</td> }
+            <td [attr.data-label]="'products.quantity' | translate" class="text-right whitespace-nowrap">
               <span class="money" [class.text-loss]="isLowStock(product) || product.quantity <= 0" [class.font-bold]="isLowStock(product)">
                 {{ product.quantity | sum:0 }} {{ 'units.' + product.unit | translate }}
               </span>
               @if (product.quantity <= 0) { <span class="badge badge--red ml-1">{{ 'pos.outOfStock' | translate }}</span> }
               @else if (isLowStock(product)) { <span class="badge badge--amber ml-1">{{ 'products.lowStock' | translate }}</span> }
             </td>
-            <td>@if (categoryName(product.categoryId); as cat) { <span class="badge badge--gray">{{ cat }}</span> }</td>
-            <td class="text-right whitespace-nowrap">
+            <td [attr.data-label]="'products.category' | translate">@if (categoryName(product.categoryId); as cat) { <span class="badge badge--gray">{{ cat }}</span> }</td>
+            <td [attr.data-label]="'table.action' | translate" class="text-right whitespace-nowrap">
               <button mat-icon-button [matTooltip]="'products.printBarcode' | translate" (click)="showBarcode(product)"><mat-icon>qr_code_2</mat-icon></button>
               @if (canManage()) {
               <button mat-icon-button [matTooltip]="'buttons.edit' | translate" (click)="editProduct(product.id)"><mat-icon>edit</mat-icon></button>

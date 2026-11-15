@@ -105,6 +105,7 @@
         @let pp = posPolicy();
         <section class="p-6 space-y-3 border-t border-gray-200 dark:border-gray-800 max-w-2xl">
           <h3 class="text-base font-semibold">{{ 'settings.posPolicy' | translate }}</h3>
+          <p class="text-sm">{{ 'platform.detail.storeType' | translate }}: <b>{{ 'storeType.' + (storeType() ?? 'mixed') | translate }}</b> <span class="text-xs text-gray-500 dark:text-gray-400">· {{ 'settings.storeTypeHint' | translate }}</span></p>
           <mat-slide-toggle [checked]="pp.allowNegativeStock" (change)="setPosPolicy({ allowNegativeStock: $event.checked })">{{ 'settings.allowNegativeStock' | translate }}</mat-slide-toggle>
           <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'settings.allowNegativeStockHint' | translate }}</p>
           <mat-slide-toggle [checked]="pp.blockExpired" (change)="setPosPolicy({ blockExpired: $event.checked })">{{ 'settings.blockExpired' | translate }}</mat-slide-toggle>

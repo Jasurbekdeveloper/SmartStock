@@ -124,7 +124,7 @@
     </div>
     @if (sales().length > 0) {
     <div class="overflow-x-auto">
-      <table class="data-table">
+      <table class="mobile-cards data-table">
         <thead>
           <tr>
             <th>№</th>
@@ -137,15 +137,15 @@
         <tbody>
           @for (sale of sales().slice(0, 8); track sale.id) {
           <tr class="cursor-pointer" [routerLink]="['/sales', sale.id]">
-            <td class="money text-xs text-muted">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
-            <td class="max-w-xs truncate">{{ itemNames(sale) }}</td>
-            <td class="whitespace-nowrap">
+            <td data-label="№" class="money text-xs text-muted">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
+            <td [attr.data-label]="'table.items' | translate" class="max-w-xs truncate">{{ itemNames(sale) }}</td>
+            <td [attr.data-label]="'sales.paymentMethod' | translate" class="whitespace-nowrap">
               <span class="badge" [class]="'pay-' + sale.paymentMethod">{{ 'pos.' + sale.paymentMethod | translate }}</span>
               @if (sale.debtAmount) { <span class="badge pay-debt ml-1">{{ 'pos.debit' | translate }}</span> }
               @if (sale.refundedAmount) { <span class="badge pay-refund ml-1">{{ 'returns.short' | translate }}</span> }
             </td>
-            <td class="text-right font-semibold money">{{ sale.total | currencyDisplay:0 }}</td>
-            <td class="text-right text-muted whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>
+            <td [attr.data-label]="'table.total' | translate" class="text-right font-semibold money">{{ sale.total | currencyDisplay:0 }}</td>
+            <td [attr.data-label]="'table.date' | translate" class="text-right text-muted whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM HH:mm' }}</td>
           </tr>
           }
         </tbody>

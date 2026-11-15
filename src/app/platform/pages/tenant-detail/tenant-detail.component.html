@@ -116,6 +116,12 @@
         <dt class="text-gray-500">{{ 'platform.detail.address' | translate }}</dt>
         <dd class="break-words">{{ t.address }}</dd>
         }
+        <dt class="text-gray-500">{{ 'platform.detail.storeType' | translate }}</dt>
+        <dd>
+          <select class="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800" [value]="t.storeType ?? 'mixed'" [disabled]="busy()" (change)="setStoreType(t, $any($event.target).value)">
+            @for (type of storeTypes; track type) { <option [value]="type">{{ 'storeType.' + type | translate }}</option> }
+          </select>
+        </dd>
         <dt class="text-gray-500">{{ 'platform.detail.created' | translate }}</dt>
         <dd>{{ t.createdAt | date: 'dd.MM.yyyy' }}</dd>
         <dt class="text-gray-500">{{ 'platform.detail.staff' | translate }}</dt>

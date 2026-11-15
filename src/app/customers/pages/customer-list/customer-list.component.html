@@ -23,7 +23,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
+    <table class="mobile-cards w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'customers.name' | translate }}</th>
@@ -36,17 +36,17 @@
       <tbody>
         @for (customer of pagination.paged(); track customer.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" (click)="viewCustomer(customer.id)">
-          <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ customer.name }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.phone }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.address }}</td>
-          <td class="px-4 py-3 text-gray-900 dark:text-white">
+          <td [attr.data-label]="'customers.name' | translate" class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ customer.name }}</td>
+          <td [attr.data-label]="'customers.phone' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.phone }}</td>
+          <td [attr.data-label]="'customers.address' | translate" class="px-4 py-3 text-gray-900 dark:text-white">{{ customer.address }}</td>
+          <td [attr.data-label]="'customers.creditLimit' | translate" class="px-4 py-3 text-gray-900 dark:text-white">
             @if (customer.creditLimit) {
               {{ customer.creditLimit | currencyDisplay:0 }}
             } @else {
               —
             }
           </td>
-          <td class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
+          <td [attr.data-label]="'table.action' | translate" class="px-4 py-3 whitespace-nowrap" (click)="$event.stopPropagation()">
             <button mat-icon-button color="primary" [matTooltip]="'buttons.edit' | translate" (click)="editCustomer(customer.id)">
               <mat-icon>edit</mat-icon>
             </button>

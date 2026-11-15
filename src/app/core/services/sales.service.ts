@@ -99,6 +99,8 @@ export interface Sale {
   refundedAmount?: number;
   /** Value of returned goods that came off this sale's debt instead of going back as money. */
   debtReturned?: number;
+  /** Manager who approved a discount over the cashier's limit with their PIN. */
+  discountApprovedBy?: { uid: string; name: string };
 }
 
 export interface SaleDebtInput {

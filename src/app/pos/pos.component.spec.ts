@@ -15,6 +15,7 @@ import { AuthService } from '../core/services/auth.service';
 import { ShiftService } from '../core/services/shift.service';
 import { TranslationService } from '../core/services/translation.service';
 import { ToastService } from '../core/services/toast.service';
+import { ApprovalPinService } from '../core/services/approval-pin.service';
 import { SettingsService } from '../core/services/settings.service';
 import { CashMovementService } from '../core/services/cash-movement.service';
 import { BatchService } from '../core/services/batch.service';
@@ -41,6 +42,10 @@ const water: Product = {
   id: 'p5', name: 'Suv Hydrolife 1.5L', barcode: '4780069000130', price: 5000, cost: 3500,
   quantity: 50, unit: 'dona', categoryId: 'c3', markingRequired: true,
   mxikCode: '00401001001000000', packageCode: '1500001'
+};
+const cola: Product = {
+  id: 'p6', name: 'Cola 0.5L', barcode: '4780000000101', price: 7000, cost: 5000,
+  quantity: 120, unit: 'dona', categoryId: 'c3', altUnits: [{ unit: 'quti', factor: 12, price: 72000, barcode: '4780000000999' }]
 };
 const inDays = (n: number) => {
   const d = new Date();
@@ -74,7 +79,7 @@ describe('PosComponent checkout (cashier)', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
-        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk, water]), updateProduct: vi.fn(() => of(undefined)) } },
+        { provide: ProductService, useValue: { getProducts: () => of([cement, nails, tiles, milk, water, cola]), updateProduct: vi.fn(() => of(undefined)) } },
         { provide: BatchService, useValue: { getActiveBatches: () => of(activeBatches) } },
         { provide: TenantService, useValue: { tenant: signal({ name: 'Test' }) } },
         { provide: CategoryService, useValue: { getCategories: () => of([]) } },
@@ -86,6 +91,7 @@ describe('PosComponent checkout (cashier)', () => {
         { provide: TranslationService, useValue: { translate: (k: string) => k, getLanguage: () => 'uz', setLanguage: () => undefined } },
         { provide: ToastService, useValue: { error: vi.fn(), success: vi.fn() } },
         { provide: FiscalService, useValue: fiscal },
+        { provide: ApprovalPinService, useValue: { verify: vi.fn(async () => null) } },
         { provide: SettingsService, useValue: { vatRate: signal(0), pricesIncludeVat: signal(true), currencySymbol: signal("so'm"), fiscalPolicy: signal({ send: true, sendDebt: true }), posPolicy: posPolicy } }
       ]
     }).compileComponents();
@@ -123,6 +129,17 @@ describe('PosComponent checkout (cashier)', () => {
       await t.settle();
       pos.updateLineDiscount('p1', 50000);
       expect(pos.cart()[0].discount).toBe(5000);
+    });
+
+    it('sells a whole box at the box price when its barcode is scanned', async () => {
+      const t = await setup();
+      const pos = t.fixture.componentInstance;
+      (pos as unknown as { addProductByBarcode(code: string): void }).addProductByBarcode('4780000000999');
+      const line = pos.cart()[0];
+      expect(line.quantity).toBe(12);
+      expect(line.selectedUnit).toBe('quti');
+      expect(line.price).toBe(6000);
+      expect(pos.shownLinePrice(line)).toBe(72000);
     });
 
     it('starts every new ticket with the keypad on quantity', async () => {

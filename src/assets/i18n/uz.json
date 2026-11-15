@@ -216,7 +216,9 @@
     "quantityEditHint": "O'zgartirilsa, farqi ombor tarixiga tuzatish sifatida yoziladi",
     "mxikPick": "Katalogdan tanlash",
     "mxikPackage": "Qadoq",
-    "skuAutoHint": "Bo'sh qolsa, shtrix-koddan olinadi"
+    "skuAutoHint": "Bo'sh qolsa, shtrix-koddan olinadi",
+    "packPrice": "Quti narxi (ixtiyoriy)",
+    "packBarcode": "Quti shtrix-kodi (ixtiyoriy)"
   },
   "units": {
     "dona": "dona",
@@ -330,7 +332,8 @@
     "cashierMenu": "Kassir menyusi",
     "logoutHoldsCart": "Savatdagi tovarlar kechiktirilgan cheklarga saqlanadi va tizimdan chiqiladi.",
     "discountLimit": "Chegirma limitdan oshdi, ruxsat etilgan",
-    "clearCartButton": "Tozalash"
+    "clearCartButton": "Tozalash",
+    "positionsShort": "ta"
   },
   "stock": {
     "title": "Qoldiq boshqaruvi",
@@ -404,7 +407,14 @@
     "stockOutSaved": "chiqim qilindi",
     "adjustmentSaved": "inventarizatsiya saqlandi",
     "journalHint": "Kirim, chiqim, inventarizatsiya, sotuv va qaytarishlar. Sotuv va qaytarishlar oxirgi kunlar uchun, kun soni",
-    "reasonSupplierReturn": "Ta'minotchiga qaytarish"
+    "reasonSupplierReturn": "Ta'minotchiga qaytarish",
+    "docHint": "Bir nechta tovarni birdan chiqim qiling: skanerlang yoki qidiring",
+    "reasonForNew": "Yangi qatorlar sababi",
+    "docLinesHint": "Tovarni skanerlang yoki nomini yozing. Bir tovar qayta skanerlansa, miqdori bittaga oshadi.",
+    "lossValue": "Yo'qotish (tannarx bo'yicha)",
+    "countHint": "Javondagi tovarni skanerlang: har skaner sanoqqa 1 qo'shadi. Faqat ro'yxatdagi tovarlar o'zgaradi.",
+    "countLinesHint": "Sanalgan tovarlarni skanerlang yoki sonini yozing.",
+    "countValue": "Farq (tannarx bo'yicha)"
   },
   "sales": {
     "title": "Sotuvlar",
@@ -581,7 +591,8 @@
     "blockExpired": "Muddati o'tgan tovarni bloklash",
     "blockExpiredHint": "Kassir muddati o'tgan tovarni sota olmaydi, menejer har safar tasdiqlaydi",
     "cashierMaxDiscount": "Kassir beradigan eng katta chegirma",
-    "cashierMaxDiscountHint": "Narxni o'zgartirish huquqi bor rollarga (menejer, admin) bu cheklov qo'llanmaydi"
+    "cashierMaxDiscountHint": "Narxni o'zgartirish huquqi bor rollarga (menejer, admin) bu cheklov qo'llanmaydi",
+    "storeTypeHint": "super admin belgilaydi"
   },
   "statistics": {
     "title": "Statistika",
@@ -982,7 +993,8 @@
       "ownerHint": "Egasining email'ini o'zgartirish kerak bo'lsa: yangi email bilan admin qo'shing va uni toj belgisi orqali ega qiling.",
       "voidPayment": "To'lovni bekor qilish",
       "confirmVoidPayment": "To'lov bekor qilingan deb belgilanadi va muddat avvalgi holatiga qaytadi. Yozuv tarixda qoladi. Davom etasizmi?",
-      "paymentVoided": "To'lov bekor qilindi, muddat qaytarildi"
+      "paymentVoided": "To'lov bekor qilindi, muddat qaytarildi",
+      "storeType": "Do'kon turi"
     },
     "payments": {
       "none": "Hali to'lov yo'q",
@@ -1521,5 +1533,25 @@
     "previous": "Oldingi",
     "first": "Birinchi",
     "last": "Oxirgi"
+  },
+  "storeType": {
+    "grocery": "Oziq-ovqat",
+    "building": "Qurilish / xo'jalik",
+    "mixed": "Aralash"
+  },
+  "pin": {
+    "setTitle": "Tasdiqlash PIN-kodi",
+    "verifyTitle": "Menejer tasdig'i",
+    "setHint": "Kassir chegirma limitidan oshganda shu PIN bilan ruxsat berasiz. 4–8 raqam.",
+    "verifyHint": "Menejer yoki admin o'z PIN-kodini kiritsin",
+    "placeholder": "PIN",
+    "repeat": "PIN-ni takrorlang",
+    "remove": "PIN-ni o'chirish",
+    "invalid": "PIN 4–8 ta raqamdan iborat bo'lsin",
+    "mismatch": "PIN-lar mos kelmadi",
+    "wrong": "PIN noto'g'ri",
+    "menuItem": "Tasdiqlash PIN-kodi",
+    "discountReason": "Chegirma kassir limitidan katta",
+    "approvedBy": "Chegirmani tasdiqlagan"
   }
 }

@@ -1,47 +1,69 @@
-<div class="max-w-2xl mx-auto">
-  <h1 class="page-title mb-6">{{ 'stock.adjustment' | translate }}</h1>
-
-  <mat-card class="!p-6">
-    <form (ngSubmit)="submitAdjustment()" class="space-y-6">
+<div class="page">
+  <div class="page-head">
     <div>
-      <p class="text-sm font-medium mb-2 text-muted">{{ 'stock.product' | translate }}</p>
-      <app-product-picker [products]="products()" [selected]="selectedProduct()" (picked)="onPick($event)" />
+      <p class="page-head__eyebrow">{{ 'navigation.stock' | translate }}</p>
+      <h1 class="page-title">{{ 'stock.adjustment' | translate }}</h1>
+      <p class="page-subtitle">{{ 'stock.countHint' | translate }}</p>
     </div>
+  </div>
 
-    @if (selectedProduct(); as product) {
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-gray-700 dark:text-gray-300 font-medium mb-2">{{ 'stock.currentQuantity' | translate }}</label>
-        <p class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">{{ product.quantity | sum:0 }}</p>
-      </div>
+  <section class="card p-4">
+    <app-product-picker [products]="products()" (picked)="add($event)" />
+  </section>
 
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'stock.countedQuantity' | translate }}</mat-label>
-        <input #qtyInput matInput type="number" [(ngModel)]="countedQuantity" name="countedQuantity" min="0" step="0.01" />
-      </mat-form-field>
+  <section class="card overflow-hidden">
+    @if (rows().length === 0) {
+    <div class="empty-state">
+      <mat-icon>fact_check</mat-icon>
+      <p class="empty-state__title">{{ 'stock.addLines' | translate }}</p>
+      <p class="text-sm max-w-md">{{ 'stock.countLinesHint' | translate }}</p>
     </div>
-
-    @if (difference(); as diff) {
-    <p class="font-semibold" [class.text-red-600]="diff < 0" [class.text-green-600]="diff > 0" [class.dark:text-red-400]="diff < 0" [class.dark:text-green-400]="diff > 0">
-      {{ 'stock.difference' | translate }}: {{ diff > 0 ? '+' : '' }}{{ diff | sum:0 }}
-    </p>
-    }
-    }
-
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>{{ 'stock.notes' | translate }}</mat-label>
-      <textarea matInput [(ngModel)]="notes" name="notes" rows="3"></textarea>
-    </mat-form-field>
-
-    @if (errorKey(); as key) {
-    <div class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
-      {{ key | translate }}
+    } @else {
+    <div class="overflow-x-auto">
+      <table class="mobile-cards data-table">
+        <thead>
+          <tr>
+            <th>{{ 'stock.product' | translate }}</th>
+            <th class="w-28 text-right">{{ 'stock.currentQuantity' | translate }}</th>
+            <th class="w-32">{{ 'stock.countedQuantity' | translate }}</th>
+            <th class="w-28 text-right">{{ 'stock.difference' | translate }}</th>
+            <th class="w-12"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.product.id) {
+          @let p = current(r);
+          @let diff = difference(r);
+          <tr>
+            <td data-label="">
+              <p class="font-semibold">{{ p.name }}</p>
+              <p class="text-xs text-muted money">{{ p.barcode }}</p>
+            </td>
+            <td class="text-right money" [attr.data-label]="'stock.currentQuantity' | translate">{{ p.quantity | sum: 3 }} {{ unitLabel(p.unit) }}</td>
+            <td [attr.data-label]="'stock.countedQuantity' | translate">
+              <input class="doc-input money" type="number" min="0" step="any" [value]="r.counted ?? ''" (input)="setCounted(p.id, $any($event.target).value)" />
+            </td>
+            <td class="text-right money font-semibold" [attr.data-label]="'stock.difference' | translate" [class.text-loss]="(diff ?? 0) < 0" [class.text-profit]="(diff ?? 0) > 0">
+              {{ diff === null ? '—' : (diff > 0 ? '+' : '') + (diff | sum: 3) }}
+            </td>
+            <td>
+              <button mat-icon-button type="button" (click)="remove(p.id)" [attr.aria-label]="'common.delete' | translate"><mat-icon>close</mat-icon></button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
     }
+  </section>
 
-    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()" class="w-full !py-3">
-      {{ 'stock.saveAdjustment' | translate }}
-    </button>
-    </form>
-  </mat-card>
+  <section class="card p-4 space-y-3">
+    <textarea class="doc-input !h-auto py-2" rows="2" [value]="notes()" (input)="notes.set($any($event.target).value)" [placeholder]="'stock.notes' | translate"></textarea>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm">{{ 'stock.countValue' | translate }}: <b class="money" [class.text-loss]="valueDifference() < 0" [class.text-profit]="valueDifference() > 0">{{ valueDifference() | currencyDisplay }}</b></p>
+      <button mat-flat-button color="primary" class="!h-11" [disabled]="!canSave()" (click)="save()">
+        <mat-icon>fact_check</mat-icon>{{ 'stock.saveAdjustment' | translate }} ({{ rows().length }})
+      </button>
+    </div>
+  </section>
 </div>

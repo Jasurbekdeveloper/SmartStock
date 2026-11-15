@@ -1,4 +1,4 @@
-import { parseAltUnitsInput, formatAltUnitsForInput } from './alt-units-parser.util';
+import { parseAltUnitsInput, formatAltUnitsForInput , altUnitUnitPrice } from './alt-units-parser.util';
 
 describe('alt-units-parser', () => {
   describe('parseAltUnitsInput', () => {
@@ -96,5 +96,25 @@ describe('alt-units-parser', () => {
       const text = 'quti:20,karobka:100';
       expect(formatAltUnitsForInput(parseAltUnitsInput(text))).toBe(text);
     });
+  });
+});
+
+describe('package price and barcode', () => {
+  it('reads an optional price and barcode after the factor', () => {
+    expect(parseAltUnitsInput('quti:20:380000:4780001112223,blok:10')).toEqual([
+      { unit: 'quti', factor: 20, price: 380000, barcode: '4780001112223' },
+      { unit: 'blok', factor: 10 }
+    ]);
+    expect(parseAltUnitsInput('quti:20::4780001112223')).toEqual([{ unit: 'quti', factor: 20, barcode: '4780001112223' }]);
+  });
+
+  it('writes them back in the same form', () => {
+    const text = 'quti:20:380000:4780001112223,blok:10';
+    expect(formatAltUnitsForInput(parseAltUnitsInput(text))).toBe(text);
+  });
+
+  it('gives the per-unit price of a priced package', () => {
+    expect(altUnitUnitPrice({ unit: 'quti', factor: 20, price: 380000 })).toBe(19000);
+    expect(altUnitUnitPrice({ unit: 'quti', factor: 20 })).toBeNull();
   });
 });

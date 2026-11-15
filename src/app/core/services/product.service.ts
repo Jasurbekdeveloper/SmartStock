@@ -1,3 +1,4 @@
+import type { AltUnit } from '../utils/alt-units-parser.util';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -33,7 +34,7 @@ export interface Product {
    *  quantity itself always stays in the primary unit; this is only used to let POS/staff
    *  enter quantities in a more convenient unit and convert on the fly. `factor` is how
    *  many primary units make up 1 of that alt unit (e.g. unit "quti", factor 20 → 1 quti = 20 dona). */
-  altUnits?: { unit: string; factor: number }[];
+  altUnits?: AltUnit[];
   /** Optional extra search terms (synonyms/loanwords/abbreviations) an admin can tag
    *  onto a product so it's also found under a name it isn't actually called — e.g. a
    *  product named "Quvur" tagged with "truba" (both mean "pipe"). Unlike

@@ -59,7 +59,7 @@
 
   <mat-card>
     <div class="overflow-x-auto">
-    <table class="w-full">
+    <table class="mobile-cards w-full">
       <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
           <th class="px-4 py-3 text-left text-gray-900 dark:text-white">{{ 'categories.imageUrl' | translate }}</th>
@@ -73,7 +73,7 @@
         @for (category of pagination.paged(); track category.id) {
         <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
           @if (editingId() === category.id) {
-          <td class="px-4 py-3">
+          <td [attr.data-label]="'categories.imageUrl' | translate" class="px-4 py-3">
             <div class="flex items-center gap-2">
               @if (editImageUrl()) {
               <img [src]="editImageUrl()" alt="" class="w-10 h-10 rounded object-cover" />
@@ -88,18 +88,18 @@
               <input #editFileInput type="file" accept="image/*" hidden (change)="onEditFileSelected($event)" />
             </div>
           </td>
-          <td class="px-4 py-3">
+          <td [attr.data-label]="'categories.name' | translate" class="px-4 py-3">
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
               <input matInput [ngModel]="editName()" (ngModelChange)="editName.set($event)" />
             </mat-form-field>
           </td>
-          <td class="px-4 py-3">
+          <td [attr.data-label]="'categories.variantAttributes' | translate" class="px-4 py-3">
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
               <input matInput [ngModel]="editAttributes()" (ngModelChange)="editAttributes.set($event)" placeholder="Hajm, Quvvat" />
             </mat-form-field>
           </td>
-          <td class="px-4 py-3"></td>
-          <td class="px-4 py-3 whitespace-nowrap">
+          <td [attr.data-label]="'categories.trackExpiryShort' | translate" class="px-4 py-3"></td>
+          <td [attr.data-label]="'table.action' | translate" class="px-4 py-3 whitespace-nowrap">
             <button mat-icon-button color="primary" [matTooltip]="'common.save' | translate" (click)="saveEdit(category.id)" [disabled]="savingEdit()">
               <mat-icon>check</mat-icon>
             </button>

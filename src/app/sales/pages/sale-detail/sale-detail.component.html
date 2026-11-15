@@ -72,6 +72,9 @@
       </div>
       <div class="space-y-1.5 text-sm text-gray-900 dark:text-white">
         <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'sales.paymentMethod' | translate }}</span><span class="font-semibold">{{ 'pos.' + sale.paymentMethod | translate }}</span></div>
+        @if (sale.discountApprovedBy; as a) {
+        <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'pin.approvedBy' | translate }}</span><span class="font-semibold">{{ a.name }}</span></div>
+        }
         @if (cash(sale) > 0) {
         <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">{{ 'pos.cash' | translate }}</span><span>{{ cash(sale) | currencyDisplay }}</span></div>
         }

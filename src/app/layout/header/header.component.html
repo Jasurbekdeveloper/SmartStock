@@ -59,6 +59,12 @@
       {{ 'subscription.title' | translate }}
     </a>
     }
+    @if (canApprove()) {
+    <button mat-menu-item (click)="openPin()">
+      <mat-icon>pin</mat-icon>
+      {{ 'pin.menuItem' | translate }}
+    </button>
+    }
     <button mat-menu-item (click)="openTelegram()">
       <mat-icon>send</mat-icon>
       {{ 'telegram.menuItem' | translate }}

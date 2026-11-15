@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -91,6 +91,7 @@ export class SettingsPageComponent implements OnInit {
 
   // ---------------------------------------------------------------- till rules (admin)
   posPolicy = this.settingsService.posPolicy;
+  storeType = computed(() => this.tenantService.tenant()?.storeType);
 
   setPosPolicy(patch: Partial<PosPolicy>) {
     this.settingsService.updateGeneralSettings({ posPolicy: { ...this.posPolicy(), ...patch } }).subscribe({

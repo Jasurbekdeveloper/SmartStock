@@ -1,3 +1,4 @@
+import type { StoreType } from '../models/store-type';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, map } from 'rxjs';
 import {
@@ -283,6 +284,14 @@ export class PlatformService {
       { merge: true }
     );
     this.addAudit(batch, 'tenant_edit', tenant.id, info.name, tenant.name !== info.name ? `${tenant.name} → ${info.name}` : '');
+    return from(batch.commit());
+  }
+
+  /** Kind of shop: switches the store's defaults and menu (core/models/store-type.ts). */
+  setStoreType(tenant: Tenant, storeType: StoreType): Observable<void> {
+    const batch = writeBatch(this.firestore);
+    batch.update(doc(this.firestore, 'tenants', tenant.id), { storeType });
+    this.addAudit(batch, 'tenant_edit', tenant.id, tenant.name, `${tenant.storeType ?? 'mixed'} → ${storeType}`);
     return from(batch.commit());
   }
 

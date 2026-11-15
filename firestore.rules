@@ -403,6 +403,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // approvalPins/{uid}: a manager's till-approval PIN, stored only as a salted slow hash.
+    // Read by the store's tills (they check a typed PIN against it); each user writes
+    // only their own, and only a role that may change prices (pos.priceOverride).
+    match /approvalPins/{uid} {
+      allow read: if isTenantMember(resource.data.tenantId);
+      allow create, update: if request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && canPerm(request.resource.data.tenantId, 'pos.priceOverride')
+        && request.resource.data.hash is string && request.resource.data.salt is string;
+      allow delete: if request.auth.uid == uid;
+    }
+
     // shifts/{id}: cashier register sessions (open/close, Z-report). Any active user
     // can read (cashier's own history + admin/manager's cross-cashier view are both
     // filtered client-side); only the cashier who opened a shift may create/close it,

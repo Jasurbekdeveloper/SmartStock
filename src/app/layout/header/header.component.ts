@@ -14,6 +14,8 @@ import { SettingsService } from '../../core/services/settings.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { TelegramLinkDialogComponent } from '../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
+import { PinDialogComponent } from '../../shared/components/pin-dialog/pin-dialog.component';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-header',
@@ -32,6 +34,9 @@ export class HeaderComponent {
 
   private currentUser = toSignal(this.authService.currentUser$, { initialValue: null });
   canManageSubscription = computed(() => roleCan(this.currentUser()?.role, 'subscription.manage'));
+  /** Managers / admins approve discounts over a cashier's limit with their own PIN. */
+  canApprove = computed(() => roleCan(this.currentUser()?.role, 'pos.priceOverride'));
+  private toast = inject(ToastService);
   userName = computed(() => this.currentUser()?.displayName || this.currentUser()?.email || '—');
   roleKey = computed(() => {
     const role = this.currentUser()?.role ?? 'cashier';
@@ -95,5 +100,14 @@ export class HeaderComponent {
 
   openTelegram() {
     this.dialog.open(TelegramLinkDialogComponent, { width: '420px' });
+  }
+
+  openPin() {
+    this.dialog
+      .open(PinDialogComponent, { width: '380px', data: { mode: 'set' } })
+      .afterClosed()
+      .subscribe((done) => {
+        if (done) this.toast.success(this.translationService.translate('messages.saved'));
+      });
   }
 }

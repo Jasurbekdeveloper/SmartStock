@@ -46,7 +46,7 @@
 
   <mat-card class="!p-0 overflow-hidden">
     <div class="overflow-x-auto">
-    <table class="data-table">
+    <table class="mobile-cards data-table">
       <thead>
         <tr>
           <th>{{ 'sales.receiptNo' | translate }}</th>
@@ -61,9 +61,9 @@
       <tbody>
         @for (sale of pagination.paged(); track sale.id) {
         <tr [routerLink]="['/sales', sale.id]" class="cursor-pointer">
-          <td class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
-          <td [title]="itemNames(sale)"><div class="max-w-xs truncate">{{ itemNames(sale) }}</div></td>
-          <td class="whitespace-nowrap">
+          <td [attr.data-label]="'sales.receiptNo' | translate" class="font-mono text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.receiptNo || sale.id.slice(0, 8) }}</td>
+          <td [attr.data-label]="'table.items' | translate" [title]="itemNames(sale)"><div class="max-w-xs truncate">{{ itemNames(sale) }}</div></td>
+          <td [attr.data-label]="'sales.paymentMethod' | translate" class="whitespace-nowrap">
             <span class="badge" [class]="'pay-' + sale.paymentMethod">{{ 'pos.' + sale.paymentMethod | translate }}</span>
             @if (sale.debtAmount && sale.debtAmount > 0) {
             <span class="badge pay-debt ml-1">{{ 'pos.debit' | translate }}</span>
@@ -72,10 +72,10 @@
             <span class="badge pay-refund ml-1">{{ 'returns.short' | translate }}</span>
             }
           </td>
-          <td class="whitespace-nowrap">{{ customerName(sale) || '—' }}</td>
-          <td class="text-gray-500 dark:text-gray-400">{{ sale.cashierName || '—' }}</td>
-          <td class="text-right font-bold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
-          <td class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td [attr.data-label]="'debts.customer' | translate" class="whitespace-nowrap">{{ customerName(sale) || '—' }}</td>
+          <td [attr.data-label]="'sales.cashier' | translate" class="text-gray-500 dark:text-gray-400">{{ sale.cashierName || '—' }}</td>
+          <td [attr.data-label]="'table.total' | translate" class="text-right font-bold tabular-nums">{{ sale.total | currencyDisplay:0 }}</td>
+          <td [attr.data-label]="'table.date' | translate" class="text-right text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ sale.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
         </tr>
         }
       </tbody>

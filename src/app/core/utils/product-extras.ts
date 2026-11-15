@@ -8,7 +8,7 @@ import { expiryFromShelfLife } from './batches';
 export interface ProductExtrasDraft {
   wholesalePrice: number | null;
   wholesaleMinQty: number | null;
-  altUnits: { unit: string; factor: number | null }[];
+  altUnits: { unit: string; factor: number | null; price?: number | null; barcode?: string | null }[];
   trackExpiry: boolean;
   /** Sold only with a scanned Asl belgisi code per unit. */
   markingRequired: boolean;
@@ -68,14 +68,21 @@ export function extrasFromProduct(p: Partial<Product>): ProductExtrasDraft {
 
 /** Valid alternate units: named, positive factor, unique names (last wins), not the primary unit. */
 export function cleanAltUnits(rows: ProductExtrasDraft['altUnits'], primaryUnit?: string): AltUnit[] {
-  const result = new Map<string, number>();
+  const result = new Map<string, AltUnit>();
   for (const row of rows) {
     const unit = row.unit.trim();
     const factor = Number(row.factor);
     if (!unit || unit === primaryUnit || !Number.isFinite(factor) || factor <= 0) continue;
-    result.set(unit, factor);
+    const price = Number(row.price);
+    const barcode = row.barcode?.trim();
+    result.set(unit, {
+      unit,
+      factor,
+      ...(Number.isFinite(price) && price > 0 ? { price } : {}),
+      ...(barcode ? { barcode } : {})
+    });
   }
-  return [...result].map(([unit, factor]) => ({ unit, factor }));
+  return [...result.values()];
 }
 
 /** Fields to merge into the product document. Cleared values become null (wholesale,

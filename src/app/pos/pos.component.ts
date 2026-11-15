@@ -1138,15 +1138,18 @@ export class PosComponent implements OnInit {
     if (this.dialogOpen()) return;
 
     const inSearch = document.activeElement === this.searchInputRef?.nativeElement;
+    // Any text field (search, starting cash, a line's quantity…): fast typing there is
+    // typing, so its keys are never swallowed — that left "1" of a typed "100000" and
+    // only the first letter of "sement". Outside fields a scan must not leak anywhere.
+    const typing = this.isTypingTarget();
     const code = this.scannerGun.handleKey(event);
-    // In the search box fast typing is still typing: its keys are never swallowed (that
-    // left only the first letter of "sement"). Elsewhere a scan must not leak into fields.
-    if (this.scannerGun.wasPartOfBurst() && !inSearch) {
+    if (this.scannerGun.wasPartOfBurst() && !typing) {
       event.preventDefault();
     }
-    // A burst typed into the search box is a scan only if it is a known code.
-    const isScan =
-      !!code && (!inSearch || !!parseMarkingCode(code) || this.products().some((p) => p.barcode === code || p.sku === code) || !!this.findPackage(code));
+    // In the search box a burst is a scan only if it is a known code; in other fields never.
+    const known = (c: string) =>
+      !!parseMarkingCode(c) || this.products().some((p) => p.barcode === c || p.sku === c) || !!this.findPackage(c);
+    const isScan = !!code && (!typing || (inSearch && known(code)));
     if (code && isScan) {
       event.preventDefault();
       if (inSearch) this.searchQuery.set('');
